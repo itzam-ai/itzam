@@ -1,0 +1,66 @@
+---
+title: "Getting Started"
+description: "Itzam is designed to be easy to use. This guide will help you integrate AI into your applications using Itzam."
+icon: "play"
+---
+
+For example, let's imagine you want to create a support chat in your landing page and want it to be powered by AI. 
+
+Here’s how you would do this with Itzam:
+
+### Dashboard
+
+Everything starts in the dashboard, where you will create a Workflow. A Workflow represents a functionality in your app, in this case, the support chat.
+
+1. Create a Workflow called “Support Chat”.
+2. Inside your Workflow you can configure:
+    - AI model (GPT o1, Claude 3.7, Gemini 2)
+    - Prompt (e.g. “You are a customer support agent from Acme Inc…”)
+    - Model settings (temperature, max tokens) - soon
+    - Context (what the model will use as context, e.g. company docs, company logo, links) - soon
+3. Now create a new API key in the dashboard.
+4. Great! Now grab this Workflow’s slug and your API key and let's integrate!
+
+### SDKs
+
+Now it’s time to add the Workflow to your app. 
+
+1. Install the SDK:
+
+```bash
+npm i itzam
+```
+
+2. Use the API key to authenticate:
+    
+```jsx
+import Itzam from "itzam";
+
+const itzam = new Itzam("my-great-api-key");
+```
+    
+3. Use the Workflow’s slug to run it with your user’s input:
+    
+```jsx
+const response = await itzam.generateText({
+  input: "I am having trouble finding your documentation...",
+  workflowSlug: "support-chat",
+});
+
+// response = "Follow this link to access our documentation: acme.com/docs"
+```
+
+
+### API
+
+If you prefer, you can also use the API directly.
+
+```bash
+curl -X POST \
+  -H "Api-Key: YOUR_API_KEY" \
+  -d '{"input": "Hello, world!", "workflowSlug": "my_great_workflow"}' \
+  https://itz.am/api/v1/generate/text
+```
+
+
+

@@ -1,0 +1,22 @@
+{
+    "name": "@itzam/utils",
+    "type": "module",
+    "exports": {
+        "./*": "./src/*.ts",
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@repo/typescript-config": "workspace:*",
+        "@types/node": "^20.17.28",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "@t3-oss/env-nextjs": "^0.12.0",
+        "lucide-react": "^0.501.0",
+        "zod": "^3.24.2"
+    }
+}

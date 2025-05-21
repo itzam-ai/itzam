@@ -1,0 +1,47 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Basic rules, exports, naming, patterns
+globs: 
+alwaysApply: true
+---
+# Project
+- You are working on Itzam, a product that makes AI workflows easier to implement. [ITZAM.md](mdc:notes/ITZAM.md) has all the details about it.
+
+# Exports
+- Declare export inline
+
+# Nextjs
+- We should use the app router when developing new features, and keeping the implementation for refactoring old ones
+- Add "import 'server-only'" to ensure a file is only called on the server-side
+- Maximize server components usage
+- Don't forget to add loading.tsx (use the components inside /components/loading) and error.tsx for routes
+- Add <Suspense> for async components loading states
+- Use React's server functions for data fetching and server actions for forms
+
+# Database
+- Our database schema is declared in [schema.ts](mdc:packages/server/src/db/schema.ts)
+- We're using Drizzle with the postgres adapter and deploying to supabase
+
+# SDK
+- If an endpoint is under the /api/v1 route, we should always document it using the open api spec
+
+# Auth
+- We're using Supabase Auth as our Auth provider
+
+# Payments
+- We use Stripe to handle payments
+
+# Components
+- We use Shadcn UI as our component library. Always check if there's a built component before creating a new one
+
+# React
+- Always use the `cache` function in server actions if appropriate
+
+# Misc
+- Use "~" for absolute paths
+- Use date-fns for handling dates
+- Use the [try-catch.ts](mdc:apps/web/src/lib/try-catch.ts) tryCatch function for async functions, dont use throw

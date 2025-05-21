@@ -1,0 +1,23 @@
+--- Tweet 1 
+
+🚀 Itzam update
+
+Now you can integrate AI in 2 minutes
+
+[[video da implementacao em 2 min https://www.youtube.com/watch?v=wZ9aajZyNOk]] 
+
+--- Tweet 2
+
+Of course itzam doesn't do just that, we also have:
+- Interactive playground with > 25 models from 7 different providers 
+- Unified billing platform, keeping it simple to track AI expenses
+- Model and prompt hot swapping - no deploy required
+- A production ready SDK for integrating to your services - great dx btw
+- Test prompts and models before using them with your customers - if you liked the result, just sync the changes with 1 click!
+- $5 free trial to spend in tokens for 30 days - no credit card required
+
+--- Tweet 3
+
+Try it out at itz.am
+
+We're open to feedback 😉

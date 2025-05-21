@@ -1,0 +1,98 @@
+import { client, type InferRequestType, type WithAttachments } from "..";
+import { createItzamError } from "../errors";
+import type { StreamMetadata } from "../index";
+import { createEventStream, type EventHandler } from "../utils";
+
+// Helper function to convert Blob/File to base64
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onload = function () {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.substring(dataUrl.indexOf(",") + 1);
+      resolve(base64);
+    };
+    reader.onerror = function (error) {
+      reject(error);
+    };
+  });
+}
+
+async function streamText(
+  apiKey: string,
+  input: WithAttachments<
+    InferRequestType<typeof client.api.v1.stream.text.$post>["json"]
+  >
+) {
+  try {
+    // Create a copy of the request to avoid mutating the original
+    const processedRequest = { ...input };
+
+    // Check if the request has attachments with binary data that need conversion
+    if (processedRequest.attachments?.length) {
+      const processedAttachments = await Promise.all(
+        processedRequest.attachments.map(async (attachment) => {
+          const data = attachment.file as any;
+          if (data instanceof Blob || data instanceof File) {
+            // Convert Blob or File to base64 string
+            const base64Data = await blobToBase64(data);
+            return {
+              ...attachment,
+              file: base64Data,
+              mimeType: attachment.mimeType || data.type,
+            };
+          }
+          return attachment;
+        })
+      );
+      processedRequest.attachments = processedAttachments;
+    }
+
+    // All requests are sent as JSON
+    const response = await client.api.v1.stream.text.$post(
+      {
+        json: processedRequest,
+      },
+      {
+        headers: {
+          "Api-Key": apiKey,
+        },
+      }
+    );
+
+    if (!response.ok) throw createItzamError(response);
+
+    const reader = (
+      response.body as unknown as ReadableStream<Uint8Array>
+    ).getReader();
+
+    let metadataResolve: (value: StreamMetadata) => void = () => {
+      return;
+    };
+
+    const eventHandlers: EventHandler<"object">[] = [
+      {
+        type: "object",
+        handler: (data) => {
+          if (data.object && typeof (data.object as any).text === "string") {
+            return (data.object as any).text;
+          }
+          return undefined;
+        },
+      },
+    ];
+    const metadataPromise = new Promise<StreamMetadata>((resolve) => {
+      metadataResolve = resolve;
+    });
+
+    return {
+      stream: createEventStream(reader, eventHandlers, metadataResolve),
+      metadata: metadataPromise,
+    };
+  } catch (error) {
+    throw createItzamError(error);
+  }
+}
+
+export { streamText };

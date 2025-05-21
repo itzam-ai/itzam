@@ -1,0 +1,67 @@
+---
+title: "Stream Text"
+description: "Learn how to stream text responses using the JavaScript SDK."
+icon: "font"
+---
+
+## Overview
+
+The `streamText` method allows you to stream text responses from your workflows. This is useful when you want to show the response as it's being generated, providing a better user experience.
+
+## Usage
+
+```typescript
+import Itzam from "itzam";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const response = await itzam.streamText({
+  input: "Hello, world!",
+  workflowSlug: "my_great_workflow",
+  // Optional parameters
+  groupId: "my-group-id",
+});
+```
+
+To consume the stream, you can use it like this:
+
+```typescript
+for await (const chunk of response.stream) {
+  setResponse((prev) => prev + chunk);
+}
+```
+
+You can also get the metadata of the run once the stream is finished:
+
+```typescript
+const metadata = await response.metadata;
+```
+
+### Parameters
+
+| Parameter      | Type     | Description                                     |
+| -------------- | -------- | ----------------------------------------------- |
+| `input`        | `string` | The input text to generate a response for.      |
+| `workflowSlug` | `string` | The slug of the Workflow to use for generation. |
+| `groupId`      | `string` | Optional. Identifier for grouping related runs. |
+
+### Return Value
+
+The `streamText` method returns the following object:
+
+```typescript
+type StreamTextResponse = {
+  stream: AsyncGenerator<string, void, unknown>; // The stream of text
+  metadata: Promise<{
+    runId: string; // The ID of the run
+    cost: number; // The cost of the run in USD
+    model: {
+      name: string; // The name of the model
+      tag: string; // The tag of the model
+    };
+    durationInMs: number; // The duration of the run in milliseconds
+    inputTokens: number; // The number of input tokens used for this generation
+    outputTokens: number; // The number of output tokens used for this generation
+  }>;
+};
+``` 

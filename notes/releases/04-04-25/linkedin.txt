@@ -1,0 +1,22 @@
+🤖 AI Integrations Shouldn’t Be This Hard
+
+AI is evolving faster than ever, but integrating it into products is still a mess:
+❌ Hardcoded models (GPT, Claude, Gemini)
+❌ Every prompt change requires a deploy
+❌ Only devs can manage AI workflows
+
+We built **Itzam** to fix this.
+
+With a simple dashboard & API, you can:
+✅ Swap AI models instantly
+✅ Update prompts & context without touching code
+✅ Let non-technical teams manage AI
+
+Here’s a quick demo: Building a customer support chatbot in under 1 minute! 🎥👇
+
+[[[[[[[[[[[[🚨🚨🚨🚨 ADD VIDEO 🚨🚨🚨🚨]]]]]]]]]]]]
+
+🔗 Try Itzam: https://itz.am
+🚀 Product Hunt: https://www.producthunt.com/posts/itzam
+
+Would love to hear your thoughts! How are you managing AI in your apps today? #AI #MachineLearning #Startups

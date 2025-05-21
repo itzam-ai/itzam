@@ -1,0 +1,20 @@
+Title: Show HN: I built a platform to change models and prompts with no deploys
+
+Hey HN!
+
+
+My cofounder and I built a platform for integrating AI, this means you can change prompts, models, settings, on the fly
+Some other cool stuff is that it's a single API/bill/spec for any model may you want to run, all in a single API key
+
+I like to think of it as if vercel's ai sdk turned into a service
+
+Now that I mentioned it, whats the itzam's difference from other AI provider wrappers?
+
+Itzam's main goal is to make it easy to have great AI in your product, meaning two things:
+- Empower both tech and non-tech people to refine AI models behaviour, so things like ease of use and learning curves are always in our mind. We want to be as batteries included as possible, while still allowing for customizations to experienced users. This mindset defines our initial target users, teams with managers who need to keep improving their AIs but are slowing the dev cycle with their change requests.
+- Switching to a better model should be effortless. Right now we are at the brink of google's gemini 2.5 flash release, if it's viably cheap and reasonably fast, a lot of people we'll want to move from models like gpt4o mini and claude 3.5 haiku, but what do you do if you invested time into creating embeddings and adding context into OpenAI or Anthropic's ecosystem? You're going to have to do it all over again, and that's what we want to avoid. Imagine being able to drag and drop files, links, images and having it shared across AI providers.
+
+
+
+Would be nice to hear you feedback!
+You can contact us at support@itz.am or schedule a meeting https://cal.com/gustavo-fior/30min

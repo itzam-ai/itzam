@@ -1,0 +1,732 @@
+{
+  "openapi": "3.0.0",
+  "security": [{ "ApiKey": [] }],
+  "servers": [{ "url": "https://itz.am", "description": "Itzam Live API" }],
+  "info": { "version": "1.0.0", "title": "Itzam API" },
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Api-Key",
+        "description": "The API key to use for authentication"
+      }
+    },
+    "schemas": {
+      "GenerateTextResponse": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The generated output text",
+            "example": "Renewable energy is..."
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "description": "The ID of the run created for this generation",
+                "example": "run_1234567890"
+              },
+              "cost": {
+                "type": "string",
+                "description": "The cost of the run",
+                "example": "0.001"
+              },
+              "model": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the model used for this generation",
+                    "example": "gpt-4o"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "The tag of the model used for this generation",
+                    "example": "openai:gpt-4o"
+                  }
+                },
+                "required": ["name", "tag"]
+              },
+              "durationInMs": {
+                "type": "number",
+                "description": "The duration of the run in milliseconds",
+                "example": 1000
+              },
+              "inputTokens": {
+                "type": "number",
+                "description": "The number of input tokens used for this generation",
+                "example": 1000
+              },
+              "outputTokens": {
+                "type": "number",
+                "description": "The number of output tokens used for this generation",
+                "example": 1000
+              }
+            },
+            "required": [
+              "runId",
+              "cost",
+              "model",
+              "durationInMs",
+              "inputTokens",
+              "outputTokens"
+            ]
+          }
+        },
+        "required": ["text", "metadata"]
+      },
+      "AiCompletionRequest": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The input text to generate a response for",
+            "example": "Tell me about renewable energy"
+          },
+          "workflowSlug": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)",
+            "example": "my_great_workflow"
+          },
+          "groupId": {
+            "type": "string",
+            "description": "Optional identifier for grouping related runs (e.g. user ID, session ID, etc.)",
+            "example": "my-group-id"
+          }
+        },
+        "required": ["input", "workflowSlug"]
+      },
+      "GenerateObjectResponse": {
+        "type": "object",
+        "properties": {
+          "object": {
+            "nullable": true,
+            "description": "The generated object based on the provided schema"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "runId": {
+                "type": "string",
+                "description": "The ID of the run created for this generation",
+                "example": "run_1234567890"
+              },
+              "cost": {
+                "type": "string",
+                "description": "The cost of the run",
+                "example": "0.001"
+              },
+              "model": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the model used for this generation",
+                    "example": "gpt-4o"
+                  },
+                  "tag": {
+                    "type": "string",
+                    "description": "The tag of the model used for this generation",
+                    "example": "openai:gpt-4o"
+                  }
+                },
+                "required": ["name", "tag"]
+              },
+              "durationInMs": {
+                "type": "number",
+                "description": "The duration of the run in milliseconds",
+                "example": 1000
+              },
+              "inputTokens": {
+                "type": "number",
+                "description": "The number of input tokens used for this generation",
+                "example": 1000
+              },
+              "outputTokens": {
+                "type": "number",
+                "description": "The number of output tokens used for this generation",
+                "example": 1000
+              }
+            },
+            "required": [
+              "runId",
+              "cost",
+              "model",
+              "durationInMs",
+              "inputTokens",
+              "outputTokens"
+            ]
+          }
+        },
+        "required": ["metadata"]
+      },
+      "AiStructuredCompletionRequest": {
+        "allOf": [
+          { "$ref": "#/components/schemas/AiCompletionRequest" },
+          {
+            "type": "object",
+            "properties": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "description": "The schema of the response, JSON Schema",
+                "example": {
+                  "title": "My great response",
+                  "description": "The response to the input",
+                  "type": "object"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "StreamTextEventObject": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["object"] },
+          "object": {
+            "type": "object",
+            "properties": { "output": { "type": "string" } },
+            "required": ["output"]
+          }
+        },
+        "required": ["type", "object"]
+      },
+      "StreamTextEventTextDelta": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["text-delta"] },
+          "textDelta": { "type": "string" }
+        },
+        "required": ["type", "textDelta"]
+      },
+      "StreamTextEventError": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["error"] },
+          "error": { "nullable": true }
+        },
+        "required": ["type"]
+      },
+      "StreamTextEventFinish": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["finish"] },
+          "finishReason": {
+            "type": "string",
+            "enum": [
+              "stop",
+              "length",
+              "content-filter",
+              "tool-calls",
+              "error",
+              "other",
+              "unknown"
+            ]
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "promptTokens": { "type": "number" },
+              "completionTokens": { "type": "number" },
+              "totalTokens": { "type": "number" }
+            },
+            "required": ["promptTokens", "completionTokens", "totalTokens"]
+          }
+        },
+        "required": ["type", "finishReason", "usage"]
+      },
+      "StreamTextEvent": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/StreamTextEventObject" },
+          { "$ref": "#/components/schemas/StreamTextEventTextDelta" },
+          { "$ref": "#/components/schemas/StreamTextEventError" },
+          { "$ref": "#/components/schemas/StreamTextEventFinish" }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "object": "#/components/schemas/StreamTextEventObject",
+            "text-delta": "#/components/schemas/StreamTextEventTextDelta",
+            "error": "#/components/schemas/StreamTextEventError",
+            "finish": "#/components/schemas/StreamTextEventFinish"
+          }
+        }
+      },
+      "StreamEventObjectText": {
+        "type": "object",
+        "properties": { "text": { "type": "string" } },
+        "required": ["text"]
+      },
+      "StreamEventObjectUnknown": {
+        "type": "object",
+        "properties": { "object": { "nullable": true } },
+        "description": "Used for structured responses, based on the schema"
+      },
+      "StreamEventObject": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["object"] },
+          "object": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/StreamEventObjectText" },
+              { "$ref": "#/components/schemas/StreamEventObjectUnknown" }
+            ]
+          }
+        },
+        "required": ["type", "object"]
+      },
+      "StreamEventTextDelta": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["text-delta"] },
+          "textDelta": { "type": "string" }
+        },
+        "required": ["type", "textDelta"]
+      },
+      "StreamEventError": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["error"] },
+          "error": { "nullable": true }
+        },
+        "required": ["type"]
+      },
+      "StreamEventFinish": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["finish"] },
+          "finishReason": {
+            "type": "string",
+            "enum": [
+              "stop",
+              "length",
+              "content-filter",
+              "tool-calls",
+              "error",
+              "other",
+              "unknown"
+            ]
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "promptTokens": { "type": "number" },
+              "completionTokens": { "type": "number" },
+              "totalTokens": { "type": "number" }
+            },
+            "required": ["promptTokens", "completionTokens", "totalTokens"]
+          }
+        },
+        "required": ["type", "finishReason", "usage"]
+      },
+      "StreamEvent": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/StreamEventObject" },
+          { "$ref": "#/components/schemas/StreamEventTextDelta" },
+          { "$ref": "#/components/schemas/StreamEventError" },
+          { "$ref": "#/components/schemas/StreamEventFinish" }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "object": "#/components/schemas/StreamEventObject",
+            "text-delta": "#/components/schemas/StreamEventTextDelta",
+            "error": "#/components/schemas/StreamEventError",
+            "finish": "#/components/schemas/StreamEventFinish"
+          }
+        }
+      },
+      "GetRunByIdResponse": {
+        "type": "object",
+        "properties": {
+          "origin": {
+            "type": "string",
+            "description": "The origin of the run",
+            "example": "sdk"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the run",
+            "example": "completed"
+          },
+          "input": {
+            "type": "string",
+            "description": "The input of the run",
+            "example": "Hello, world!"
+          },
+          "output": {
+            "type": "string",
+            "description": "The output of the run",
+            "example": "Hello, world!"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "The prompt of the run",
+            "example": "Hello, world!"
+          },
+          "inputTokens": {
+            "type": "number",
+            "description": "The number of input tokens of the run",
+            "example": 100
+          },
+          "outputTokens": {
+            "type": "number",
+            "description": "The number of output tokens of the run",
+            "example": 100
+          },
+          "cost": {
+            "type": "string",
+            "description": "The cost of the run",
+            "example": "0.001"
+          },
+          "durationInMs": {
+            "type": "number",
+            "description": "The duration of the run in milliseconds",
+            "example": 100
+          },
+          "groupId": {
+            "type": "string",
+            "description": "The group ID of the run",
+            "example": "group_1234567890"
+          },
+          "model": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the model",
+                "example": "gpt-4o"
+              },
+              "tag": {
+                "type": "string",
+                "description": "The tag of the model",
+                "example": "gpt-4o"
+              }
+            },
+            "required": ["name", "tag"]
+          },
+          "schema": {
+            "type": "string",
+            "nullable": true,
+            "description": "The schema used to generate the object",
+            "example": "{}"
+          },
+          "workflowId": {
+            "type": "string",
+            "description": "The ID of the workflow",
+            "example": "workflow_1234567890"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The creation date of the run",
+            "example": "2021-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "origin",
+          "status",
+          "input",
+          "output",
+          "prompt",
+          "inputTokens",
+          "outputTokens",
+          "cost",
+          "durationInMs",
+          "groupId",
+          "model",
+          "schema",
+          "workflowId",
+          "createdAt"
+        ]
+      },
+      "GetModelsResponse": {
+        "type": "object",
+        "properties": {
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the model",
+                  "example": "gpt-4o"
+                },
+                "tag": {
+                  "type": "string",
+                  "description": "The tag of the model",
+                  "example": "gpt-4o"
+                },
+                "deprecated": {
+                  "type": "boolean",
+                  "description": "Whether the model is deprecated",
+                  "example": false
+                },
+                "hasVision": {
+                  "type": "boolean",
+                  "description": "Whether the model has vision capability",
+                  "example": false
+                },
+                "hasReasoningCapability": {
+                  "type": "boolean",
+                  "description": "Whether the model has reasoning capability",
+                  "example": false
+                },
+                "isOpenSource": {
+                  "type": "boolean",
+                  "description": "Whether the model is open source",
+                  "example": false
+                },
+                "contextWindowSize": {
+                  "type": "number",
+                  "description": "The context window size of the model",
+                  "example": 100000
+                },
+                "inputPerMillionTokenCost": {
+                  "type": "number",
+                  "description": "The input cost per million tokens of the model",
+                  "example": 0.00015
+                },
+                "outputPerMillionTokenCost": {
+                  "type": "number",
+                  "description": "The output cost per million tokens of the model",
+                  "example": 0.0006
+                },
+                "provider": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the provider",
+                      "example": "OpenAI"
+                    }
+                  },
+                  "required": ["name"]
+                }
+              },
+              "required": [
+                "name",
+                "tag",
+                "deprecated",
+                "hasVision",
+                "hasReasoningCapability",
+                "isOpenSource",
+                "contextWindowSize",
+                "inputPerMillionTokenCost",
+                "outputPerMillionTokenCost",
+                "provider"
+              ]
+            }
+          }
+        },
+        "required": ["models"]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v1/generate/text": {
+      "post": {
+        "summary": "Generate text",
+        "description": "Generate text for a specific workflow",
+        "operationId": "generateText",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AiCompletionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated content (we also return the run ID in the header X-Run-ID)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTextResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
+        }
+      }
+    },
+    "/api/v1/generate/object": {
+      "post": {
+        "summary": "Generate object",
+        "description": "Generate a structured object for a specific workflow",
+        "operationId": "generateObject",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiStructuredCompletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated object (we also return the run ID in the header X-Run-ID)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateObjectResponse"
+                }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
+        }
+      }
+    },
+    "/api/v1/stream/text": {
+      "post": {
+        "summary": "Stream text",
+        "description": "Stream text generation for a specific workflow (we strongly recommend using the SDK for this)",
+        "operationId": "streamText",
+        "externalDocs": {
+          "url": "https://docs.itz.am/sdks/javascript#stream-text",
+          "description": "How to parse the response"
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AiCompletionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully streaming content",
+            "content": {
+              "text/event-stream": {
+                "schema": { "$ref": "#/components/schemas/StreamTextEvent" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
+        }
+      }
+    },
+    "/api/v1/stream/object": {
+      "post": {
+        "summary": "Stream object",
+        "description": "Stream object generation for a specific workflow (we strongly recommend using the SDK for this)",
+        "operationId": "streamObject",
+        "externalDocs": {
+          "url": "https://docs.itz.am/sdks/javascript#stream-object",
+          "description": "How to parse the response"
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiStructuredCompletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully streaming content",
+            "content": {
+              "text/event-stream": {
+                "schema": { "$ref": "#/components/schemas/StreamEvent" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
+        }
+      }
+    },
+    "/api/v1/runs/{id}": {
+      "get": {
+        "summary": "Get run by ID",
+        "description": "Retrieve the run details by its ID",
+        "operationId": "getRunById",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "The ID of the run to retrieve",
+              "example": "run_1234567890"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved run details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetRunByIdResponse" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": { "description": "Not found - run not found" },
+          "500": { "description": "Server error during retrieval" }
+        }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "summary": "Get models",
+        "description": "Retrieve all models available on Itzam",
+        "operationId": "getModels",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved models",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/GetModelsResponse" }
+              }
+            }
+          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": { "description": "Not found - run not found" },
+          "500": { "description": "Server error during retrieval" }
+        }
+      }
+    }
+  }
+}

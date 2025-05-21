@@ -1,0 +1,42 @@
+---
+title: "Get Models"
+description: "Learn how to get all models using the JavaScript SDK."
+icon: "robot"
+---
+
+## Overview
+
+The `getModels` method allows you to retrieve all models available on Itzam.
+
+## Usage
+
+```typescript
+import Itzam from "itzam";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const response = await itzam.getModels();
+```
+
+### Return Value
+
+The `getModels` method returns the following object:
+
+```typescript
+type GetModelsResponse = {
+  models: {
+    name: string; // The name of the model
+    tag: string; // The tag of the model
+    deprecated: boolean; // Whether the model is deprecated
+    hasVision: boolean; // Whether the model has vision capability
+    hasReasoningCapability: boolean; // Whether the model has reasoning capability
+    isOpenSource: boolean; // Whether the model is open source
+    contextWindowSize: number; // The context window size of the model
+    inputPerMillionTokenCost: string | null; // The input cost per million tokens of the model
+    outputPerMillionTokenCost: string | null; // The output cost per million tokens of the model
+    provider: {
+      name: string; // The name of the provider
+    };
+  }[];
+};
+```

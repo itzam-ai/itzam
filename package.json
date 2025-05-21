@@ -1,0 +1,28 @@
+{
+  "name": "my-turborepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "postinstall": "manypkg check",
+    "db:drop": "turbo run db:drop",
+    "db:push": "turbo run db:push",
+    "db:seed": "turbo run db:seed",
+    "db:sample-data": "turbo run db:sample-data",
+    "db:studio": "turbo run db:studio"
+  },
+  "devDependencies": {
+    "@manypkg/cli": "^0.23.0",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.0",
+    "typescript": "^5.8.3"
+  },
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=18"
+  }
+}

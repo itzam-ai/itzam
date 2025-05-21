@@ -1,0 +1,14 @@
+Hello hunters!
+
+Me and Gustavo noticed that even in the age of AI, experience and speed on integrating it to our products is still quite bad. Integrating with a single provider means looking up models in confusing pricing pages, reading extensive docs and dealing with not-so-great UIs. And that's not even counting integrating models from multiple vendors or keeping up with new model releases...
+
+So we built Itzam! It's an AI integration service. We designed and built it with user delight and DX in mind, so experimenting and deploying AI-powered apps isn't tedious anymore.
+
+By integrating you get:
+- Interactive playground with > 25 models from 7 different providers 
+- Test prompts and models before using them with your customers - if you liked the result, just sync the changes with 1 click!
+- Unified billing platform, keeping it simple to track AI expenses
+- Runs analytics and tracking
+- Model and prompt hot swapping - no deploy required
+- A production ready SDK for integrating to your services - great dx btw
+- $5 free trial to spend in tokens for 30 days - no credit card required

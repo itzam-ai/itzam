@@ -1,0 +1,104 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Itzam",
+  "colors": {
+    "primary": "#ea580c",
+    "light": "#ea580c",
+    "dark": "#ea580c"
+  },
+  "favicon": "/favicon.ico",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Getting Started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "getting-started/introduction",
+              "getting-started/getting-started",
+              "getting-started/glossary"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": [
+              {
+                "group": "JavaScript & TypeScript",
+                "icon": "js",
+                "pages": [
+                  "sdks/javascript",
+                  "sdks/javascript/generate-text",
+                  "sdks/javascript/stream-text",
+                  "sdks/javascript/generate-object",
+                  "sdks/javascript/stream-object",
+                  "sdks/javascript/get-run-by-id",
+                  "sdks/javascript/get-models",
+                  "sdks/javascript/errors"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/endpoints/generate-text",
+              "api-reference/endpoints/stream-text",
+              "api-reference/endpoints/generate-object",
+              "api-reference/endpoints/stream-object",
+              "api-reference/endpoints/get-run-by-id",
+              "api-reference/endpoints/get-models"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Call the Founders",
+          "href": "https://cal.com/gustavo-fior/30min",
+          "icon": "video"
+        },
+        {
+          "anchor": "Support",
+          "href": "mailto:support@itz.am",
+          "icon": "hand"
+        },
+        {
+          "anchor": "Dashboard",
+          "href": "https://itz.am/dashboard",
+          "icon": "table-columns"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/logotype-light.png",
+    "dark": "/logo/logotype-dark.png"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@itz.am"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://itz.am/dashboard"
+    }
+  }
+}

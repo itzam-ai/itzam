@@ -1,0 +1,115 @@
+---
+title: 'Error Handling'
+description: 'Learn how to handle errors in the Itzam SDK'
+icon: 'xmark'
+---
+
+# Error Handling
+
+The Itzam SDK provides a robust error handling system that helps you handle different types of errors that may occur during API calls. All errors thrown by the SDK extend from the base `ItzamError` class.
+
+## Error Types
+
+### ItzamError
+
+The base error class that all other error types extend from. Contains common properties shared across all error types.
+
+```typescript
+class ItzamError extends Error {
+  code: number;      // HTTP status code
+  type: string;      // Error type name (e.g., "ItzamAuthenticationError")
+  timestamp: Date;   // When the error occurred
+}
+```
+
+### ItzamAuthenticationError
+
+Thrown when there's an authentication issue (HTTP 401).
+
+```typescript
+try {
+  await itzam.getModels();
+} catch (error) {
+  if (error instanceof ItzamAuthenticationError) {
+    console.log('Authentication failed:', error.message);
+    console.log('Status code:', error.code); // 401
+  }
+}
+```
+
+### ItzamValidationError
+
+Thrown when the request is invalid (HTTP 400).
+
+```typescript
+try {
+  await itzam.generateText({ /* invalid params */ });
+} catch (error) {
+  if (error instanceof ItzamValidationError) {
+    console.log('Invalid request:', error.message);
+    console.log('Status code:', error.code); // 400
+  }
+}
+```
+
+### ItzamNotFoundError
+
+Thrown when a requested resource is not found (HTTP 404).
+
+```typescript
+try {
+  await itzam.getRunById('non-existent-id');
+} catch (error) {
+  if (error instanceof ItzamNotFoundError) {
+    console.log('Resource not found:', error.message);
+    console.log('Status code:', error.code); // 404
+  }
+}
+```
+
+### ItzamServerError
+
+Thrown when there's a server-side error (HTTP 500).
+
+```typescript
+try {
+  await itzam.streamText({ /* params */ });
+} catch (error) {
+  if (error instanceof ItzamServerError) {
+    console.log('Server error:', error.message);
+    console.log('Status code:', error.code); // 500
+  }
+}
+```
+
+## Handling Multiple Error Types
+
+You can handle multiple error types in a single try-catch block:
+
+```typescript
+try {
+  const models = await itzam.getModels();
+  // Use models...
+} catch (error) {
+  if (error instanceof ItzamAuthenticationError) {
+    // Handle authentication errors
+    console.log('Authentication failed:', error.message);
+  } else if (error instanceof ItzamValidationError) {
+    // Handle validation errors
+    console.log('Invalid request:', error.message);
+  } else if (error instanceof ItzamNotFoundError) {
+    // Handle not found errors
+    console.log('Resource not found:', error.message);
+  } else if (error instanceof ItzamServerError) {
+    // Handle server errors
+    console.log('Server error:', error.message);
+  } else {
+    // Handle unknown errors
+    console.log('Unknown error:', error.message);
+  }
+  
+  // All errors have these properties
+  console.log('Error code:', error.code);
+  console.log('Error type:', error.type);
+  console.log('Error timestamp:', error.timestamp);
+} 

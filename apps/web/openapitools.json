@@ -1,0 +1,26 @@
+{
+  "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.12.0",
+    "generators": {
+      "typescript": {
+        "inputSpec": "./openapi.json",
+        "output": "./sdk/codegen",
+        "generatorName": "typescript-axios",
+        "apiPackage": "itzam",
+        "gitHost": "github.com",
+        "gitRepoId": "ts-sdk",
+        "gitUserId": "itzam-ai",
+        "packageName": "itzam",
+        "additionalProperties": {
+          "withSeparateModelsAndApi": true,
+          "licenseName": "MIT",
+          "npmName": "itzam",
+          "apiPackage": "api",
+          "modelPackage": "models"
+        }
+      }
+    }
+  }
+}

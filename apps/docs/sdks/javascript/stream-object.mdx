@@ -1,0 +1,78 @@
+---
+title: "Stream Object"
+description: "Learn how to stream structured objects using the JavaScript SDK."
+icon: "brackets-curly"
+---
+
+## Overview
+
+The `streamObject` method allows you to stream structured objects from your workflows using a Zod or JSON schema. This is useful when you want to consume structured data as it is being generated, providing a more interactive user experience.
+
+## Usage
+
+```typescript
+import Itzam from "itzam";
+import { z } from "zod";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const schema = z.array(
+  z.object({
+    name: z.string(),
+    age: z.number(),
+    profession: z.string(),
+    description: z.string(),
+  })
+);
+
+const response = await itzam.streamObject({
+  input: "tell me who are the characters in atlas shrugged",
+  workflowSlug: "code-assistant",
+  schema,
+});
+
+for await (const chunk of response.stream) {
+  console.log(chunk); // Partial or full object as it streams in
+}
+
+const metadata = await response.metadata;
+console.log(metadata); // Metadata about the run
+```
+
+### Parameters
+
+| Parameter      | Type                   | Description                                                      |
+| -------------- | ---------------------- | ---------------------------------------------------------------- |
+| `input`        | `string`               | The input text to generate a response for.                       |
+| `workflowSlug` | `string`               | The slug of the Workflow to use for generation.                  |
+| `groupId`      | `string`               | Optional. Identifier for grouping related runs.                  |
+| `schema`       | `ZodType`/`JsonSchema` | The Zod or JSON schema describing the expected object structure. |
+
+### Return Value
+
+The `streamObject` method returns the following object:
+
+```typescript
+type StreamObjectResponse<T> = {
+  stream: AsyncGenerator<T, void, unknown>; // The stream of objects
+  metadata: Promise<{
+    runId: string; // The ID of the run
+    cost: string; // The cost of the run in USD
+    model: {
+      name: string; // The name of the model
+      tag: string; // The tag of the model
+    };
+    durationInMs: number; // The duration of the run in milliseconds
+    inputTokens: number; // The number of input tokens used for this generation
+    outputTokens: number; // The number of output tokens used for this generation
+  }>;
+};
+```
+
+### Error Handling
+
+All errors thrown by the SDK extend from the base `ItzamError` class. See [Error Handling](/sdks/javascript/errors) for details.
+
+### Inspecting Runs
+
+You can use the `runId` from the response metadata to fetch more details about the run using [`getRunById`](/sdks/javascript/get-run-by-id).

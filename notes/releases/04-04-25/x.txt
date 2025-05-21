@@ -1,0 +1,27 @@
+### **Tweet 1**  
+🔸 **Itzam is in Beta!** 
+
+Manage AI workflows without touching code 👇 
+
+[[[[[[[[[[[[🚨🚨🚨🚨 ADD VIDEO 🚨🚨🚨🚨]]]]]]]]]]]]
+
+---  
+
+### **Tweet 2**  
+With **Itzam**, you can:  
+✅ **Hot-swap AI models** instantly (GPT, Claude, Gemini)  
+✅ **Update prompts** without redeploying  
+✅ **Let non-devs manage AI workflows**  
+
+Just configure in the **dashboard**, then use the SDK or API. 
+
+That’s it.  
+
+---  
+
+### **Tweet 3**  
+AI is evolving fast—your integrations should too.  
+
+🔗 **Try Itzam today:** https://itz.am  
+
+Let us know what you think! 

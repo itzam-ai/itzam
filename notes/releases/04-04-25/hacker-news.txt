@@ -1,0 +1,29 @@
+Title: We Built a Platform to Make AI Integration Easier – Itzam
+
+
+
+
+Text:
+We’ve been frustrated with how hard it is to integrate AI into applications. Right now, AI workflows are:
+
+Hardcoded into business logic
+
+Locked to a single model (GPT, Claude, Gemini, etc.)
+
+Difficult to update—every prompt or model change requires code changes & redeploys
+
+Only manageable by developers
+
+So we built Itzam, a platform that lets you manage AI workflows through a dashboard & API.
+
+With Itzam, you can:
+- Swap AI models instantly
+- Update prompts & context without redeploying
+- Let non-devs manage AI workflows
+- Optimize AI costs (e.g., auto-switch to cheaper models)
+
+It’s designed to make AI integration flexible and future-proof.
+
+Would love to hear your thoughts & feedback!
+
+Try Itzam → https://itz.am

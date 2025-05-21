@@ -1,0 +1,9 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    
+  },
+  "include": ["src", "../../apps/web/src/lib/features.ts"],
+  "exclude": ["node_modules", "dist"]
+}

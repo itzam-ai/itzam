@@ -1,0 +1,58 @@
+import { Hono } from "hono";
+import { describeRoute } from "hono-openapi";
+import { resolver, validator } from "hono-openapi/zod";
+import type { z } from "zod";
+import {
+  GetRunByIdParamsSchema,
+  GetRunByIdResponseSchema,
+} from "../../client/schemas";
+import { createErrorResponse } from "../../utils";
+import { apiKeyMiddleware } from "../api-key-validator";
+import { createOpenApiErrors } from "../docs";
+import { getRunByIdAndUserId } from "@itzam/server/db/run/actions";
+
+export const runsRoute = new Hono().use(apiKeyMiddleware).get(
+  "/:id",
+  describeRoute({
+    summary: "Get run by ID",
+    description: "Retrieve the run details by its ID",
+    operationId: "getRunById",
+    responses: createOpenApiErrors({
+      content: {
+        "application/json": {
+          schema: resolver(GetRunByIdResponseSchema),
+        },
+      },
+      description: "Successfully retrieved run details",
+    }),
+  }),
+  validator("param", GetRunByIdParamsSchema),
+  async (c) => {
+    const userId = c.get("userId");
+    const { id } = c.req.valid("param");
+
+    try {
+      const run = await getRunByIdAndUserId(id, userId);
+
+      if (!run) {
+        return c.json(createErrorResponse("Run not found"), 404);
+      }
+
+      // @ts-expect-error
+      const response: z.infer<typeof GetRunByIdResponseSchema> = {
+        ...run,
+        groupId: run.groupId ?? "",
+        model: {
+          name: run.model?.name ?? "",
+          tag: run.model?.tag ?? "",
+        },
+        workflowId: run.workflowId ?? "",
+        createdAt: run.createdAt.toISOString(),
+      };
+
+      return c.json(response);
+    } catch (error) {
+      return c.json(createErrorResponse(error), 500);
+    }
+  }
+);

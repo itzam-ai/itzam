@@ -1,0 +1,69 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "env": [
+        "NODE_ENV",
+        "ANTHROPIC_API_KEY",
+        "CLOUDFLARE_ACCESS_KEY_ID",
+        "CLOUDFLARE_ACCOUNT_ID",
+        "CLOUDFLARE_BUCKET",
+        "CLOUDFLARE_SECRET_ACCESS_KEY",
+        "COHERE_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "DISCORD_WEBHOOK_URL",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "GROK_API_KEY",
+        "DATABASE_URL",
+        "STATSIG_SERVER_KEY",
+        "STATSIG_CONSOLE_KEY",
+        "ITZAM_API_KEY",
+        "MISTRAL_API_KEY",
+        "NEXT_PUBLIC_ITZAM_API_KEY",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_STATSIG_CLIENT_KEY",
+        "OPEN_AI_API_KEY",
+        "POSTGRES_URL",
+        "STRIPE_ITZAM_PRO_PRODUCT_ID",
+        "STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "VERCEL_URL",
+        "VERCEL_WEBHOOK_SECRET",
+        "SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID",
+        "SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET",
+        "SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID",
+        "SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "clean": {},
+    "db:drop": {
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:seed": {
+      "cache": false
+    },
+    "db:sample-data": {},
+    "db:studio": {},
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

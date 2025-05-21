@@ -1,0 +1,34 @@
+r/saas https://www.reddit.com/r/SaaS/comments/1jv2znk/comment/mm9fj3q/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/Startup -
+r/indiebiz https://www.reddit.com/r/indiebiz/comments/1jve3u4/i_built_a_platform_to_change_models_and_prompts/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/Startups - https://www.reddit.com/r/startups/comments/1hz1oct/comment/mm9hvis/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/business - 
+r/MicroSaas https://www.reddit.com/r/microsaas/comments/1jved16/i_built_a_platform_to_change_models_and_prompts/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/SideProject https://www.reddit.com/r/SideProject/comments/1jvee71/i_built_a_platform_to_change_models_and_prompts/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/Linkbuilding - 
+r/entrepreneur - 
+r/Smallbusiness - https://www.reddit.com/r/smallbusiness/comments/1jtdir8/comment/mm9jff3/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+r/RoastMyStartup - 
+r/Plugyourproduct
+r/InternetIsBeautiful
+r/AlphaandBetaUsers
+r/SoftwareAsAService
+r/entrepreneurridealong
+
+
+I built a platform to change models and prompts with no deploys
+--- 
+
+Hey,
+My cofounder Gustavo and I noticed that even in the age of AI, the experience and speed of integrating it to our products is still quite bad. Integrating with a single provider means looking up models in confusing pricing pages, reading extensive docs and dealing with not-so-great UIs. And that's not even counting integrating models from multiple vendors or keeping up with new model releases...
+So we built Itzam! It's an AI integration service. We designed and built it with user delight and DX in mind, so experimenting and deploying AI-powered apps isn't tedious anymore.
+By integrating, you get:
+- Interactive playground with > 25 models from 7 different providers
+- Test prompts and models before using them with your customers - if you liked the result, just sync the changes with 1 click!
+- Unified billing platform, keeping it simple to track AI expenses
+- Runs analytics and tracking
+- Model and prompt hot swapping - no deploy required
+- A production ready SDK for integrating to your services - great dx btw
+- $5 free trial to spend in tokens for 30 days - no credit card required
+Check it out at https://itz.am
+If you have any feedback or question, contact us at support@itz.am or schedule a meeting https://cal.com/gustavo-fior/30min

@@ -1,0 +1,48 @@
+🔸 Itzam – Integrate AI seamlessly
+
+Hey Product Hunt! 👋
+
+I’m excited to introduce Itzam, a platform that makes AI integration seamless.
+
+🔍 The Problem
+
+Right now, integrating AI into applications is messy:
+❌ AI logic mixed with business logic
+❌ Non-technical teams can’t modify AI workflows
+❌ Changing AI models or prompts requires redeploys
+❌ Keeping up with new AI models is a headache
+
+⚡ The Itzam Solution
+
+Itzam provides a dashboard & API that lets you:
+✅ Hot-swap AI models (GPT, Claude, Gemini) instantly
+✅ Empower non-dev teams to manage AI workflows 
+✅ Update prompts & context (soon) without changing code
+✅ Optimize costs with AI provider switching rules (soon)
+
+🛠️ How It Works
+
+1️⃣ Configure your AI workflow in our dashboard (choose a model, set a prompt, define context)
+2️⃣ Integrate with 3 lines of code using our API & SDKs
+3️⃣ Manage AI without touching your code—switch models, update prompts, and adjust settings effortlessly
+
+🎯 Who is this for?
+
+Developers who don’t want to hardcode AI into their apps
+
+Product & Ops teams who need to tweak AI settings without dev help
+
+AI-heavy startups looking for flexibility & cost control
+
+> Everyone who wants AI without the hassle
+
+🔥 Why Now?
+
+AI is evolving fast—you shouldn’t be stuck with a single provider or a rigid integration. Itzam lets you stay agile and future-proof your AI stack.
+
+💬 We’d Love Your Feedback!
+
+Check it out and let us know what you think. We’re here to answer questions & improve based on your feedback! :)
+
+🔗 Try Itzam Now → https://itz.am
+🎥 Watch the Demo → https://itz.am/demo  

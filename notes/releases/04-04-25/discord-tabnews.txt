@@ -1,0 +1,20 @@
+Itzam - Integrando IA do jeito certo!
+
+A integração de IA nas aplicações ainda é muito complicada:
+❌ Modelos hardcoded no código
+❌ Cada mudança de prompt exige um deploy
+❌ Só os devs conseguem gerenciar os fluxos de IA
+
+Criamos o Itzam para resolver isso!
+
+Com um dashboard + API, você pode:
+✅ Trocar modelos de IA (GPT, Claude, Gemini) com um clique
+✅ Alterar prompts e contexto sem mudar código
+✅ Gerenciar fluxos de IA sem precisar de um dev
+
+Veja como é rápido trocar o modelo de IA: https://youtu.be/6GUXDFexv9o 🎥
+
+🔗 Teste agora: https://itz.am
+🚀 Product Hunt: https://www.producthunt.com/posts/itzam
+
+O que acharam? Feedbacks são muito bem-vindos! 🚀
