@@ -48,7 +48,7 @@ export const env = createEnv({
    */
   runtimeEnv: {
     TIKA_URL: process.env.TIKA_URL,
-    OPENAI_API_KEY: process.env.OPEN_AI_API_KEY,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     STATSIG_CONSOLE_KEY: process.env.STATSIG_CONSOLE_KEY,
     STATSIG_SERVER_KEY: process.env.STATSIG_SERVER_KEY,
     POSTGRES_URL: process.env.POSTGRES_URL,
