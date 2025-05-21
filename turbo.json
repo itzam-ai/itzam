@@ -3,7 +3,9 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "env": [
         "NODE_ENV",
         "ANTHROPIC_API_KEY",
@@ -32,6 +34,7 @@
         "STRIPE_WEBHOOK_SECRET",
         "VERCEL_URL",
         "VERCEL_WEBHOOK_SECRET",
+        "TIKA_URL",
         "SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID",
         "SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET",
         "SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID",
@@ -40,11 +43,20 @@
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY"
       ],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "clean": {},
     "db:drop": {
@@ -59,7 +71,9 @@
     "db:sample-data": {},
     "db:studio": {},
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": [
+        "^check-types"
+      ]
     },
     "dev": {
       "cache": false,
