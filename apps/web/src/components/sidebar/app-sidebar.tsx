@@ -14,6 +14,7 @@ import {
 import type * as React from "react";
 
 import { LastFiveWorkflows } from "@itzam/server/db/workflow/actions";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -43,6 +44,7 @@ export function AppSidebar({
   user?: { role?: string; name?: string; image?: string; email?: string };
 }) {
   const pathname = usePathname();
+  const { resolvedTheme } = useTheme();
 
   if ("error" in workflows) {
     return <div>{workflows.error.error.toString()}</div>;
@@ -194,6 +196,26 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <Link href={"https://github.com/itzam-ai/itzam"} target="_blank">
+              <SidebarMenuButton tooltip={"Github"}>
+                <Image
+                  src={
+                    resolvedTheme === "dark"
+                      ? "/github-dark-logo.svg"
+                      : "/github-logo.svg"
+                  }
+                  alt="Github"
+                  width={16}
+                  height={16}
+                />
+                <p>Github</p>
+                <SidebarMenuBadge>
+                  <ExternalLink className="size-3 text-muted-foreground" />
+                </SidebarMenuBadge>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href={"https://docs.itz.am"} prefetch={true} target="_blank">
               <SidebarMenuButton tooltip={"Docs"}>
