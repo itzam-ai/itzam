@@ -6,7 +6,7 @@ What this means?
 
 - Swap models automatically or with one click;
 - Change the current prompt easily;
-- Customize the workflow context;****
+- Customize the workflow context;
 - Integrate in 2 minutes;
 - And much more… (see more features below)
 
@@ -15,7 +15,7 @@ What this means?
 <aside>
 🚫
 
-Remove AI stuff from your business logic.****
+Remove AI stuff from your business logic.
 
 </aside>
 
