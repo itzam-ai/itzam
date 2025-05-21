@@ -6,7 +6,7 @@ What this means?
 
 - Swap models automatically or with one click;
 - Change the current prompt easily;
-- Customize the workflow context;
+- Customize the workflow context;****
 - Integrate in 2 minutes;
 - And much more… (see more features below)
 
@@ -15,7 +15,7 @@ What this means?
 <aside>
 🚫
 
-Remove AI stuff from your business logic.
+Remove AI stuff from your business logic.****
 
 </aside>
 
@@ -160,3 +160,5 @@ Itzam: [itz.am](http://itz.am)
 Itzam Docs: [docs.itz.am](http://docs.itz.am)
 
 Itzam Chat: [chat.itz.am](http://chat.itz.am)
+
+AI Landscape: [link](https://docs.google.com/spreadsheets/d/1JfD2fnOSa0Cj7shuLuU0rGtqkgdbrctPS-6cOwzI158/edit?usp=sharing)
