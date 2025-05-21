@@ -10,6 +10,7 @@ import {
   LucideIcon,
   Wallet,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import Image from "next/image";
 import {
   NavigationMenu,
@@ -53,6 +54,7 @@ const features = [
 
 export function NavBar() {
   const { isSignedIn } = useCurrentUser();
+  const { resolvedTheme } = useTheme();
 
   return (
     <>
@@ -76,7 +78,7 @@ export function NavBar() {
               </Link>
             </div>
 
-            <div className="hidden md:flex md:flex-1 md:justify-center">
+            <div className="hidden flex-wrap md:flex md:flex-1 md:justify-center">
               <NavigationMenu>
                 <NavigationMenuList>
                   <NavigationMenuItem>
@@ -121,7 +123,24 @@ export function NavBar() {
               </NavigationMenu>
             </div>
 
-            <div className="flex items-center justify-end">
+            <div className="flex gap-2 items-center justify-end">
+              <Link href="https://github.com/itzam-ai/itzam">
+                <Button variant="ghost">
+                  Star Us
+                  <div className="size-5 flex items-center justify-center fill-white">
+                    <Image
+                      src={
+                        resolvedTheme === "dark"
+                          ? "/github-dark-logo.svg"
+                          : "/github-logo.svg"
+                      }
+                      alt="Github"
+                      width={16}
+                      height={16}
+                    />
+                  </div>
+                </Button>
+              </Link>
               {isSignedIn ? (
                 <Link href="/dashboard" prefetch={true}>
                   <Button variant="secondary">

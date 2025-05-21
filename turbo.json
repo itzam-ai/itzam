@@ -18,7 +18,6 @@
         "DISCORD_WEBHOOK_URL",
         "GOOGLE_GENERATIVE_AI_API_KEY",
         "GROK_API_KEY",
-        "DATABASE_URL",
         "STATSIG_SERVER_KEY",
         "STATSIG_CONSOLE_KEY",
         "ITZAM_API_KEY",

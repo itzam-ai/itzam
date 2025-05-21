@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import Link from "next/link";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
 export default function Login() {
