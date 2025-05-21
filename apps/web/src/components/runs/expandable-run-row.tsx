@@ -63,10 +63,12 @@ export function ExpandableRunRow({
           {run.input}
         </TableCell>
 
-        <TableCell className="min-w-[100px] max-w-[100px] truncate pr-12">
+        <TableCell className="min-w-[100px] max-w-[100px] truncate pr-12 text-muted-foreground">
           ${run.cost}
         </TableCell>
-        <TableCell className="text-sm">{run.durationInMs}</TableCell>
+        <TableCell className="text-sm text-muted-foreground">
+          {run.durationInMs}
+        </TableCell>
         <TableCell>
           <div className="flex items-center">
             <Button

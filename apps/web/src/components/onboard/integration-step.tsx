@@ -60,7 +60,7 @@ const response = await itzam.${functionName}({
         Integrate!
       </h2>
       <p className="text-muted-foreground mt-1">
-        Create an API key and you&apos;re good to go!
+        Create an Itzam API key and you&apos;re good to go!
       </p>
 
       <div className="flex flex-col gap-8 mt-8">

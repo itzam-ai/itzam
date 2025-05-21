@@ -7,7 +7,14 @@ import {
 } from "@itzam/server/db/knowledge/actions";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, FileIcon, PlusIcon, TrashIcon } from "lucide-react";
+import {
+  ArrowDown,
+  FileIcon,
+  FileUpIcon,
+  PlusIcon,
+  TrashIcon,
+  X,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { v4 } from "uuid";
@@ -115,85 +122,109 @@ export const FileInput = ({
 
   return (
     <FileUpload onFilesAdded={handleAddFiles}>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium">Files</h2>
-          <div className="relative">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isUploading}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <PlusIcon className="size-3" />
-              Add files
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              multiple
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  handleAddFiles(Array.from(e.target.files!));
-                  e.target.value = "";
-                }
-              }}
-            />
-          </div>
+          <h2 className="text font-medium">Files</h2>
+          {workflowFiles && workflowFiles.length > 0 && (
+            <div className="relative">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isUploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <PlusIcon className="size-3" />
+                Add files
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                multiple
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    handleAddFiles(Array.from(e.target.files!));
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
 
         <AnimatePresence>
           {files.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 10, height: 0, filter: "blur(10px)" }}
+              initial={{
+                opacity: 0,
+                height: 0,
+                filter: "blur(4px)",
+                marginTop: 0,
+              }}
               animate={{
                 opacity: 1,
-                y: 0,
                 height: "auto",
                 filter: "blur(0px)",
+                marginTop: 8,
               }}
-              exit={{ opacity: 0, y: -10, height: 0, filter: "blur(10px)" }}
+              exit={{
+                opacity: 0,
+                height: 0,
+                filter: "blur(4px)",
+                marginTop: 0,
+              }}
               transition={{ duration: 0.3 }}
-              className="rounded-lg border border-border flex gap-2 items-center p-2 pl-4 bg-muted/50 shadow-sm"
+              className="rounded-lg border border-border shadow-sm bg-muted-foreground/5"
             >
-              <div className="flex gap-3 items-center">
-                {files.map((file) => (
-                  <div
-                    key={file.id}
-                    className={`flex gap-1 items-center text-sm ${
-                      file.url ? "opacity-100" : "opacity-50"
-                    }`}
-                  >
-                    <FileIcon className="size-3" />
-                    {file.name}
-                  </div>
-                ))}
-              </div>
+              <div className="flex gap-2 items-center p-2">
+                <div className="flex gap-2 items-center">
+                  {files.map((file) => (
+                    <div
+                      key={file.id}
+                      className={`flex gap-1.5 items-center text-xs bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10 ${
+                        file.url ? "opacity-100" : "opacity-50"
+                      }`}
+                    >
+                      <FileUpIcon className="size-2.5" />
+                      {file.name}
+                      <X
+                        className="size-2.5 hover:opacity-80 transition-opacity cursor-pointer text-red-500"
+                        onClick={() =>
+                          setFiles((prevFiles) =>
+                            prevFiles.filter((f) => f.id !== file.id)
+                          )
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
 
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleSubmit}
-                className="ml-auto"
-                disabled={isUploading || isSubmitting}
-              >
-                <ArrowDown className="size-3" />
-                Add to knowledge base
-              </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleSubmit}
+                  className="ml-auto"
+                  disabled={isUploading || isSubmitting}
+                >
+                  <ArrowDown className="size-3" />
+                  Add to knowledge
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
         {workflowFiles && workflowFiles.length > 0 ? (
-          <div className="flex flex-col gap-2 mt-2">
+          <div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
             {workflowFiles.map((resource) => (
               <div key={resource.id} className="flex gap-3 items-center">
                 <div className="flex justify-center items-center rounded-md bg-card p-2 border border-border">
                   <FileIcon className="size-3" />
                 </div>
-                <div className="flex flex-col">
-                  <p className="font-medium text-sm">{resource.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-xs">
+                    {resource.title ?? resource.fileName}
+                  </p>
                   <span className="text-muted-foreground text-xs">
                     {formatDistanceToNow(resource.createdAt, {
                       addSuffix: true,
@@ -220,7 +251,7 @@ export const FileInput = ({
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border">
+          <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
             <EmptyStateDetails
               title="No files added"
               description="Drop files to the model's knowledge base"

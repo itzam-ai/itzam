@@ -1,4 +1,4 @@
-import { getRunsInTheLast30Days } from "@itzam/server/db/run/actions";
+import { getLast30RunsInTheLast30Days } from "@itzam/server/db/run/actions";
 import { HowToIntegrate } from "~/components/empty-state/how-to-integrate";
 import { LastRuns } from "~/components/runs/last-runs";
 import { GraphCard } from "~/components/workflows/graph-card";
@@ -14,7 +14,7 @@ export default async function WorkflowPage({
 }) {
   const { workflowId } = await params;
   const workflow = await getWorkflow(workflowId);
-  const runs = await getRunsInTheLast30Days(workflowId);
+  const runs = await getLast30RunsInTheLast30Days(workflowId);
 
   if ("error" in workflow) {
     return <div>{workflow.error.error.toString()}</div>;

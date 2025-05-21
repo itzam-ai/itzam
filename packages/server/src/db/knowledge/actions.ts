@@ -7,7 +7,7 @@ import { db } from "..";
 import { createEmbeddings } from "../../ai/embeddings";
 import { chunks, knowledge, resources, workflows } from "../schema";
 import { getUser } from "../auth/actions";
-import { eq, inArray } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 type ResourceInput = {
   url: string;
   type: "FILE" | "LINK";
@@ -35,6 +35,7 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
     with: {
       resources: {
         where: eq(resources.active, true),
+        orderBy: desc(resources.createdAt),
       },
     },
   });

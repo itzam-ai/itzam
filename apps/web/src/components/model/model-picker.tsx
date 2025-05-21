@@ -242,7 +242,7 @@ function ProviderModelList({
                   API Key is not set.
                 </p>
                 <Link href="/dashboard/providers">
-                  <Button variant="outline" size="sm">
+                  <Button variant="secondary" size="sm">
                     Add API Key
                   </Button>
                 </Link>

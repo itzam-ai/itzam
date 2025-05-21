@@ -1,6 +1,7 @@
 "use client";
 import {
   Bot,
+  Brain,
   Code,
   Gift,
   ImageIcon,
@@ -88,6 +89,18 @@ function Roadmap() {
           </p>
 
           <p className="text-muted-foreground">Try Itzam for free.</p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <p className="mt-6 flex items-center gap-2.5 text-lg">
+            <Brain className="size-4 text-orange-600" />
+            Knowledge
+            <Badge variant="green">Shipped</Badge>
+          </p>
+
+          <p className="text-muted-foreground">
+            Add knowledge (files, links, etc.) to your workflows.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1">

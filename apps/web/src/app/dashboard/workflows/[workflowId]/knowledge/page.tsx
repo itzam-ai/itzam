@@ -1,5 +1,6 @@
 import { getKnowledgeByWorkflowId } from "@itzam/server/db/knowledge/actions";
 import { FileInput } from "~/components/knowledge/file-input";
+import { LinkInput } from "~/components/knowledge/link-input";
 import { Card } from "~/components/ui/card";
 
 export default async function KnowledgePage({
@@ -13,14 +14,17 @@ export default async function KnowledgePage({
   if (!knowledge || "error" in knowledge) {
     return <div>Error: {JSON.stringify(knowledge?.error)}</div>;
   }
+
   return (
     <Card className="p-6 flex flex-col">
-      <h1 className="text-lg font-medium">Knowledge</h1>
-      <p className="text-sm text-muted-foreground mb-8">
+      <h1 className="text font-medium">Knowledge</h1>
+      <p className="text-xs text-muted-foreground mb-8">
         Add files and links to he model&apos;s knowledge base.
       </p>
-      <FileInput workflowId={workflowId} knowledge={knowledge} />
-      {/* <LinkInput workflow={workflow} /> */}
+      <div className="flex flex-col gap-4">
+        <FileInput workflowId={workflowId} knowledge={knowledge} />
+        <LinkInput workflowId={workflowId} knowledge={knowledge} />
+      </div>
     </Card>
   );
 }

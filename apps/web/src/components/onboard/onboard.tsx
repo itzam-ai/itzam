@@ -70,7 +70,7 @@ export const Onboard = ({
             alt="Logo"
             width={16}
             height={16}
-            className="size-4"
+            className="size-3"
           />
           <p className={`text-foreground font-medium`}>Itzam</p>
         </div>

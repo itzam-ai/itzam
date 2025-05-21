@@ -1,4 +1,4 @@
-import { ChartArea } from "lucide-react";
+import { BarChart, ChartArea } from "lucide-react";
 import EmptyStateDetails from "~/components/empty-state/empty-state-detais";
 import { RunDetails } from "~/components/playground/run-details";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -31,7 +31,7 @@ export function DetailsCard({
           <EmptyStateDetails
             title="No details to show"
             description="Run the workflow to see the response"
-            icon={<ChartArea />}
+            icon={<BarChart />}
             className="my-12"
           />
         )}
