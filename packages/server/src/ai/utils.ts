@@ -12,10 +12,9 @@ import { createRunWithCost } from "../db/run/actions";
 import { runs } from "../db/schema";
 import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
+import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
 import type { CreateAiParamsFn } from "./types";
-import { AxAIOpenAI, AxAIOpenAIArgs, AxGen } from "@ax-llm/ax";
-import { findRelevantContent } from "./embeddings";
 
 const defaultSchema = z.object({
   text: z.string().describe("The generated output text"),
