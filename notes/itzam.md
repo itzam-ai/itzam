@@ -1,6 +1,8 @@
+[]
+
 ## What Itzam does?
 
-> We provide the tools for you to **_seamlessly_ integrate AI into your applications**.
+> We help you to **_seamlessly_ integrate AI into your applications**.
 
 What this means?
 

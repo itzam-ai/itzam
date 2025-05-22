@@ -2,9 +2,9 @@
 
 import { signInWithProvider, signup } from "@itzam/server/db/auth/actions";
 import { Loader2 } from "lucide-react";
-import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
+import GitHubLogo from "public/github-logo";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -13,7 +13,6 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 
 export default function SignUpPage() {
-  const { resolvedTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignInWithProvider = (provider: "google" | "github") => {
@@ -63,16 +62,7 @@ export default function SignUpPage() {
             disabled={isLoading}
             onClick={() => handleSignInWithProvider("github")}
           >
-            <Image
-              src={
-                resolvedTheme === "dark"
-                  ? "/github-dark-logo.svg"
-                  : "/github-logo.svg"
-              }
-              alt="Github"
-              width={16}
-              height={16}
-            />
+            <GitHubLogo />
             Github
           </Button>
         </div>

@@ -7,13 +7,12 @@ import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import GitHubLogo from "public/github-logo";
 
 export default function LoginPage() {
-  const { resolvedTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignInWithProvider = (provider: "google" | "github") => {
@@ -66,16 +65,7 @@ export default function LoginPage() {
             onClick={() => handleSignInWithProvider("github")}
             disabled={isLoading}
           >
-            <Image
-              src={
-                resolvedTheme === "dark"
-                  ? "/github-dark-logo.svg"
-                  : "/github-logo.svg"
-              }
-              alt="Github"
-              width={16}
-              height={16}
-            />
+            <GitHubLogo />
             Github
           </Button>
         </div>
