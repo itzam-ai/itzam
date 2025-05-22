@@ -15,6 +15,9 @@ const SIMILARITY_THRESHOLD = 0.2;
 
 // PARSE RESOURCE AND CREATE EMBEDDINGS
 export async function createEmbeddings(resource: Resource, workflowId: string) {
+  const supabase = await createClient();
+  let title = resource.fileName ?? "";
+
   try {
     // SEND TO TIKA
     const textFromTika = await convertSingleFile({
@@ -22,7 +25,7 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       mimeType: resource.mimeType,
     });
 
-    const title = await generateFileTitleForResource(textFromTika, resource);
+    title = await generateFileTitleForResource(textFromTika, resource);
 
     if (!textFromTika) {
       throw new Error("No text from Tika");
@@ -41,7 +44,7 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
         workflowId,
       }))
     );
-    const supabase = await createClient();
+
     supabase.channel(`knowledge-${resource.knowledgeId}`).send({
       type: "broadcast",
       event: "update",
@@ -54,6 +57,13 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       .where(eq(resources.id, resource.id));
   } catch (error) {
     console.error("Error creating embeddings", error);
+
+    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
+      type: "broadcast",
+      event: "update",
+      payload: { status: "FAILED", resourceId: resource.id, title },
+    });
+
     await db
       .update(resources)
       .set({ status: "FAILED" })
