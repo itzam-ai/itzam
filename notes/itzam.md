@@ -1,15 +1,16 @@
-[]
+# Itzam
+
+[Itzam](https://itz.am/) is an open source platform for integrating AI.
 
 ## What Itzam does?
 
-> We help you to **_seamlessly_ integrate AI into your applications**.
+We help developers **create AI applications**.
 
 What this means?
 
 - Swap models automatically or with one click;
 - Change the current prompt easily;
-- Customize the workflow context;
-- Integrate in 2 minutes;
+- Great DX, integrate in 2 minutes;
 - And much more… (see more features below)
 
 ## Principles
@@ -17,14 +18,14 @@ What this means?
 <aside>
 🚫
 
-Remove AI stuff from your business logic.
+Remove AI logic from your code.
 
 </aside>
 
 <aside>
 👥
 
-Everyone should be able to manage AI.
+AI should be easy to manage.
 
 </aside>
 
@@ -37,37 +38,27 @@ Use AI, not a specific model.
 
 ## Current Problems
 
-### 👨🏻‍💻  Non-technical people
+### 👨🏻‍💻  DX is horrible
 
-_How can non-technical people manage AI workflows?_
-
-Currently, AI workflows in companies are only managed by devs.
+Other platforms don't provide a good developer experience to the engineer integrating AI.
 
 ### 🤖  New models
 
-_How can my AI integrations **keep up** with new models and providers?_
-
-Changing models is painful because you have provider lock-in, you need to test them and change code.
+You blinked and a new model appeared. Changing models is painful because you have provider lock-in, test phase and change code.
 
 ### 🔃  Changing is hard
 
-_If I want to change the prompt or context, can I do it without changing my code?_
-
-Having these AI logics mixed in your code can become a problem. Besides that, changing anything would require a redeploy.
+Having AI logics mixed in your code can become a problem. Besides that, changing anything - model, prompt, context - would require a redeploy.
 
 ## How we solve them?
 
 ### ⚙️ AI Dashboard
 
-Our dashboard makes it easy for anyone to manage AI workflows without coding. Just configure everything - model, prompt, context, etc - through a simple interface.
+Our dashboard makes it easier to manage AI workflows without touching code. Configure everything - model, prompt, context, etc - through a simple interface.
 
 ### ⚡ Hot Swap
 
-Stay current with AI advancements without touching your code. We handle model integrations and updates, so you can switch to newer, better models with one click.
-
-### 🖲️ Easy Changes
-
-Make changes to your AI setup instantly through our dashboard. Modify prompts, switch models, or update context without redeploying your application. Besides that.
+We handle model integrations and updates, so you can switch to newer, better models with one click.
 
 ### 👨🏻‍💻 4 lines to Integrate
 
@@ -92,7 +83,7 @@ Everything starts in the dashboard, where you will create a Workflow. A Workflow
    - AI model (GPT o3, Claude 3.7, Gemini 2.5)
    - Model settings (style, response length)
    - Prompt (e.g. “You are a customer support agent from Acme Inc…”)
-   - Context (what the model will use as context, e.g. company docs, company logo, links)
+   - Knowledge (what the model will use as context, e.g. company docs, links)
 3. Great, now grab this Workflow’s slug and an API key in the dashboard and let's integrate!
 
 ### API & SDKs
@@ -121,46 +112,54 @@ Now it’s time to add the Workflow to your app.
 
 ## Features
 
-### 🤖  Model Hot Swap
+### 🤖 Model Hot Swap
 
 Change the current model - or the model settings - instantly.
 
-### 💬  Prompt Hot Swap
+### 💬 Prompt Management
 
 Change the prompt instantly and compare the output with other executions.
 
-### 💳  Unified Billing
+### 💳 Costs & Usage
 
-Manage all your AI spending in one place.
+Track all your AI spending in one place.
 
-### 🔌  Easy SDKs & API
+### 👨🏻‍💻 Easy SDKs & API
 
-Integrate AI in your product with 2 lines of code.
+Integrate AI in your product with 4 lines of code.
 
-### 🗣️ Multi-model Chat
+### 🛝  Playground
 
-Chat with every model to see which fits your workflow best.
+Tweak and test your workflow in the playground.
 
-### 🗃️  Context Management (soon)
+### 🧠 Knowledge
 
 Manage the context - docs, images, links, texts - you want to give to the AI for each workflow.
 
-### 📐  Rules (soon)
+## Next features
+
+### 🖼️ Attachments
+
+Send attachments - docs, images - via API & SDKs.
+
+### 📐 Rules
 
 Create custom rules for each workflow.
 
 e.g. if AI bill is over $50 → switch to a cheaper model.
 
-### ✨  Model Recommendation (soon)
+### ✨  Model Recommendation
 
-Get recommendations on the best model (balancing cost, latency, and intelligence) based on your workflow requirements.
+Get recommendations on the best model (balancing cost, latency, and intelligence).
+
+### 🚧  Guardrails
+
+Create limits for the AI’s response.
 
 ## Links
 
-Itzam: [itz.am](http://itz.am)
-
-Itzam Docs: [docs.itz.am](http://docs.itz.am)
-
-Itzam Chat: [chat.itz.am](http://chat.itz.am)
-
-AI Landscape: [link](https://docs.google.com/spreadsheets/d/1JfD2fnOSa0Cj7shuLuU0rGtqkgdbrctPS-6cOwzI158/edit?usp=sharing)
+- Itzam: [itz.am](http://itz.am)
+- Itzam Docs: [docs.itz.am](http://docs.itz.am)
+- Roadmap: [itz.am/roadmap](https://itz.am/roadmap)
+- AI Landscape: [link](https://docs.google.com/spreadsheets/d/1JfD2fnOSa0Cj7shuLuU0rGtqkgdbrctPS-6cOwzI158/edit?usp=sharing)
+- GitHub: https://github.com/itzam-ai/itzam
