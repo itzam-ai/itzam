@@ -221,32 +221,38 @@ export const FileInput = ({
                 <div className="flex justify-center items-center rounded-md bg-card p-2 border border-border">
                   <FileIcon className="size-3" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-xs">
-                    {resource.title ?? resource.fileName}
-                  </p>
-                  <span className="text-muted-foreground text-xs">
-                    {formatDistanceToNow(resource.createdAt, {
-                      addSuffix: true,
-                    })}
-                  </span>
-                  {resource.status === "FAILED" && (
-                    <span className="text-red-500 text-xs">Failed</span>
-                  )}
-                  {resource.status === "PENDING" && (
-                    <span className="text-yellow-500 text-xs">Pending</span>
-                  )}
-                  {resource.status === "PROCESSED" && (
-                    <span className="text-green-500 text-xs">Processed</span>
-                  )}
+                <div className="justify-between w-full flex items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-xs">
+                      {resource.title ?? resource.fileName}
+                    </p>
+                    {resource.status === "FAILED" && (
+                      <span className="text-red-500 text-xs">Failed</span>
+                    )}
+                    {resource.status === "PENDING" && (
+                      <span className="text-yellow-500 text-xs">
+                        Processing
+                      </span>
+                    )}
+                    {resource.status === "PROCESSED" && (
+                      <span className="text-green-500 text-xs">Processed</span>
+                    )}
+                    <span className="text-muted-foreground text-xs">
+                      {formatDistanceToNow(resource.createdAt, {
+                        addSuffix: true,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => deleteResource(resource.id, workflowId)}
+                    >
+                      <TrashIcon className="size-3" />
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => deleteResource(resource.id, workflowId)}
-                >
-                  <TrashIcon className="size-3" />
-                </Button>
               </div>
             ))}
           </div>
