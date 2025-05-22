@@ -1,108 +1,119 @@
+![itzam-without-bg.png](https://cdn.discordapp.com/attachments/1333533060213244017/1375229265418784768/itzam-readme.png?ex=6830ed8f&is=682f9c0f&hm=f27a237f4408e1eedab123b9eb8e30c022c5b87b34cf727e0bf06753a85aec80&)
+
 # Itzam
 
-Integrate AI seamless!
+[Itzam](https://itz.am) is an open source platform for integrating AI.
 
-## 🏗️ Now
+## What we do?
 
-- [ ] Attachment/files [A]
-- [ ] Error Handling [A]
-- [ ] Thread
-  - CRUD
+We help you **create AI applications**. Itzam’s purpose is to give developers the best possible experience when developing AI apps.
 
-## 🗃️ Backlog
+What this means?
 
-### ⏭️ Next
+- Swap models automatically or with one click;
+- Change the current prompt easily;
+- Integrate in 2 minutes;
+- And much more… (see more features below)
 
-- [ ] Cost per workflow in /usage [G]
-- [ ] Improve workflow creation [G]
-  - [ ] Empty state steps
-  - [ ] Model recommendation
-- [ ] Prompt tab in workflow (enhance with AI) [G]
-- [ ] Improve model tab (filters, task requirements based on prompt - send to AI) [G]
-- [ ] Support thinking models better (expose reasoning, expose reasoning effort, some models have different reasoning token prices - e.g. gemini 2.5 flash)
-- [ ] Rules
-- [ ] Guardrails
-- [ ] Context
-  - [ ] pgvector
-  - [ ] embeddings
-  - [ ] Time to rescrape
-  - https://github.com/docling-project/docling
-  - https://vercel.com/docs/functions/runtimes/python
+## How it works
 
-### 🗄️ Later
+We are divided into 2 components: the Dashboard and the Integrations (API & SDKs).
 
-- [ ] Add reasoning effort to model settings (only when supported)
-- [ ] Blog
-- [ ] Use a syntax highlighter for code blocks [A]
-- [ ] Api Key limits (ex: per workflow)
-- [ ] More SDKs
-- [ ] Prod / Dev mode
-- [ ] Model Fallback
-- [ ] Groq support
-- [ ] OpenRouter support
-- [ ] LangFlow support
+For example, let's imagine you want to create a support chat in your landing page and want it to be powered by AI.
 
-### 💨 Future
+Here’s how you would do this with Itzam:
 
-- [ ] Status Page
+### Dashboard
 
-### 🎥 Content
+Everything starts in the dashboard, where you will create a **Workflow**. A **Workflow** represents a functionality in your app, in this case, the support chat.
 
-- [ ] Record "Changing my chatbot from Claude to Gemini, use Theo's video - Claude is too expensive, let's see what he recommends"
-- [ ] Integrating Itzam in VAYO
+1. Create a **Workflow** called “Support Chat”.
+2. Inside your **Workflow** you can set:
+   - AI model (GPT o3, Claude 3.7, Gemini 2.5)
+   - Model settings (style, response length)
+   - Prompt (e.g. “You are a customer support agent from Acme Inc…”)
+   - Knowledge (what the model will use as context, e.g. company docs, links)
+3. Great, now grab this **Workflow**’s slug and an API key in the dashboard and let's integrate!
 
-### ✅ Done
+### API & SDKs
 
-- [x] Structured Outputs [A]
-- [x] Free Plan (BYOK)
-- [x] Add markdown support to playground response [G]
-- [x] Model Settings - (remember to limit per model) [G]
-- [x] Admin UI to add models (add _all_ fields, including model settings) [G]
-- [x] More model details (context window, size, open source?) [G]
-- [x] Grok 3 [G]
-- [x] Add Gemini 2.5 (when pricing is released) [G]
-- [x] Fix "Fill with AI" e Lisa (SSE) [G]
-- [x] Support Models table [G]
+Now it’s time to integrate the **Workflow** in your app.
 
-- [x] Improve SDK
-  - [x] yield in streamText [A]
-  - [x] better returns (cost, model, duration) [G]
-  - [x] add column to run for ai SDK output (JSONb) [G]
-  - [x] get run by id [G]
-  - [x] list models [G]
-  - [x] better error treatment [G]
+1. Use the API key to authenticate:
 
-### Media
+   ```jsx
+   import { Itzam } from "itzam";
 
-- https://postspark.app/
+   const itzam = new Itzam("my-great-api-key");
+   ```
 
-### Mintlify alternative
+2. Use the **Workflow**’s slug to run it with your user’s input:
 
-- https://fumadocs.vercel.app/
+   ```jsx
+   const response = await itzam.generateText({
+     input: "I am having trouble finding your documentation...",
+     workflowSlug: "support-chat",
+   });
 
-### Eval platforms
+   console.log(response.text);
+   // > "Follow this link to access our documentation: acme.com/docs"
+   ```
 
-- https://www.openlayer.com/
-- https://www.deepeval.com/
+## Features
 
-### Competitors
+### 🤖  Model Hot Swap
 
-- https://flowiseai.com/
-- https://humanloop.com/
-- https://braintrust.dev/
+Change the current model - or the model settings - instantly.
 
-### Future
+### 💬  Prompt Management
 
-- https://www.deepeval.com/
+Change the prompt instantly and compare the output with other executions.
 
-### Media
+### 💳  Costs & Usage
 
-- https://postspark.app/
+Track all your AI spending in one place.
 
-### Mintlify alternative
+### 👨🏻‍💻  Easy SDKs & API
 
-- https://fumadocs.vercel.app/
+Integrate AI in your product with 4 lines of code.
 
-## DX stuff to do
+### 🛝  Playground
 
-- [ ] find a way to test all models run well with all configs
+Tweak and test your workflow in the playground.
+
+### 🧠  Knowledge
+
+Manage the context - docs, images, links, texts - you want to give to the AI for each workflow.
+
+## Next features
+
+### 🖼️  Attachments
+
+Send attachments - docs, images - via API & SDKs.
+
+### 📐  Rules
+
+Create custom rules for each workflow.
+
+e.g. if AI bill is over $50 → switch to a cheaper model.
+
+### ✨  Model Recommendation
+
+Get recommendations on the best model (balancing cost, latency, and intelligence).
+
+### 🚧  Guardrails
+
+Create limits for the AI’s response.
+
+For more details, check [TODO.md](TODO.md).
+
+## Docs
+
+Check out our docs at [docs.itz.am](https://docs.itz.am)!
+
+## Links
+
+- Itzam: [itz.am](http://itz.am)
+- Itzam Docs: [docs.itz.am](http://docs.itz.am)
+- Roadmap: [itz.am/roadmap](https://itz.am/roadmap)
+- Available models: [itz.am/models](https://itz.am/models)
