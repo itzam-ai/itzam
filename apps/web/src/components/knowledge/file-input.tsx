@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { supabase } from "supabase/utils/client";
 import { v7 } from "uuid";
@@ -48,6 +48,7 @@ export const FileInput = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<ExtendedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [_isPending, startTransition] = useTransition();
 
   const handleAddFiles = async (newFiles: File[]) => {
     setIsUploading(true);
@@ -69,38 +70,38 @@ export const FileInput = ({
     });
 
     setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
+    startTransition(async () => {
+      // upload the files to r2
+      const uploadedFiles = await Promise.all(
+        filesWithIds.map((file) =>
+          uploadFileToR2(file, user?.id ?? "").catch((error) => {
+            console.error(error);
+            toast.error(error.message);
+            return {
+              ...file,
+              id: file.id,
+              createdAt: file.lastModified,
+              url: null,
+            };
+          })
+        )
+      );
 
-    // upload the files to r2
-    const uploadedFiles = await Promise.all(
-      filesWithIds.map((file) =>
-        uploadFileToR2(file, user?.id ?? "").catch((error) => {
-          console.error(error);
-          toast.error(error.message);
-          return {
-            ...file,
-            id: file.id,
-            createdAt: file.lastModified,
-            url: null,
-          };
-        })
-      )
-    );
+      const filesToRemove = uploadedFiles.filter((file) => file.url === null);
 
-    const filesToRemove = uploadedFiles.filter((file) => file.url === null);
-
-    setFiles((prevFiles) =>
-      prevFiles
-        .filter((file) => !filesToRemove.some((f) => f.id === file.id))
-        .map((file) => {
-          const uploadedFile = uploadedFiles.find((f) => f?.id === file.id);
-          if (uploadedFile?.url) {
-            file.url = uploadedFile.url;
-          }
-          return file;
-        })
-    );
-
-    setIsUploading(false);
+      setFiles((prevFiles) =>
+        prevFiles
+          .filter((file) => !filesToRemove.some((f) => f.id === file.id))
+          .map((file) => {
+            const uploadedFile = uploadedFiles.find((f) => f?.id === file.id);
+            if (uploadedFile?.url) {
+              file.url = uploadedFile.url;
+            }
+            return file;
+          })
+      );
+      setIsUploading(false);
+    });
   };
 
   const handleSubmit = async () => {
