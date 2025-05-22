@@ -1,19 +1,20 @@
 "use server";
 
+import { desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
 import { v7 } from "uuid";
 import { db } from "..";
 import { createEmbeddings } from "../../ai/embeddings";
-import { chunks, knowledge, resources, workflows } from "../schema";
 import { getUser } from "../auth/actions";
-import { desc, eq, inArray } from "drizzle-orm";
+import { chunks, knowledge, resources, workflows } from "../schema";
 type ResourceInput = {
   url: string;
   type: "FILE" | "LINK";
   mimeType: string;
   fileName: string;
   fileSize: number;
+  id?: string;
 };
 
 export type Knowledge = Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>;
@@ -61,7 +62,7 @@ export async function createResources(
     .values(
       resourcesInput.map((resource) => ({
         ...resource,
-        id: v7(),
+        id: resource.id ?? v7(),
         knowledgeId,
       }))
     )

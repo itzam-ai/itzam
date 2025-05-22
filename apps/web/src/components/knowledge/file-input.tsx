@@ -4,20 +4,24 @@ import {
   createResources,
   deleteResource,
   Knowledge,
+  type Resource,
 } from "@itzam/server/db/knowledge/actions";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDown,
+  ExternalLink,
   FileIcon,
   FileUpIcon,
   PlusIcon,
   TrashIcon,
   X,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { v4 } from "uuid";
+import { supabase } from "supabase/utils/client";
+import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { uploadFileToR2 } from "~/lib/r2-client";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
@@ -35,8 +39,8 @@ export const FileInput = ({
   workflowId: string;
   knowledge: Knowledge;
 }) => {
-  const workflowFiles = knowledge?.resources.filter(
-    (resource) => resource.type === "FILE"
+  const [workflowFiles, setWorkflowFiles] = useState<Resource[]>(
+    knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []
   );
 
   const { user } = useCurrentUser();
@@ -57,7 +61,7 @@ export const FileInput = ({
 
       // Add our custom properties while preserving all File properties
       Object.defineProperties(extendedFile, {
-        id: { value: v4(), writable: true },
+        id: { value: v7(), writable: true },
         url: { value: null, writable: true },
       });
 
@@ -75,6 +79,7 @@ export const FileInput = ({
           return {
             ...file,
             id: file.id,
+            createdAt: file.lastModified,
             url: null,
           };
         })
@@ -84,17 +89,15 @@ export const FileInput = ({
     const filesToRemove = uploadedFiles.filter((file) => file.url === null);
 
     setFiles((prevFiles) =>
-      prevFiles.filter((file) => !filesToRemove.some((f) => f.id === file.id))
-    );
-
-    setFiles((prevFiles) =>
-      prevFiles.map((file) => {
-        const uploadedFile = uploadedFiles.find((f) => f?.id === file.id);
-        if (uploadedFile?.url) {
-          file.url = uploadedFile.url;
-        }
-        return file;
-      })
+      prevFiles
+        .filter((file) => !filesToRemove.some((f) => f.id === file.id))
+        .map((file) => {
+          const uploadedFile = uploadedFiles.find((f) => f?.id === file.id);
+          if (uploadedFile?.url) {
+            file.url = uploadedFile.url;
+          }
+          return file;
+        })
     );
 
     setIsUploading(false);
@@ -102,6 +105,19 @@ export const FileInput = ({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    setWorkflowFiles((prevFiles) => {
+      return prevFiles.concat(
+        // @ts-expect-error
+        files.map((file) => ({
+          id: file.id,
+          status: "PENDING",
+          title: "Loading...",
+          createdAt: file.lastModified,
+        }))
+      );
+    });
+
     await createResources(
       files.map((file) => ({
         fileName: file.name,
@@ -109,6 +125,7 @@ export const FileInput = ({
         mimeType: file.type,
         type: "FILE",
         fileSize: file.size,
+        id: file.id,
       })),
       knowledge?.id ?? "",
       workflowId
@@ -119,6 +136,45 @@ export const FileInput = ({
     setIsSubmitting(false);
     toast.success("Files added to knowledge base");
   };
+
+  const channelId = `knowledge-${knowledge?.id}`;
+  useEffect(() => {
+    const channel = supabase
+      .channel(channelId)
+      .on(
+        "broadcast",
+        {
+          event: "update",
+        },
+        ({
+          payload,
+        }: {
+          payload: {
+            status: "FAILED" | "PENDING" | "PROCESSED";
+            resourceId: string;
+            title: string;
+          };
+        }) => {
+          setWorkflowFiles((files) => {
+            return files.map((file) => {
+              if (file.id === payload.resourceId) {
+                return {
+                  ...file,
+                  status: payload.status,
+                  title: payload.title,
+                };
+              }
+              return file;
+            });
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [channelId]);
 
   return (
     <FileUpload onFilesAdded={handleAddFiles}>
@@ -222,7 +278,7 @@ export const FileInput = ({
                   <FileIcon className="size-3" />
                 </div>
                 <div className="justify-between w-full flex items-center gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <p className="font-medium text-xs">
                       {resource.title ?? resource.fileName}
                     </p>
@@ -244,6 +300,22 @@ export const FileInput = ({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      asChild
+                      disabled={!resource.url}
+                    >
+                      {resource.url ? (
+                        <Link href={resource.url ?? ""} target="_blank">
+                          <ExternalLink className="size-3" />
+                        </Link>
+                      ) : (
+                        <div>
+                          <ExternalLink className="size-3 text-muted-foreground" />
+                        </div>
+                      )}
+                    </Button>
                     <Button
                       variant="outline"
                       size="icon"

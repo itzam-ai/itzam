@@ -28,7 +28,7 @@ export async function uploadFileToR2(file: ExtendedFile, userId: string) {
     }
 
     const url = (await response.text()).replaceAll('"', "");
-    return { url, id: file.id };
+    return { url, id: file.id, createdAt: file.lastModified };
   } catch (error) {
     console.error("Error in uploadFileToR2:", error);
     throw error;

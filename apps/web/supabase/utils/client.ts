@@ -6,3 +6,5 @@ export function createClient() {
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
 }
+
+export const supabase = createClient();

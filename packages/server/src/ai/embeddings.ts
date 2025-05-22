@@ -5,6 +5,7 @@ import { v7 } from "uuid";
 import { db } from "../db";
 import { Resource } from "../db/knowledge/actions";
 import { chunks, resources } from "../db/schema";
+import { createClient } from "../db/supabase/server";
 import { generateFileTitle } from "../itzam/file-title-generator";
 import { convertSingleFile } from "./tika";
 
@@ -21,7 +22,7 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       mimeType: resource.mimeType,
     });
 
-    await generateFileTitleForResource(textFromTika, resource);
+    const title = await generateFileTitleForResource(textFromTika, resource);
 
     if (!textFromTika) {
       throw new Error("No text from Tika");
@@ -40,6 +41,12 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
         workflowId,
       }))
     );
+    const supabase = await createClient();
+    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
+      type: "broadcast",
+      event: "update",
+      payload: { status: "PROCESSED", resourceId: resource.id, title },
+    });
 
     await db
       .update(resources)
@@ -158,4 +165,6 @@ export const generateFileTitleForResource = async (
       title: title,
     })
     .where(eq(resources.id, resource.id));
+
+  return title;
 };
