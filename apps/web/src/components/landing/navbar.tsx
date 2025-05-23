@@ -129,8 +129,7 @@ export function NavBar() {
                   size="sm"
                   className="gap-1.5 hover:bg-transparent hover:opacity-70 transition-opacity"
                 >
-                  <GitHubLogo size="sm" />
-                  Star Us
+                  <GitHubLogo size="md" />
                 </Button>
               </Link>
               {isSignedIn ? (

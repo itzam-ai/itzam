@@ -8,14 +8,6 @@ import { db } from "..";
 import { createEmbeddings } from "../../ai/embeddings";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
-type ResourceInput = {
-  url: string;
-  type: "FILE" | "LINK";
-  mimeType: string;
-  fileName: string;
-  fileSize: number;
-  id?: string;
-};
 
 export type Knowledge = Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>;
 
@@ -46,6 +38,15 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
 
 export type Resource = typeof resources.$inferSelect;
 
+type ResourceInput = {
+  url: string;
+  type: "FILE" | "LINK";
+  mimeType: string;
+  fileName: string;
+  fileSize: number;
+  id?: string;
+};
+
 export async function createResources(
   resourcesInput: ResourceInput[],
   knowledgeId: string,
@@ -72,7 +73,6 @@ export async function createResources(
     void createEmbeddings(resource, workflowId);
   });
 
-  revalidatePath(`/workflows/${workflowId}/knowledge`);
   return resourcesCreated;
 }
 

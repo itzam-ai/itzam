@@ -45,6 +45,12 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       }))
     );
 
+    console.log("sending channel update", {
+      status: "PROCESSED",
+      resourceId: resource.id,
+      title,
+    });
+
     supabase.channel(`knowledge-${resource.knowledgeId}`).send({
       type: "broadcast",
       event: "update",

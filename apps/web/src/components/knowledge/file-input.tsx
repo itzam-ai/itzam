@@ -53,44 +53,47 @@ export const FileInput = ({
   const handleAddFiles = async (newFiles: File[]) => {
     setIsUploading(true);
 
-    const filesWithIds = newFiles.map((file) => {
-      // Create a new File object with all original properties
-      const extendedFile = new File([file], file.name, {
-        type: file.type,
-        lastModified: file.lastModified,
-      }) as ExtendedFile;
+    startTransition(async () => {
+      const filesWithIds = newFiles.map((file) => {
+        // Create a new File object with all original properties
+        const extendedFile = new File([file], file.name, {
+          type: file.type,
+          lastModified: file.lastModified,
+        }) as ExtendedFile;
 
-      // Add our custom properties while preserving all File properties
-      Object.defineProperties(extendedFile, {
-        id: { value: v7(), writable: true },
-        url: { value: null, writable: true },
+        // Add our custom properties while preserving all File properties
+        Object.defineProperties(extendedFile, {
+          id: { value: v7(), writable: true },
+          url: { value: null, writable: true },
+        });
+
+        return extendedFile;
       });
 
-      return extendedFile;
-    });
+      setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
 
-    setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
-    startTransition(async () => {
       // upload the files to r2
       const uploadedFiles = await Promise.all(
-        filesWithIds.map((file) =>
-          uploadFileToR2(file, user?.id ?? "").catch((error) => {
+        filesWithIds.map((file) => {
+          try {
+            return uploadFileToR2(file, file.id, user?.id ?? "");
+          } catch (error) {
             console.error(error);
-            toast.error(error.message);
+            toast.error((error as Error).message);
             return {
               ...file,
               id: file.id,
-              createdAt: file.lastModified,
+              createdAt: new Date(),
               url: null,
             };
-          })
-        )
+          }
+        })
       );
 
       const filesToRemove = uploadedFiles.filter((file) => file.url === null);
 
-      setFiles((prevFiles) =>
-        prevFiles
+      setFiles((prevFiles) => {
+        return prevFiles
           .filter((file) => !filesToRemove.some((f) => f.id === file.id))
           .map((file) => {
             const uploadedFile = uploadedFiles.find((f) => f?.id === file.id);
@@ -98,8 +101,9 @@ export const FileInput = ({
               file.url = uploadedFile.url;
             }
             return file;
-          })
-      );
+          });
+      });
+
       setIsUploading(false);
     });
   };
@@ -113,8 +117,8 @@ export const FileInput = ({
         files.map((file) => ({
           id: file.id,
           status: "PENDING",
-          title: "Loading...",
-          createdAt: file.lastModified,
+          title: file.name,
+          createdAt: new Date(),
         }))
       );
     });
@@ -135,10 +139,10 @@ export const FileInput = ({
     setFiles([]);
 
     setIsSubmitting(false);
-    toast.success("Files added to knowledge base");
   };
 
   const channelId = `knowledge-${knowledge?.id}`;
+
   useEffect(() => {
     const channel = supabase
       .channel(channelId)
@@ -156,6 +160,8 @@ export const FileInput = ({
             title: string;
           };
         }) => {
+          console.log("payload", payload);
+
           setWorkflowFiles((files) => {
             return files.map((file) => {
               if (file.id === payload.resourceId) {
