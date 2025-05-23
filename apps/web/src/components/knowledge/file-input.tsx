@@ -53,25 +53,25 @@ export const FileInput = ({
   const handleAddFiles = async (newFiles: File[]) => {
     setIsUploading(true);
 
-    startTransition(async () => {
-      const filesWithIds = newFiles.map((file) => {
-        // Create a new File object with all original properties
-        const extendedFile = new File([file], file.name, {
-          type: file.type,
-          lastModified: file.lastModified,
-        }) as ExtendedFile;
+    const filesWithIds = newFiles.map((file) => {
+      // Create a new File object with all original properties
+      const extendedFile = new File([file], file.name, {
+        type: file.type,
+        lastModified: file.lastModified,
+      }) as ExtendedFile;
 
-        // Add our custom properties while preserving all File properties
-        Object.defineProperties(extendedFile, {
-          id: { value: v7(), writable: true },
-          url: { value: null, writable: true },
-        });
-
-        return extendedFile;
+      // Add our custom properties while preserving all File properties
+      Object.defineProperties(extendedFile, {
+        id: { value: v7(), writable: true },
+        url: { value: null, writable: true },
       });
 
-      setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
+      return extendedFile;
+    });
 
+    setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
+
+    startTransition(async () => {
       // upload the files to r2
       const uploadedFiles = await Promise.all(
         filesWithIds.map((file) => {
