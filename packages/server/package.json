@@ -51,7 +51,7 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.33.0",
     "hono": "^4.7.4",
-    "itzam": "^2.1.7",
+    "itzam": "^2.1.16",
     "json-schema": "^0.4.0",
     "json-schema-to-zod": "^2.6.1",
     "mime-types": "^3.0.1",

@@ -993,8 +993,8 @@ importers:
         specifier: ^4.7.4
         version: 4.7.7
       itzam:
-        specifier: ^2.1.7
-        version: 2.1.7(zod@3.24.3)
+        specifier: ^2.1.16
+        version: 2.1.16(zod@3.24.3)
       json-schema:
         specifier: ^0.4.0
         version: 0.4.0
@@ -5905,6 +5905,11 @@ packages:
   iterator.prototype@1.1.5:
     resolution: {integrity: sha512-H0dkQoCa3b2VEeKQBOxFph+JAbcrQdE7KC0UkqwpLmv2EC4P41QXP+rqo9wYodACiG5/WM5s9oDApTU8utwj9g==}
     engines: {node: '>= 0.4'}
+
+  itzam@2.1.16:
+    resolution: {integrity: sha512-Aib7kU/Jm5jPrf1en/TKOijI1u3nLIMqLWjerd+2QqnKNYyqbVITf3XOsWKaE9VFLqvcxmAp3EEIMNdf9yEgTw==}
+    peerDependencies:
+      zod: ^3.24.2
 
   itzam@2.1.7:
     resolution: {integrity: sha512-QepHI+KJo7dbz64oUhRuqkZsWgNICPoiHrDHHlJe7Gcs//YdbFPvh0JmzrYbZaG/ODK6YzI96KkUzXtnhvrPdw==}
@@ -13942,10 +13947,18 @@ snapshots:
       has-symbols: 1.1.0
       set-function-name: 2.0.2
 
+  itzam@2.1.16(zod@3.24.3):
+    dependencies:
+      hono: 4.7.7
+      json-schema: 0.4.0
+      zod: 3.24.3
+      zod-to-json-schema: 3.24.5(zod@3.24.3)
+
   itzam@2.1.7(zod@3.24.3):
     dependencies:
       '@types/json-schema': 7.0.15
       axios: 1.8.4
+      itzam: 2.1.16(zod@3.24.3)
       json-schema: 0.4.0
       zod-to-json-schema: 3.24.5(zod@3.24.3)
     transitivePeerDependencies:

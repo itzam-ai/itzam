@@ -10,8 +10,8 @@ Itzam provides tools for seamlessly integrating AI into your applications. With 
 - 💬 **Prompt Hot Swap** - Update prompts on the fly and compare outputs
 - 💳 **Unified Billing** - Manage all AI spending in one place
 - 🔌 **Simple Integration** - Add AI features with just a few lines of code
-- 🗃️ **Context Management** *(coming soon)* - Easily manage AI context including docs, images, and more
-- 📐 **Custom Rules** *(coming soon)* - Create automated rules for model switching and workflow management
+- 🗃️ **Context Management** _(coming soon)_ - Easily manage AI context including docs, images, and more
+- 📐 **Custom Rules** _(coming soon)_ - Create automated rules for model switching and workflow management
 
 ## Installation
 
@@ -49,12 +49,14 @@ console.log(response.output);
 Here's how to create an AI-powered support chat using Itzam:
 
 1. **Dashboard Setup**
+
    - Create a "Support Chat" workflow in the Itzam Dashboard
    - Configure your preferred AI model (GPT, Claude, Gemini)
    - Set up your prompt and context
    - Get your workflow slug and API key
 
 2. **Code Integration**
+
 ```typescript
 import { Itzam } from "itzam";
 
@@ -66,7 +68,7 @@ const handleUserMessage = async (userInput: string) => {
     input: userInput,
     workflowSlug: "support-chat",
   });
-  
+
   return response.output;
 };
 ```
