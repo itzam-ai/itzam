@@ -1,0 +1,6 @@
+{
+    "workspace": [
+        "packages/*",
+        "supabase/functions/*"
+    ]
+}
