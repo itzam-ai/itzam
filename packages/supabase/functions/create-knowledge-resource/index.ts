@@ -4,6 +4,8 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { getUser } from "packages/server/db/auth/actions.ts";
+import { db } from "packages/server/db/index.ts";
 
 console.log("Hello from Functions!");
 

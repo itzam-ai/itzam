@@ -5,7 +5,8 @@
     }
   ],
   "deno.enable": true,
-  "deno.enablePaths": ["./supabase/functions"],
-  "deno.importMap": "./supabase/functions/import_map.json",
-  "deno.lint": true
+  "deno.enablePaths": ["./packages/supabase/functions"],
+  "deno.lint": true,
+  "deno.suggest.imports.autoDiscover": true,
+  "deno.importMap": "./packages/supabase/functions/import_map.json"
 }
