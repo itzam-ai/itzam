@@ -3,18 +3,38 @@
 // This enables autocomplete, go to definition, etc.
 
 // Setup type definitions for built-in Supabase Runtime APIs
+import { db } from "@itzam/server/db/index";
+import { resources } from "@itzam/server/db/schema";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { getUser } from "packages/server/db/auth/actions.ts";
-import { db } from "packages/server/db/index.ts";
+import { createClient } from "jsr:@supabase/supabase-js";
 
 console.log("Hello from Functions!");
 
 Deno.serve(async (req) => {
-  const { data: user, error } = await getUser();
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!
+  );
+
+  const authHeader = req.headers.get("Authorization")!;
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await supabase.auth.getUser(token);
 
   if (error) {
     throw new Error(error.message);
   }
+
+  type ResourceInput = {
+    url: string;
+    type: "FILE" | "LINK";
+    mimeType: string;
+    fileName: string;
+    fileSize: number;
+    id?: string;
+  };
+
+  const body = await req.json();
+  const { resourcesInput, knowledgeId, workflowId } = body;
 
   const resourcesCreated = await db
     .insert(resources)

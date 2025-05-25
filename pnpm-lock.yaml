@@ -1051,7 +1051,23 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
-  packages/supabase: {}
+  packages/supabase:
+    dependencies:
+      '@itzam/hono':
+        specifier: workspace:*
+        version: link:../hono
+      '@itzam/server':
+        specifier: workspace:*
+        version: link:../server
+      '@itzam/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/supabase/functions/create-knowledge-resource:
+    dependencies:
+      '@itzam/server':
+        specifier: workspace:*
+        version: link:../../../server
 
   packages/typescript-config: {}
 

@@ -1,0 +1,6 @@
+{
+    "name": "@itzam/create-knowledge-resource",
+    "dependencies": {
+        "@itzam/server": "workspace:*"
+    }
+}

@@ -1,5 +1,0 @@
-{
-  "imports": {
-    "@itzam/server": "../../../server/src/index.ts"
-  }
-}
