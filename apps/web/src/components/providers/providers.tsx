@@ -141,7 +141,7 @@ const ProviderKey = ({
             setKey(e.target.value);
           }}
           className={cn(
-            "w-96 font-mono text-xs ",
+            "w-[calc(100%-20rem)] font-mono text-xs ",
             error ? "ring-1 ring-red-500" : ""
           )}
           placeholder="sk_proj3123_g1v3f33db4ck"

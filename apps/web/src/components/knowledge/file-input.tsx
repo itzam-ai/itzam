@@ -1,23 +1,10 @@
 "use client";
 
-import {
-  deleteResource,
-  Knowledge,
-  type Resource,
-} from "@itzam/server/db/knowledge/actions";
-import { supabase } from "@itzam/supabase/client";
-import { formatDistanceToNow } from "date-fns";
+import { Chunk } from "@itzam/server/ai/embeddings";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowDown,
-  ExternalLink,
-  FileIcon,
-  FileUpIcon,
-  PlusIcon,
-  TrashIcon,
-  X,
-} from "lucide-react";
-import Link from "next/link";
+import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
@@ -26,6 +13,7 @@ import { uploadFileToR2 } from "~/lib/r2-client";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
+import { KnowledgeItem } from "./knowledge-item";
 interface ExtendedFile extends File {
   id: string;
   url: string | null;
@@ -38,7 +26,7 @@ export const FileInput = ({
   workflowId: string;
   knowledge: Knowledge;
 }) => {
-  const [workflowFiles, setWorkflowFiles] = useState<Resource[]>(
+  const [workflowFiles, setWorkflowFiles] = useState<Knowledge["resources"]>(
     knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []
   );
 
@@ -47,7 +35,7 @@ export const FileInput = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<ExtendedFile[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [_isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleAddFiles = async (newFiles: File[]) => {
     setIsUploading(true);
@@ -109,15 +97,25 @@ export const FileInput = ({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setFiles([]);
 
     setWorkflowFiles((prevFiles) => {
       return prevFiles.concat(
-        // @ts-expect-error
         files.map((file) => ({
           id: file.id,
           status: "PENDING",
           title: file.name,
           createdAt: new Date(),
+          updatedAt: new Date(),
+          url: file.url ?? "",
+          fileName: file.name,
+          mimeType: file.type,
+          type: "FILE",
+          fileSize: file.size,
+          knowledgeId: knowledge?.id ?? "",
+          workflowId,
+          active: true,
+          chunks: [],
         }))
       );
     });
@@ -142,45 +140,41 @@ export const FileInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = `knowledge-${knowledge?.id}`;
+  const handleDelete = (resourceId: string) => {
+    setWorkflowFiles((prevFiles) =>
+      prevFiles.filter((file) => file.id !== resourceId)
+    );
+  };
+
+  const channelId = `knowledge-${knowledge?.id}-files`;
 
   useEffect(() => {
-    const channel = supabase
-      .channel(channelId)
-      .on(
-        "broadcast",
-        {
-          event: "update",
-        },
-        ({
-          payload,
-        }: {
-          payload: {
-            status: "FAILED" | "PENDING" | "PROCESSED";
-            resourceId: string;
-            title: string;
-          };
-        }) => {
-          console.log("payload", payload);
-
-          setWorkflowFiles((files) => {
-            return files.map((file) => {
-              if (file.id === payload.resourceId) {
-                return {
-                  ...file,
-                  status: payload.status,
-                  title: payload.title,
-                };
-              }
-              return file;
-            });
+    const unsubscribe = subscribeToChannel(
+      channelId,
+      (payload: {
+        status: "FAILED" | "PENDING" | "PROCESSED";
+        resourceId: string;
+        title: string;
+        chunks: Chunk[];
+      }) => {
+        setWorkflowFiles((files) => {
+          return files.map((file) => {
+            if (file.id === payload.resourceId) {
+              return {
+                ...file,
+                status: payload.status,
+                title: payload.title,
+                chunks: payload.chunks,
+              };
+            }
+            return file;
           });
-        }
-      )
-      .subscribe();
+        });
+      }
+    );
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [channelId]);
 
@@ -188,14 +182,14 @@ export const FileInput = ({
     <FileUpload onFilesAdded={handleAddFiles}>
       <div className="flex flex-col">
         <div className="flex justify-between items-center">
-          <h2 className="text font-medium">Files</h2>
+          <h2 className="text font-medium ml-0.5">Files</h2>
           {workflowFiles && workflowFiles.length > 0 && (
             <div className="relative">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={isUploading}
+                disabled={isSubmitting}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <PlusIcon className="size-3" />
@@ -223,53 +217,63 @@ export const FileInput = ({
               initial={{
                 opacity: 0,
                 height: 0,
-                filter: "blur(4px)",
                 marginTop: 0,
+                filter: "blur(6px)",
               }}
               animate={{
                 opacity: 1,
                 height: "auto",
-                filter: "blur(0px)",
                 marginTop: 8,
+                filter: "blur(0px)",
+                transition: {
+                  opacity: { delay: 0.2 },
+                  marginTop: { delay: 0.2 },
+                  filter: { delay: 0.2 },
+                },
               }}
               exit={{
                 opacity: 0,
                 height: 0,
-                filter: "blur(4px)",
                 marginTop: 0,
+                filter: "blur(6px)",
+                transition: { height: { delay: 0.2 } },
               }}
               transition={{ duration: 0.3 }}
               className="rounded-lg border border-border shadow-sm bg-muted-foreground/5"
             >
-              <div className="flex gap-2 items-center p-2">
-                <div className="flex gap-2 items-center">
+              <div className="flex gap-2 items-center p-2 justify-between">
+                <div className="flex gap-2 items-center flex-wrap">
                   {files.map((file) => (
-                    <div
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
                       key={file.id}
-                      className={`flex gap-1.5 items-center text-xs bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10 ${
+                      className={`flex gap-2 items-center bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10 ${
                         file.url ? "opacity-100" : "opacity-50"
                       }`}
                     >
-                      <FileUpIcon className="size-2.5" />
-                      {file.name}
+                      <FileUpIcon className="size-3" />
+                      <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32">
+                        {file.name}
+                      </p>
                       <X
-                        className="size-2.5 hover:opacity-80 transition-opacity cursor-pointer text-red-500"
+                        className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-red-500"
                         onClick={() =>
                           setFiles((prevFiles) =>
                             prevFiles.filter((f) => f.id !== file.id)
                           )
                         }
                       />
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
 
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   size="sm"
                   onClick={handleSubmit}
-                  className="ml-auto"
-                  disabled={isUploading || isSubmitting}
+                  disabled={isUploading || isSubmitting || files.length === 0}
                 >
                   <ArrowDown className="size-3" />
                   Add to knowledge
@@ -278,64 +282,17 @@ export const FileInput = ({
             </motion.div>
           )}
         </AnimatePresence>
+
         {workflowFiles && workflowFiles.length > 0 ? (
-          <div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
+          <motion.div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
             {workflowFiles.map((resource) => (
-              <div key={resource.id} className="flex gap-3 items-center">
-                <div className="flex justify-center items-center rounded-md bg-card p-2 border border-border">
-                  <FileIcon className="size-3" />
-                </div>
-                <div className="justify-between w-full flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <p className="font-medium text-xs">
-                      {resource.title ?? resource.fileName}
-                    </p>
-                    {resource.status === "FAILED" && (
-                      <span className="text-red-500 text-xs">Failed</span>
-                    )}
-                    {resource.status === "PENDING" && (
-                      <span className="text-yellow-500 text-xs">
-                        Processing
-                      </span>
-                    )}
-                    {resource.status === "PROCESSED" && (
-                      <span className="text-green-500 text-xs">Processed</span>
-                    )}
-                    <span className="text-muted-foreground text-xs">
-                      {formatDistanceToNow(resource.createdAt, {
-                        addSuffix: true,
-                      })}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      asChild
-                      disabled={!resource.url}
-                    >
-                      {resource.url ? (
-                        <Link href={resource.url ?? ""} target="_blank">
-                          <ExternalLink className="size-3" />
-                        </Link>
-                      ) : (
-                        <div>
-                          <ExternalLink className="size-3 text-muted-foreground" />
-                        </div>
-                      )}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => deleteResource(resource.id, workflowId)}
-                    >
-                      <TrashIcon className="size-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <KnowledgeItem
+                key={resource.id}
+                resource={resource}
+                onDelete={handleDelete}
+              />
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
             <EmptyStateDetails
@@ -346,11 +303,12 @@ export const FileInput = ({
             <div className="relative">
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
-                disabled={isUploading}
+                disabled={isSubmitting}
                 onClick={() => fileInputRef.current?.click()}
               >
+                <PlusIcon className="size-3" />
                 Add files
               </Button>
               <input

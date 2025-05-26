@@ -8,3 +8,21 @@ export function createClient() {
 }
 
 export const supabase = createClient();
+
+export const subscribeToChannel = (
+  channelId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onUpdate: (payload: any) => void
+) => {
+  const channel = supabase.channel(channelId);
+
+  channel.on("broadcast", { event: "update" }, (payload) => {
+    onUpdate(payload.payload);
+  });
+
+  channel.subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+};

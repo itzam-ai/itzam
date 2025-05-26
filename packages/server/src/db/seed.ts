@@ -755,13 +755,6 @@ async function seedWorkflows(userId: string) {
     contextId,
   });
 
-  const knowledgeId = v7();
-
-  // Create sample knowledge
-  await db.insert(knowledge).values({
-    id: knowledgeId,
-  });
-
   const googleGeminiFlashModel = await db.query.models.findFirst({
     where: eq(models.tag, "google:gemini-2.0-flash"),
   });
@@ -781,6 +774,13 @@ async function seedWorkflows(userId: string) {
   });
 
   if (!codeAssistantWorkflowExists) {
+    const knowledgeId = v7();
+
+    // Create sample knowledge
+    await db.insert(knowledge).values({
+      id: knowledgeId,
+    });
+
     const codeAssistantWorkflow = await db
       .insert(workflows)
       .values({
@@ -816,6 +816,13 @@ async function seedWorkflows(userId: string) {
   });
 
   if (!promptFillerWorkflowExists) {
+    const knowledgeId = v7();
+
+    // Create sample knowledge
+    await db.insert(knowledge).values({
+      id: knowledgeId,
+    });
+
     const promptFillerWorkflow = await db
       .insert(workflows)
       .values({
@@ -851,6 +858,13 @@ async function seedWorkflows(userId: string) {
   });
 
   if (!promptEnhancerWorkflowExists) {
+    const knowledgeId = v7();
+
+    // Create sample knowledge
+    await db.insert(knowledge).values({
+      id: knowledgeId,
+    });
+
     const promptEnhancerWorkflow = await db
       .insert(workflows)
       .values({
@@ -883,6 +897,13 @@ async function seedWorkflows(userId: string) {
   });
 
   if (!lisaWorkflowExists) {
+    const knowledgeId = v7();
+
+    // Create sample knowledge
+    await db.insert(knowledge).values({
+      id: knowledgeId,
+    });
+
     const lisaWorkflow = await db
       .insert(workflows)
       .values({
@@ -915,6 +936,13 @@ async function seedWorkflows(userId: string) {
   });
 
   if (!fileTitleGeneratorWorkflowExists) {
+    const knowledgeId = v7();
+
+    // Create sample knowledge
+    await db.insert(knowledge).values({
+      id: knowledgeId,
+    });
+
     const fileTitleGeneratorWorkflow = await db
       .insert(workflows)
       .values({

@@ -1,0 +1,147 @@
+"use client";
+
+import { deleteResource, Knowledge } from "@itzam/server/db/knowledge/actions";
+import NumberFlow from "@number-flow/react";
+import { formatDistanceToNow } from "date-fns";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Check,
+  Download,
+  ExternalLink,
+  FileIcon,
+  GlobeIcon,
+  Loader2,
+  TrashIcon,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Button } from "../ui/button";
+
+export const KnowledgeItem = ({
+  resource,
+  onDelete,
+}: {
+  resource: Knowledge["resources"][number];
+  onDelete?: (resourceId: string) => void;
+}) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    await deleteResource(resource.id);
+    onDelete?.(resource.id);
+    setIsDeleting(false);
+  };
+
+  return (
+    <motion.div key={resource.id} className="flex gap-2 items-center">
+      <div className="flex justify-center items-center rounded-md bg-card p-2 border border-border">
+        {resource.type === "FILE" ? (
+          <FileIcon className="size-3" />
+        ) : (
+          <GlobeIcon className="size-3" />
+        )}
+      </div>
+      <div className="justify-between w-full flex items-center">
+        <div className="flex items-center gap-2 flex-wrap">
+          <AnimatePresence mode="wait" initial={false}>
+            {resource.status === "FAILED" && (
+              <motion.div
+                key="failed-status"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <X className="size-3 text-red-500" />
+              </motion.div>
+            )}
+            {resource.status === "PENDING" && (
+              <motion.div
+                key="pending-status"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Loader2 className="size-3 text-yellow-500 animate-spin" />
+              </motion.div>
+            )}
+            {resource.status === "PROCESSED" && (
+              <motion.div
+                key="processed-status"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <Check className="size-3 text-green-500" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <p className="font-medium text-xs whitespace-nowrap">
+            {resource.title ? resource.title : resource.fileName}
+          </p>
+
+          <div className="px-1 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
+            <NumberFlow
+              value={resource.chunks?.length ?? 0}
+              style={{
+                fontSize: "10px",
+              }}
+            />
+            <p
+              className="text-muted-foreground"
+              style={{
+                fontSize: "10px",
+              }}
+            >
+              chunks
+            </p>
+          </div>
+
+          <span className="text-muted-foreground text-xs whitespace-nowrap">
+            {formatDistanceToNow(resource.createdAt, {
+              addSuffix: true,
+            })}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            disabled={!resource.url || isDeleting}
+          >
+            <Link
+              href={resource.url ?? ""}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${isDeleting ? "pointer-events-none opacity-50" : ""} transition-all`}
+            >
+              {resource.type === "FILE" ? (
+                <Download className="size-3" />
+              ) : (
+                <ExternalLink className="size-3" />
+              )}
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="size-3 animate-spin" />
+            ) : (
+              <TrashIcon className="size-3" />
+            )}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};

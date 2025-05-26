@@ -15,13 +15,21 @@
 
 - [ ] Grouping messages (threads)
 
+- [ ] UI
+
+  - [ ] Async buttons instead of toast (multiple states)
+
 - [ ] Knowledge
 
-  - [ ] Improve UI
-  - [ ] Fix big files upload
+  - [x] Improve UI [G]
+    - [x] TextLoop when status changes (add number of chunks)
+    - [x] Animations
+  - [ ] Fix big files upload [A]
   - [ ] Reranking before inserting in prompt
   - [ ] Test using tools instead of retrieve
-  - [ ] Better chunking algorithm
+  - [ ] Better chunking algorithm [A]
+  - [ ] Validate plan limit [G]
+    - [ ] 50MB free tier?
 
 - [ ] Workflow UI
 

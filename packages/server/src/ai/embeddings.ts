@@ -8,6 +8,8 @@ const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
 const SIMILARITY_THRESHOLD = 0.2;
 
+export type Chunk = typeof chunks.$inferSelect;
+
 // MUTIPLE EMBEDDINGS (for files and links)
 export const generateEmbeddings = async (
   value: string
