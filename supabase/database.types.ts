@@ -6,32 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
+export type Database = {
   public: {
     Tables: {
       api_key: {
@@ -65,15 +40,7 @@ export interface Database {
           short_key?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "api_key_user_id_users_id_fk"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       chat: {
         Row: {
@@ -111,13 +78,6 @@ export interface Database {
             referencedRelation: "model"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "chat_user_id_users_id_fk"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
         ]
       }
       chat_message: {
@@ -183,7 +143,55 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "model"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      chunks: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          embedding: string
+          id: string
+          resource_id: string | null
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          active?: boolean
+          content: string
+          created_at?: string
+          embedding: string
+          id: string
+          resource_id?: string | null
+          updated_at: string
+          workflow_id: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          embedding?: string
+          id?: string
+          resource_id?: string | null
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chunks_resource_id_resource_id_fk"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resource"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chunks_workflow_id_workflow_id_fk"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow"
+            referencedColumns: ["id"]
+          },
         ]
       }
       context: {
@@ -242,8 +250,26 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "context"
             referencedColumns: ["id"]
-          }
+          },
         ]
+      }
+      knowledge: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          updated_at: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       message_file: {
         Row: {
@@ -280,7 +306,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "chat_message"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       model: {
@@ -345,7 +371,7 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "provider"
             referencedColumns: ["id"]
-          }
+          },
         ]
       }
       model_settings: {
@@ -398,6 +424,97 @@ export interface Database {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_key: {
+        Row: {
+          created_at: string
+          id: string
+          provider_id: string | null
+          secret_id: string
+          secret_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          provider_id?: string | null
+          secret_id: string
+          secret_name: string
+          updated_at: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_id?: string | null
+          secret_id?: string
+          secret_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_key_provider_id_provider_id_fk"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "provider"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resource: {
+        Row: {
+          active: boolean
+          created_at: string
+          file_name: string | null
+          file_size: number | null
+          id: string
+          knowledge_id: string | null
+          mime_type: string
+          status: Database["public"]["Enums"]["resource_status"]
+          title: string | null
+          type: Database["public"]["Enums"]["resource_type"]
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id: string
+          knowledge_id?: string | null
+          mime_type: string
+          status?: Database["public"]["Enums"]["resource_status"]
+          title?: string | null
+          type: Database["public"]["Enums"]["resource_type"]
+          updated_at: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          file_name?: string | null
+          file_size?: number | null
+          id?: string
+          knowledge_id?: string | null
+          mime_type?: string
+          status?: Database["public"]["Enums"]["resource_status"]
+          title?: string | null
+          type?: Database["public"]["Enums"]["resource_type"]
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_knowledge_id_knowledge_id_fk"
+            columns: ["knowledge_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       run: {
         Row: {
@@ -474,7 +591,43 @@ export interface Database {
             isOneToOne: false
             referencedRelation: "workflow"
             referencedColumns: ["id"]
-          }
+          },
+        ]
+      }
+      run_resource: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          run_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          resource_id: string
+          run_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "run_resource_resource_id_resource_id_fk"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resource"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "run_resource_run_id_run_id_fk"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "run"
+            referencedColumns: ["id"]
+          },
         ]
       }
       workflow: {
@@ -484,6 +637,7 @@ export interface Database {
           description: string | null
           id: string
           is_active: boolean
+          knowledge_id: string
           model_id: string
           model_settings_id: string
           name: string
@@ -498,6 +652,7 @@ export interface Database {
           description?: string | null
           id: string
           is_active?: boolean
+          knowledge_id: string
           model_id: string
           model_settings_id: string
           name: string
@@ -512,6 +667,7 @@ export interface Database {
           description?: string | null
           id?: string
           is_active?: boolean
+          knowledge_id?: string
           model_id?: string
           model_settings_id?: string
           name?: string
@@ -529,6 +685,13 @@ export interface Database {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workflow_knowledge_id_knowledge_id_fk"
+            columns: ["knowledge_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workflow_model_id_model_id_fk"
             columns: ["model_id"]
             isOneToOne: false
@@ -542,13 +705,6 @@ export interface Database {
             referencedRelation: "model_settings"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "workflow_user_id_users_id_fk"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
         ]
       }
     }
@@ -556,207 +712,35 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      InsertSecret: {
-        Args: {
-          name: string
-          secret: string
-        }
+      delete_secret: {
+        Args: { secret_name: string }
+        Returns: string
+      }
+      get_secret: {
+        Args: { secret_name: string }
+        Returns: string
+      }
+      insert_secret: {
+        Args: { secret_name: string; secret_value: string }
+        Returns: string
+      }
+      update_secret: {
+        Args: { secret_id: string; secret_value: string; secret_name: string }
         Returns: string
       }
     }
     Enums: {
-      chat_message_role:
-        | "USER"
-        | "AI"
-        | "user"
-        | "assistant"
-        | "system"
-        | "data"
+      chat_message_role: "user" | "assistant" | "system" | "data"
       context_item_type: "TEXT" | "IMAGE" | "FILE" | "URL"
       max_tokens_preset: "SHORT" | "MEDIUM" | "LONG" | "CUSTOM"
+      OcrTestStatus: "IDLE" | "RUNNING" | "DONE"
+      resource_status: "PENDING" | "PROCESSED" | "FAILED"
+      resource_type: "FILE" | "LINK"
       run_origin: "SDK" | "WEB"
       run_status: "RUNNING" | "COMPLETED" | "FAILED"
       temperature_preset: "STRICT" | "BALANCED" | "CREATIVE" | "CUSTOM"
+      TransactionType: "DEPOSIT" | "WITHDRAWAL" | "OCR_TEST"
       user_role: "MEMBER" | "ADMIN"
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  storage: {
-    Tables: {
-      buckets: {
-        Row: {
-          allowed_mime_types: string[] | null
-          avif_autodetection: boolean | null
-          created_at: string | null
-          file_size_limit: number | null
-          id: string
-          name: string
-          owner: string | null
-          owner_id: string | null
-          public: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id: string
-          name: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id?: string
-          name?: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      migrations: {
-        Row: {
-          executed_at: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Insert: {
-          executed_at?: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Update: {
-          executed_at?: string | null
-          hash?: string
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      objects: {
-        Row: {
-          bucket_id: string | null
-          created_at: string | null
-          id: string
-          last_accessed_at: string | null
-          metadata: Json | null
-          name: string | null
-          owner: string | null
-          owner_id: string | null
-          path_tokens: string[] | null
-          updated_at: string | null
-          version: string | null
-        }
-        Insert: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          version?: string | null
-        }
-        Update: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "objects_bucketId_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      can_insert_object: {
-        Args: {
-          bucketid: string
-          name: string
-          owner: string
-          metadata: Json
-        }
-        Returns: undefined
-      }
-      extension: {
-        Args: {
-          name: string
-        }
-        Returns: string
-      }
-      filename: {
-        Args: {
-          name: string
-        }
-        Returns: string
-      }
-      foldername: {
-        Args: {
-          name: string
-        }
-        Returns: unknown
-      }
-      get_size_by_bucket: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          size: number
-          bucket_id: string
-        }[]
-      }
-      search: {
-        Args: {
-          prefix: string
-          bucketname: string
-          limits?: number
-          levels?: number
-          offsets?: number
-          search?: string
-          sortcolumn?: string
-          sortorder?: string
-        }
-        Returns: {
-          name: string
-          id: string
-          updated_at: string
-          created_at: string
-          last_accessed_at: string
-          metadata: Json
-        }[]
-      }
-    }
-    Enums: {
-      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -764,83 +748,125 @@ export interface Database {
   }
 }
 
+type DefaultSchema = Database[Extract<keyof Database, "public">]
+
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
-      Database["public"]["Views"])
-  ? (Database["public"]["Tables"] &
-      Database["public"]["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
-  : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof Database["public"]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
-  : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof Database["public"]["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof Database["public"]["Tables"]
-  ? Database["public"]["Tables"][PublicTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
     : never
-  : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof Database["public"]["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof Database["public"]["Enums"]
-  ? Database["public"]["Enums"][PublicEnumNameOrOptions]
-  : never
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      chat_message_role: ["user", "assistant", "system", "data"],
+      context_item_type: ["TEXT", "IMAGE", "FILE", "URL"],
+      max_tokens_preset: ["SHORT", "MEDIUM", "LONG", "CUSTOM"],
+      OcrTestStatus: ["IDLE", "RUNNING", "DONE"],
+      resource_status: ["PENDING", "PROCESSED", "FAILED"],
+      resource_type: ["FILE", "LINK"],
+      run_origin: ["SDK", "WEB"],
+      run_status: ["RUNNING", "COMPLETED", "FAILED"],
+      temperature_preset: ["STRICT", "BALANCED", "CREATIVE", "CUSTOM"],
+      TransactionType: ["DEPOSIT", "WITHDRAWAL", "OCR_TEST"],
+      user_role: ["MEMBER", "ADMIN"],
+    },
+  },
+} as const

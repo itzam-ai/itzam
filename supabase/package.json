@@ -2,7 +2,11 @@
     "name": "@itzam/supabase",
     "type": "module",
     "scripts": {
-        "dev": "supabase gen types typescript --project-id abcdefghijklmnopqrst > database.types.ts && supabase start && supabase functions serve"
+        "postdev": "pnpm run dev:functions",
+        "dev": "supabase start",
+        "predev": "pnpm run dev:gen-types",
+        "dev:functions": "supabase functions serve",
+        "dev:gen-types": "supabase gen types typescript --project-id eekphrehuidmiwltaobe > database.types.ts"
     },
     "exports": {
         "./*": "./utils/*.ts"
