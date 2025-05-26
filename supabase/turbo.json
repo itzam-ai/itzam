@@ -5,7 +5,7 @@
     "tasks": {
         "build": {
             "outputs": [
-                "dist/**"
+                "**/dist/**"
             ]
         }
     }

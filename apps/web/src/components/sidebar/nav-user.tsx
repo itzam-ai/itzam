@@ -11,8 +11,8 @@ import {
 import { useTheme } from "next-themes";
 import Image from "next/image";
 
+import { createClient } from "@itzam/supabase/client";
 import { redirect } from "next/navigation";
-import { createClient } from "supabase/utils/client";
 import {
   DropdownMenu,
   DropdownMenuContent,

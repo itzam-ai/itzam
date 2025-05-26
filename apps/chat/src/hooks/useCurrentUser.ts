@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createClient } from "@itzam/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { createClient } from "supabase/utils/client";
+import { useEffect, useState } from "react";
 
 export function useCurrentUser() {
   const supabase = createClient();

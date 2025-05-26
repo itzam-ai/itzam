@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - supabase
   - supabase/functions/*
 onlyBuiltDependencies:
   - supabase

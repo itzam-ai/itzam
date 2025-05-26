@@ -3,11 +3,10 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
-import { v7 } from "uuid";
 import { db } from "..";
-import { createEmbeddings } from "../../ai/embeddings";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
+import { createClient } from "../supabase/server";
 
 export type Knowledge = NonNullable<
   Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>
@@ -70,22 +69,38 @@ export async function createResources(
     throw new Error(error.message);
   }
 
-  const resourcesCreated = await db
-    .insert(resources)
-    .values(
-      resourcesInput.map((resource) => ({
-        ...resource,
-        id: resource.id ?? v7(),
+  // Call the edge function to create resources and embeddings
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("No session found");
+  }
+
+  const response = await fetch(
+    `${process.env.SUPABASE_URL}/functions/v1/create-knowledge-resource`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        resources: resourcesInput,
         knowledgeId,
-      }))
-    )
-    .returning();
+        workflowId,
+      }),
+    }
+  );
 
-  resourcesCreated.forEach((resource) => {
-    void createEmbeddings(resource, workflowId);
-  });
+  if (!response.ok) {
+    throw new Error(`Failed to create resources: ${response.statusText}`);
+  }
 
-  return resourcesCreated;
+  const result = await response.json();
+  return result.resources;
 }
 
 export async function deleteResource(resourceId: string) {
