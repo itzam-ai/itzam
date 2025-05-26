@@ -95,6 +95,12 @@ function isUrlFile(file: string) {
   return file.startsWith("http://") || file.startsWith("https://");
 }
 
+const getChannelId = (resource: any) => {
+  return `knowledge-${resource.knowledgeId}-${
+    resource.type === "FILE" ? "files" : "links"
+  }`;
+};
+
 // TIKA CONVERSION
 async function convertSingleFile(attachment: {
   file: string;
@@ -228,6 +234,16 @@ async function createEmbeddings(
     });
 
     title = await generateFileTitleForResource(textFromTika, resource, db);
+    supabase.channel(getChannelId(resource)).send({
+      type: "broadcast",
+      event: "update",
+      payload: {
+        status: "PENDING",
+        resourceId: resource.id,
+        title,
+        chunks: [],
+      },
+    });
 
     if (!textFromTika) {
       throw new Error("No text from Tika");
@@ -237,15 +253,18 @@ async function createEmbeddings(
     const embeddings = await generateEmbeddings(textFromTika);
 
     // SAVE CHUNK TO DB
-    await db.insert(chunks).values(
-      embeddings.map((embedding) => ({
-        ...embedding,
-        id: v7(),
-        resourceId: resource.id,
-        content: embedding.content ?? "",
-        workflowId,
-      }))
-    );
+    const createdChunks = await db
+      .insert(chunks)
+      .values(
+        embeddings.map((embedding) => ({
+          ...embedding,
+          id: v7(),
+          resourceId: resource.id,
+          content: embedding.content ?? "",
+          workflowId,
+        }))
+      )
+      .returning();
 
     console.log("sending channel update", {
       status: "PROCESSED",
@@ -253,10 +272,15 @@ async function createEmbeddings(
       title,
     });
 
-    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
+    supabase.channel(getChannelId(resource)).send({
       type: "broadcast",
       event: "update",
-      payload: { status: "PROCESSED", resourceId: resource.id, title },
+      payload: {
+        status: "PROCESSED",
+        resourceId: resource.id,
+        title,
+        chunks: createdChunks,
+      },
     });
 
     await db
@@ -266,10 +290,15 @@ async function createEmbeddings(
   } catch (error) {
     console.error("Error creating embeddings", error);
 
-    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
+    supabase.channel(getChannelId(resource)).send({
       type: "broadcast",
       event: "update",
-      payload: { status: "FAILED", resourceId: resource.id, title },
+      payload: {
+        status: "FAILED",
+        resourceId: resource.id,
+        title,
+        chunks: [],
+      },
     });
 
     await db

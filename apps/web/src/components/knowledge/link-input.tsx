@@ -2,10 +2,10 @@
 
 import { Chunk } from "@itzam/server/ai/embeddings";
 import { createResources, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { subscribeToChannel } from "supabase/utils/client";
 import { v7 } from "uuid";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
