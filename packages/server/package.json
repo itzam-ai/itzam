@@ -39,7 +39,6 @@
     "@ai-sdk/xai": "^1.2.13",
     "@aws-sdk/client-s3": "^3.744.0",
     "@aws-sdk/lib-storage": "^3.744.0",
-    "@itzam/supabase": "workspace:*",
     "@itzam/utils": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@statsig/statsig-node-core": "^0.3.1",

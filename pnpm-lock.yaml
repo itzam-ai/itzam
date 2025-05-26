@@ -962,9 +962,6 @@ importers:
       '@aws-sdk/lib-storage':
         specifier: ^3.744.0
         version: 3.817.0(@aws-sdk/client-s3@3.817.0)
-      '@itzam/supabase':
-        specifier: workspace:*
-        version: link:../../supabase
       '@itzam/utils':
         specifier: workspace:*
         version: link:../utils
@@ -1086,6 +1083,12 @@ importers:
 
   supabase:
     dependencies:
+      '@itzam/hono':
+        specifier: workspace:*
+        version: link:../packages/hono
+      '@itzam/server':
+        specifier: workspace:*
+        version: link:../packages/server
       '@itzam/utils':
         specifier: workspace:*
         version: link:../packages/utils
