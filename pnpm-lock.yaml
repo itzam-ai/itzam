@@ -1105,15 +1105,6 @@ importers:
         specifier: ^3.24.2
         version: 3.25.28
 
-  supabase/functions/create-knowledge-resource:
-    dependencies:
-      uuid:
-        specifier: ^11.1.0
-        version: 11.1.0
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.28
-
 packages:
 
   '@ai-sdk/anthropic@1.2.12':
