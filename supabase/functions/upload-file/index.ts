@@ -5,7 +5,7 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-import S3 from "aws-sdk/clients/s3.js";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 
@@ -17,12 +17,17 @@ const CLOUDFLARE_SECRET_ACCESS_KEY = Deno.env.get(
 )!;
 const CLOUDFLARE_BUCKET = Deno.env.get("CLOUDFLARE_BUCKET")!;
 
-// Initialize S3 client for Cloudflare R2 using aws-sdk v2
-const s3 = new S3({
+// Initialize S3 client for Cloudflare R2 using aws-sdk v3
+const s3Client = new S3Client({
+  region: "auto",
   endpoint: `https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  accessKeyId: CLOUDFLARE_ACCESS_KEY_ID,
-  secretAccessKey: CLOUDFLARE_SECRET_ACCESS_KEY,
-  signatureVersion: "v4",
+  credentials: {
+    accessKeyId: CLOUDFLARE_ACCESS_KEY_ID,
+    secretAccessKey: CLOUDFLARE_SECRET_ACCESS_KEY,
+  },
+  // Add compatibility settings for R2 as recommended by Cloudflare
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 async function uploadFileToBucket(file: File, userId: string) {
@@ -38,15 +43,15 @@ async function uploadFileToBucket(file: File, userId: string) {
   const arrayBuffer = await file.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
 
-  const uploadParams = {
+  const uploadCommand = new PutObjectCommand({
     Bucket,
     Key,
     Body: buffer,
     ContentType: file.type,
     ContentLength: file.size,
-  };
+  });
 
-  const result = await s3.upload(uploadParams).promise();
+  const result = await s3Client.send(uploadCommand);
 
   return {
     ...result,
