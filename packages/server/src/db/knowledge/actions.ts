@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
 import { v7 } from "uuid";
@@ -9,7 +9,9 @@ import { createEmbeddings } from "../../ai/embeddings";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
 
-export type Knowledge = Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>;
+export type Knowledge = NonNullable<
+  Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>
+>;
 
 export async function getKnowledgeByWorkflowId(workflowId: string) {
   const workflow = await db.query.workflows.findFirst({
@@ -29,6 +31,16 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
       resources: {
         where: eq(resources.active, true),
         orderBy: desc(resources.createdAt),
+        with: {
+          chunks: {
+            where: and(eq(chunks.active, true)),
+            columns: {
+              id: true,
+              resourceId: true,
+              active: true,
+            },
+          },
+        },
       },
     },
   });
@@ -76,7 +88,7 @@ export async function createResources(
   return resourcesCreated;
 }
 
-export async function deleteResource(resourceId: string, workflowId: string) {
+export async function deleteResource(resourceId: string) {
   await db
     .update(resources)
     .set({ active: false })
@@ -95,6 +107,4 @@ export async function deleteResource(resourceId: string, workflowId: string) {
         chunksToDelete.map((chunk) => chunk.id)
       )
     );
-
-  revalidatePath(`/workflows/${workflowId}/knowledge`);
 }

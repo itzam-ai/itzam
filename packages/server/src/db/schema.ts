@@ -329,14 +329,15 @@ export const chunks = createTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
-    resourceId: varchar("resource_id", { length: 256 }).references(
-      () => resources.id
-    ),
+    resourceId: varchar("resource_id", { length: 256 })
+      .notNull()
+      .references(() => resources.id),
     workflowId: varchar("workflow_id", { length: 256 })
       .notNull()
       .references(() => workflows.id),
   },
   (table) => ({
+    resourceIdIndex: index("chunks_resource_id_idx").on(table.resourceId),
     workflowIdIndex: index("chunks_workflow_id_idx").on(table.workflowId),
   })
 );
@@ -546,6 +547,15 @@ export const resourceRelations = relations(resources, ({ one, many }) => ({
     references: [knowledge.id],
   }),
   runResources: many(runResources),
+  chunks: many(chunks),
+}));
+
+// -------- Chunk --------
+export const chunkRelations = relations(chunks, ({ one }) => ({
+  resource: one(resources, {
+    fields: [chunks.resourceId],
+    references: [resources.id],
+  }),
 }));
 
 // -------- ProviderKey --------

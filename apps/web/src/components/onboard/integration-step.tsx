@@ -209,8 +209,8 @@ const response = await itzam.${functionName}({
           className="w-20"
           onClick={handleNextStep}
         >
-          Finish
           <Check className="size-3" strokeWidth={2.5} />
+          Finish
         </Button>
       </div>
     </div>

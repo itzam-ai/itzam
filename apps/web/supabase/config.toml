@@ -297,6 +297,18 @@ policy = "oneshot"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
 
+[functions.create-knowledge-resource]
+enabled = true
+verify_jwt = true
+import_map = "./functions/create-knowledge-resource/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/create-knowledge-resource/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/create-knowledge-resource/*.html" ]
+
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

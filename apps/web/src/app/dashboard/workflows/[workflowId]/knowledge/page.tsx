@@ -19,7 +19,7 @@ export default async function KnowledgePage({
     <Card className="p-6 flex flex-col">
       <h1 className="text font-medium">Knowledge</h1>
       <p className="text-xs text-muted-foreground mb-8">
-        Add files and links to he model&apos;s knowledge base.
+        Add files and links to the model&apos;s knowledge base.
       </p>
       <div className="flex flex-col gap-4">
         <FileInput workflowId={workflowId} knowledge={knowledge} />

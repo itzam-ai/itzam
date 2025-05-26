@@ -5,7 +5,7 @@ import { v7 } from "uuid";
 import { db } from "../db";
 import { Resource } from "../db/knowledge/actions";
 import { chunks, resources } from "../db/schema";
-import { createClient } from "../db/supabase/server";
+import { sendChannelUpdate } from "../db/supabase/channel/server";
 import { generateFileTitle } from "../itzam/file-title-generator";
 import { convertSingleFile } from "./tika";
 
@@ -13,9 +13,10 @@ const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
 const SIMILARITY_THRESHOLD = 0.2;
 
+export type Chunk = typeof chunks.$inferSelect;
+
 // PARSE RESOURCE AND CREATE EMBEDDINGS
 export async function createEmbeddings(resource: Resource, workflowId: string) {
-  const supabase = await createClient();
   let title = resource.fileName ?? "";
 
   try {
@@ -27,6 +28,16 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
 
     title = await generateFileTitleForResource(textFromTika, resource);
 
+    sendChannelUpdate(
+      `knowledge-${resource.knowledgeId}-${resource.type === "FILE" ? "files" : "links"}`,
+      {
+        status: "PENDING",
+        resourceId: resource.id,
+        title,
+        chunks: [],
+      }
+    );
+
     if (!textFromTika) {
       throw new Error("No text from Tika");
     }
@@ -35,27 +46,28 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
     const embeddings = await generateEmbeddings(textFromTika);
 
     // SAVE CHUNK TO DB
-    await db.insert(chunks).values(
-      embeddings.map((embedding) => ({
-        ...embedding,
-        id: v7(),
+    const chunksCreated = await db
+      .insert(chunks)
+      .values(
+        embeddings.map((embedding) => ({
+          ...embedding,
+          id: v7(),
+          resourceId: resource.id,
+          content: embedding.content ?? "",
+          workflowId,
+        }))
+      )
+      .returning();
+
+    sendChannelUpdate(
+      `knowledge-${resource.knowledgeId}-${resource.type === "FILE" ? "files" : "links"}`,
+      {
+        status: "PROCESSED",
         resourceId: resource.id,
-        content: embedding.content ?? "",
-        workflowId,
-      }))
+        title,
+        chunks: chunksCreated,
+      }
     );
-
-    console.log("sending channel update", {
-      status: "PROCESSED",
-      resourceId: resource.id,
-      title,
-    });
-
-    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
-      type: "broadcast",
-      event: "update",
-      payload: { status: "PROCESSED", resourceId: resource.id, title },
-    });
 
     await db
       .update(resources)
@@ -64,11 +76,15 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
   } catch (error) {
     console.error("Error creating embeddings", error);
 
-    supabase.channel(`knowledge-${resource.knowledgeId}`).send({
-      type: "broadcast",
-      event: "update",
-      payload: { status: "FAILED", resourceId: resource.id, title },
-    });
+    sendChannelUpdate(
+      `knowledge-${resource.knowledgeId}-${resource.type === "FILE" ? "files" : "links"}`,
+      {
+        status: "FAILED",
+        resourceId: resource.id,
+        title,
+        chunks: [],
+      }
+    );
 
     await db
       .update(resources)
