@@ -5,7 +5,7 @@
         "postdev": "pnpm run dev:functions",
         "dev": "supabase start",
         "predev": "pnpm run dev:gen-types",
-        "dev:functions": "supabase functions serve",
+        "dev:functions": "supabase functions serve --env-file ../.env --no-verify-jwt",
         "dev:gen-types": "supabase gen types typescript --project-id eekphrehuidmiwltaobe > functions/_shared/database.types.ts"
     },
     "exports": {
