@@ -21,6 +21,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { KnowledgeItem } from "./knowledge-item";
+import { toast } from "sonner";
 
 type LinkToAdd = {
   id: string;
@@ -110,18 +111,28 @@ export const LinkInput = ({
       );
     });
 
-    await createResources(
-      linksToAdd.map((link) => ({
-        fileName: link.url,
-        url: link.url,
-        mimeType: "text/html",
-        type: "LINK",
-        fileSize: 0,
-        id: link.id,
-      })),
-      knowledge?.id ?? "",
-      workflowId
-    );
+    try {
+      await createResources(
+        linksToAdd.map((link) => ({
+          fileName: link.url,
+          url: link.url,
+          mimeType: "text/html",
+          type: "LINK",
+          fileSize: 0,
+          id: link.id,
+        })),
+        knowledge?.id ?? "",
+        workflowId
+      );
+    } catch (error) {
+      toast.error((error as Error).message);
+
+      setWorkflowLinks((prevLinks) => {
+        return prevLinks.filter(
+          (link) => !linksToAdd.some((l) => l.id === link.id)
+        );
+      });
+    }
 
     setIsSubmitting(false);
   };

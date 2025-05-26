@@ -26,7 +26,11 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       mimeType: resource.mimeType,
     });
 
-    title = await generateFileTitleForResource(textFromTika, resource);
+    const { text, size } = textFromTika;
+
+    console.log("textFromTika", textFromTika);
+
+    title = await generateFileTitleForResource(text, resource);
 
     sendChannelUpdate(
       `knowledge-${resource.knowledgeId}-${resource.type === "FILE" ? "files" : "links"}`,
@@ -38,12 +42,12 @@ export async function createEmbeddings(resource: Resource, workflowId: string) {
       }
     );
 
-    if (!textFromTika) {
+    if (!text) {
       throw new Error("No text from Tika");
     }
 
     // GENERATE EMBEDDINGS
-    const embeddings = await generateEmbeddings(textFromTika);
+    const embeddings = await generateEmbeddings(text);
 
     // SAVE CHUNK TO DB
     const chunksCreated = await db

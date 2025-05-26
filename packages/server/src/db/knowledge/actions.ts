@@ -8,6 +8,7 @@ import { db } from "..";
 import { createEmbeddings } from "../../ai/embeddings";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
+import { customerIsSubscribedToItzamPro } from "../billing/actions";
 
 export type Knowledge = NonNullable<
   Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>
@@ -64,10 +65,35 @@ export async function createResources(
   knowledgeId: string,
   workflowId: string
 ) {
-  const { data: user, error } = await getUser();
+  const { error } = await getUser();
+  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!isSubscribedToItzamPro.isSubscribed) {
+    // check if the user has reached the limit in this workflow (50MB)
+    const resourcesSize = await db.query.resources.findMany({
+      where: and(
+        eq(resources.knowledgeId, knowledgeId),
+        eq(resources.active, true)
+      ),
+      columns: {
+        fileSize: true,
+      },
+    });
+
+    const totalSize = resourcesSize.reduce(
+      (acc, resource) => acc + (resource.fileSize ?? 0),
+      0
+    );
+
+    if (totalSize > 50 * 1024 * 1024) {
+      throw new Error(
+        "The free plan has a limit of 50MB. Subscribe to Itzam Pro!"
+      );
+    }
   }
 
   const resourcesCreated = await db

@@ -120,18 +120,26 @@ export const FileInput = ({
       );
     });
 
-    await createResources(
-      files.map((file) => ({
-        fileName: file.name,
-        url: file.url ?? "",
-        mimeType: file.type,
-        type: "FILE",
-        fileSize: file.size,
-        id: file.id,
-      })),
-      knowledge?.id ?? "",
-      workflowId
-    );
+    try {
+      await createResources(
+        files.map((file) => ({
+          fileName: file.name,
+          url: file.url ?? "",
+          mimeType: file.type,
+          type: "FILE",
+          fileSize: file.size,
+          id: file.id,
+        })),
+        knowledge?.id ?? "",
+        workflowId
+      );
+    } catch (error) {
+      toast.error((error as Error).message);
+
+      setWorkflowFiles((prevFiles) => {
+        return prevFiles.filter((file) => !files.some((f) => f.id === file.id));
+      });
+    }
 
     setIsSubmitting(false);
   };

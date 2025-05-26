@@ -29,12 +29,6 @@ export async function getFileFromString(
   filename: string,
   mimeType: string
 ) {
-  console.log("Getting file from string", {
-    url,
-    filename,
-    mimeType,
-  });
-
   if (isBase64File(url)) {
     const arr = url.split(",");
     const mime = arr[0]?.match(/:(.*?);/)?.[1];
@@ -55,8 +49,6 @@ export async function getFileFromString(
     if (!file.ok) {
       throw new Error("Could not fetch file");
     }
-
-    console.log("File", file);
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
