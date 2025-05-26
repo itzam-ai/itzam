@@ -18,8 +18,13 @@ export type TikaAttachment = z.infer<typeof TikaAttachmentSchema>;
  * @param attachments Array of files to process, either as URLs or base64 strings
  * @returns Array of extracted text from each file
  */
-export async function tika(attachments: TikaAttachment[]): Promise<string[]> {
-  const results: string[] = [];
+export async function tika(attachments: TikaAttachment[]): Promise<
+  {
+    text: string;
+    size: number;
+  }[]
+> {
+  const results: { text: string; size: number }[] = [];
   const batchSize = 10;
 
   // Process files in batches to avoid overwhelming the server
@@ -34,6 +39,8 @@ export async function tika(attachments: TikaAttachment[]): Promise<string[]> {
             "file",
             attachment.mimeType || "application/octet-stream"
           );
+
+          console.log("file", file);
 
           // Send to Tika
           const res = await fetch(TIKA_URL, {
@@ -50,10 +57,16 @@ export async function tika(attachments: TikaAttachment[]): Promise<string[]> {
 
           const text = await res.text();
 
-          return text;
+          return {
+            text,
+            size: file.size,
+          };
         } catch (err) {
           console.error("Error processing file:", err);
-          return ""; // Return empty string for failed conversions
+          return {
+            text: "",
+            size: 0,
+          };
         }
       })
     );
@@ -61,7 +74,7 @@ export async function tika(attachments: TikaAttachment[]): Promise<string[]> {
     results.push(...batchResults);
   }
 
-  return results.filter((text) => text.length > 0); // Filter out failed conversions
+  return results.filter((result) => result.text.length > 0); // Filter out failed conversions
 }
 
 /**
@@ -69,7 +82,7 @@ export async function tika(attachments: TikaAttachment[]): Promise<string[]> {
  */
 export async function convertSingleFile(
   attachment: TikaAttachment
-): Promise<string> {
+): Promise<{ text: string; size: number }> {
   const results = await tika([attachment]);
-  return results[0] || "";
+  return results[0] || { text: "", size: 0 };
 }

@@ -525,6 +525,9 @@ importers:
       ai:
         specifier: ^4.3.9
         version: 4.3.16(react@19.1.0)(zod@3.25.28)
+      bytes-formatter:
+        specifier: ^21.6.15
+        version: 21.6.15
       canvas-confetti:
         specifier: ^1.9.3
         version: 1.9.3
@@ -962,9 +965,6 @@ importers:
       '@aws-sdk/lib-storage':
         specifier: ^3.744.0
         version: 3.817.0(@aws-sdk/client-s3@3.817.0)
-      '@itzam/supabase':
-        specifier: workspace:*
-        version: link:../../supabase
       '@itzam/utils':
         specifier: workspace:*
         version: link:../utils
@@ -1086,6 +1086,12 @@ importers:
 
   supabase:
     dependencies:
+      '@itzam/hono':
+        specifier: workspace:*
+        version: link:../packages/hono
+      '@itzam/server':
+        specifier: workspace:*
+        version: link:../packages/server
       '@itzam/utils':
         specifier: workspace:*
         version: link:../packages/utils
@@ -4395,6 +4401,9 @@ packages:
   busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
     engines: {node: '>=10.16.0'}
+
+  bytes-formatter@21.6.15:
+    resolution: {integrity: sha512-LInilx8kwHa9MPKigPXQs2vDsUN0qx3uQNsfmSgAZnO+Jhm3rKvsrLjUdL0xDN4dgb34rJ/rE4BfibJY3Lbd/w==}
 
   bytes@3.1.0:
     resolution: {integrity: sha512-zauLjrfCG+xvoyaqLoV8bLVXXNGC4JqlxFCutSDWA6fJrTo2ZuvLYTqZ7aHBLZSMOopbzwv8f+wZcVzfVTI2Dg==}
@@ -12399,6 +12408,8 @@ snapshots:
   busboy@1.6.0:
     dependencies:
       streamsearch: 1.1.0
+
+  bytes-formatter@21.6.15: {}
 
   bytes@3.1.0: {}
 

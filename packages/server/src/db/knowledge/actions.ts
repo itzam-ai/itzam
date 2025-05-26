@@ -1,11 +1,12 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, InferSelectModel } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
+import { customerIsSubscribedToItzamPro } from "../billing/actions";
 import { createClient } from "../supabase/server";
 
 export type Knowledge = NonNullable<
@@ -47,60 +48,47 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   return knowledgeFromWorkflow;
 }
 
-export type Resource = typeof resources.$inferSelect;
-
 type ResourceInput = {
-  url: string;
-  type: "FILE" | "LINK";
-  mimeType: string;
   fileName: string;
-  fileSize: number;
-  id?: string;
+  url: string;
+  mimeType: string;
 };
 
-export async function createResources(
+export async function checkPlanLimits(
   resourcesInput: ResourceInput[],
-  knowledgeId: string,
-  workflowId: string
+  knowledgeId: string
 ) {
-  const { data: user, error } = await getUser();
+  const user = await getUser();
 
-  if (error) {
-    throw new Error(error.message);
+  if (user.error || !user.data.user) {
+    throw new Error("User not found");
   }
 
-  // Call the edge function to create resources and embeddings
-  const supabase = await createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
 
-  if (!session) {
-    throw new Error("No session found");
-  }
+  // check if the user has reached the limit in this workflow (50MB)
 
-  const response = await fetch(
-    `${process.env.SUPABASE_URL}/functions/v1/create-knowledge-resource`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        resources: resourcesInput,
-        knowledgeId,
-        workflowId,
-      }),
-    }
+  const resourcesSize = await db.query.resources.findMany({
+    where: and(
+      eq(resources.knowledgeId, knowledgeId),
+
+      eq(resources.active, true)
+    ),
+    columns: {
+      fileSize: true,
+    },
+  });
+
+  const totalSize = resourcesSize.reduce(
+    (acc, resource) => acc + (resource.fileSize ?? 0),
+    0
   );
 
-  if (!response.ok) {
-    throw new Error(`Failed to create resources: ${response.statusText}`);
-  }
+  const maxSize = isSubscribedToItzamPro ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
 
-  const result = await response.json();
-  return result.resources;
+  if (totalSize > maxSize) {
+    throw new Error(`Your plan has a limit of ${maxSize / 1024 / 1024}MB.`);
+  }
 }
 
 export async function deleteResource(resourceId: string) {

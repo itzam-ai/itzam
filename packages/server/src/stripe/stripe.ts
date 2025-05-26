@@ -106,7 +106,7 @@ export async function updateStripeData(customerId: string, subData: any) {
   return subData;
 }
 
-export async function getStripeData(customerId: string) {
+export async function getStripeData() {
   const supabaseAdmin = await createAdminAuthClient();
 
   const user = await getUser();

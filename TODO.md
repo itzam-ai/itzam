@@ -24,12 +24,13 @@
   - [x] Improve UI [G]
     - [x] TextLoop when status changes (add number of chunks)
     - [x] Animations
+    - [ ] Show usage
+  - [x] Validate plan limit [G]
+    - [x] 50MB free tier?
   - [ ] Fix big files upload [A]
+  - [ ] Better chunking algorithm [A]
   - [ ] Reranking before inserting in prompt
   - [ ] Test using tools instead of retrieve
-  - [ ] Better chunking algorithm [A]
-  - [ ] Validate plan limit [G]
-    - [ ] 50MB free tier?
 
 - [ ] Workflow UI
 

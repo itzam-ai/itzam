@@ -1,8 +1,8 @@
 "use client";
 
 import { Chunk } from "@itzam/server/ai/embeddings";
-import { createResources, Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToChannel } from "@itzam/supabase/client";
+import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -21,6 +21,7 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { KnowledgeItem } from "./knowledge-item";
+import { toast } from "sonner";
 
 type LinkToAdd = {
   id: string;
@@ -110,18 +111,40 @@ export const LinkInput = ({
       );
     });
 
-    await createResources(
-      linksToAdd.map((link) => ({
-        fileName: link.url,
-        url: link.url,
-        mimeType: "text/html",
-        type: "LINK",
-        fileSize: 0,
-        id: link.id,
-      })),
-      knowledge?.id ?? "",
-      workflowId
-    );
+    try {
+      await checkPlanLimits(
+        linksToAdd.map((link) => ({
+          fileName: link.url,
+          url: link.url,
+          mimeType: "text/html",
+        })),
+        knowledge?.id ?? ""
+      );
+
+      supabase.functions.invoke("create-knowledge-resource", {
+        body: JSON.stringify({
+          resources: linksToAdd.map((link) => ({
+            fileName: link.url,
+            url: link.url,
+            mimeType: "text/html",
+            type: "LINK",
+            fileSize: 0,
+            id: link.id,
+          })),
+          knowledgeId: knowledge?.id ?? "",
+          workflowId: workflowId,
+        }),
+      });
+    } catch (error) {
+      setWorkflowLinks((prevLinks) => {
+        return prevLinks.filter(
+          (link) => !linksToAdd.some((l) => l.id === link.id)
+        );
+      });
+
+      toast.error((error as Error).message);
+      console.error(error);
+    }
 
     setIsSubmitting(false);
   };
@@ -136,6 +159,7 @@ export const LinkInput = ({
         resourceId: string;
         title: string;
         chunks: Chunk[];
+        fileSize: number;
       }) => {
         setWorkflowLinks((links) => {
           return links.map((link) => {
@@ -145,6 +169,7 @@ export const LinkInput = ({
                 status: payload.status,
                 title: payload.title,
                 chunks: payload.chunks,
+                fileSize: payload.fileSize,
               };
             }
             return link;

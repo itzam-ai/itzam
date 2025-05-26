@@ -12,6 +12,8 @@
         "./*": "./utils/*.ts"
     },
     "dependencies": {
+        "@itzam/hono": "workspace:*",
+        "@itzam/server": "workspace:*",
         "@itzam/utils": "workspace:*",
         "@repo/typescript-config": "workspace:*",
         "@supabase/ssr": "^0.6.1",

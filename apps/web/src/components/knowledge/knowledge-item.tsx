@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import { formatBytes } from "bytes-formatter";
 
 export const KnowledgeItem = ({
   resource,
@@ -26,6 +27,7 @@ export const KnowledgeItem = ({
   onDelete?: (resourceId: string) => void;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -85,11 +87,18 @@ export const KnowledgeItem = ({
             {resource.title ? resource.title : resource.fileName}
           </p>
 
-          <div className="px-1 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
+          <span className="text-muted-foreground text-xs whitespace-nowrap">
+            {formatDistanceToNow(resource.createdAt, {
+              addSuffix: true,
+            })}
+          </span>
+
+          <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <NumberFlow
               value={resource.chunks?.length ?? 0}
               style={{
                 fontSize: "10px",
+                fontWeight: "700",
               }}
             />
             <p
@@ -98,15 +107,29 @@ export const KnowledgeItem = ({
                 fontSize: "10px",
               }}
             >
-              chunks
+              chunk{resource.chunks?.length === 1 ? "" : "s"}
+            </p>
+
+            <span className="text-muted-foreground/40">•</span>
+
+            <p
+              className="text-muted-foreground whitespace-nowrap"
+              style={{
+                fontSize: "10px",
+              }}
+            >
+              <NumberFlow
+                value={Number(fileSize.split(" ")[0])}
+                className="text-foreground"
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "700",
+                }}
+              />
+
+              {" " + (fileSize.split(" ")[1] ?? "")}
             </p>
           </div>
-
-          <span className="text-muted-foreground text-xs whitespace-nowrap">
-            {formatDistanceToNow(resource.createdAt, {
-              addSuffix: true,
-            })}
-          </span>
         </div>
         <div className="flex items-center gap-2">
           <Button

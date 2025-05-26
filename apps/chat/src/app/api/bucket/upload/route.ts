@@ -1,5 +1,5 @@
 import { getUser } from "@itzam/server/db/auth/actions";
-import { createClient } from "@itzam/server/db/supabase/server";
+import { uploadFileToBucket } from "@itzam/server/r2/server";
 
 export async function POST(req: Request) {
   const { data: user } = await getUser();
@@ -25,38 +25,12 @@ export async function POST(req: Request) {
       });
     }
 
-    // Call the edge function
-    const supabase = await createClient();
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (!session) {
-      return new Response("No session found", { status: 401 });
-    }
-
-    const uploadFormData = new FormData();
-    uploadFormData.append("file", file);
-    uploadFormData.append("userId", formData.get("userId") as string);
-
-    const response = await fetch(
-      `${process.env.SUPABASE_URL}/functions/v1/upload-file`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: uploadFormData,
-      }
+    const data = await uploadFileToBucket(
+      file,
+      formData.get("userId") as string
     );
 
-    if (!response.ok) {
-      throw new Error(`Failed to upload file: ${response.statusText}`);
-    }
-
-    const result = await response.json();
-
-    return new Response(JSON.stringify(result.imageUrl), {
+    return new Response(JSON.stringify(data.imageUrl), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -65,14 +39,11 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error(e);
 
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : String(e) }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(JSON.stringify(e), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   }
 }

@@ -7,6 +7,7 @@ import {
   ChartLine,
   CirclePlus,
   Code,
+  FileUpIcon,
   Mail,
   Workflow,
 } from "lucide-react";
@@ -24,9 +25,14 @@ export const standardFeatures = [
     icon: ChartLine,
     text: "Cost & Usage analytics",
   },
+
   {
     icon: CalendarClock,
     text: "30-day data retention",
+  },
+  {
+    icon: FileUpIcon,
+    text: "50MB knowledge per workflow",
   },
   {
     icon: BotMessageSquareIcon,
@@ -40,20 +46,24 @@ export const proFeatures = [
     text: "Everything in Free, plus:",
   },
   {
-    icon: CalendarCheckIcon,
-    text: "Unlimited data retention",
-  },
-  {
-    icon: BotMessageSquareIcon,
-    text: "100 prompt enhancements",
-  },
-  {
     icon: CirclePlus,
     text: "Early access to new features",
   },
   {
     icon: Mail,
     text: "Priority email & chat support",
+  },
+  {
+    icon: CalendarCheckIcon,
+    text: "Unlimited data retention",
+  },
+  {
+    icon: FileUpIcon,
+    text: "500MB knowledge per workflow",
+  },
+  {
+    icon: BotMessageSquareIcon,
+    text: "100 prompt enhancements",
   },
 ];
 
