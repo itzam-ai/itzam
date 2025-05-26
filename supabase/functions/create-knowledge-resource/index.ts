@@ -189,9 +189,12 @@ const generateEmbeddings = async (
     values: chunks,
   });
 
-  console.log("generated " + embeddings.length + " embeddings");
+  console.log("Generated " + embeddings.length + " embeddings");
 
-  return embeddings.map((e, i) => ({ content: chunks[i], embedding: e }));
+  return embeddings.map((e: any, i: string | number) => ({
+    content: chunks[i],
+    embedding: e,
+  }));
 };
 
 const generateFileTitleForResource = async (
@@ -234,6 +237,7 @@ async function createEmbeddings(
     });
 
     title = await generateFileTitleForResource(textFromTika, resource, db);
+
     supabase.channel(getChannelId(resource)).send({
       type: "broadcast",
       event: "update",

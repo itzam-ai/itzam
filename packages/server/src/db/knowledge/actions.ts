@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, InferSelectModel } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
 import { db } from "..";
@@ -46,6 +46,49 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   });
 
   return knowledgeFromWorkflow;
+}
+
+type ResourceInput = {
+  fileName: string;
+  url: string;
+  mimeType: string;
+};
+
+export async function checkPlanLimits(
+  resourcesInput: ResourceInput[],
+  knowledgeId: string
+) {
+  const user = await getUser();
+
+  if (user.error || !user.data.user) {
+    throw new Error("User not found");
+  }
+
+  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+
+  // check if the user has reached the limit in this workflow (50MB)
+
+  const resourcesSize = await db.query.resources.findMany({
+    where: and(
+      eq(resources.knowledgeId, knowledgeId),
+
+      eq(resources.active, true)
+    ),
+    columns: {
+      fileSize: true,
+    },
+  });
+
+  const totalSize = resourcesSize.reduce(
+    (acc, resource) => acc + (resource.fileSize ?? 0),
+    0
+  );
+
+  const maxSize = isSubscribedToItzamPro ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+
+  if (totalSize > maxSize) {
+    throw new Error(`Your plan has a limit of ${maxSize / 1024 / 1024}MB.`);
+  }
 }
 
 export async function deleteResource(resourceId: string) {

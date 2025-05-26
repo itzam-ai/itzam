@@ -53,9 +53,7 @@ export const customerIsSubscribedToItzamPro = cache(async () => {
     throw new Error("User has no Stripe customer ID");
   }
 
-  const stripeData = await getStripeData(
-    user.data.user.user_metadata.stripeCustomerId
-  );
+  const stripeData = await getStripeData();
 
   if ("error" in stripeData) {
     console.error(stripeData.error);

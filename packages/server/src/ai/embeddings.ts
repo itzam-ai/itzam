@@ -23,7 +23,7 @@ export const generateEmbeddings = async (
     values: chunks,
   });
 
-  console.log("generated " + embeddings.length + " embeddings");
+  console.log("Generated " + embeddings.length + " embeddings");
 
   return embeddings.map((e, i) => ({ content: chunks[i], embedding: e }));
 };

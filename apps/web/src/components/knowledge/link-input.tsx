@@ -1,8 +1,8 @@
 "use client";
 
 import { Chunk } from "@itzam/server/ai/embeddings";
-import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToChannel } from "@itzam/supabase/client";
+import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -112,27 +112,39 @@ export const LinkInput = ({
     });
 
     try {
-      // await createResources(
-      //   linksToAdd.map((link) => ({
-      //     fileName: link.url,
-      //     url: link.url,
-      //     mimeType: "text/html",
-      //     type: "LINK",
-      //     fileSize: 0,
-      //     id: link.id,
-      //   })),
-      //   knowledge?.id ?? "",
-      //   workflowId
-      // );
+      await checkPlanLimits(
+        linksToAdd.map((link) => ({
+          fileName: link.url,
+          url: link.url,
+          mimeType: "text/html",
+        })),
+        knowledge?.id ?? ""
+      );
+
+      supabase.functions.invoke("create-knowledge-resource", {
+        body: JSON.stringify({
+          resources: linksToAdd.map((link) => ({
+            fileName: link.url,
+            url: link.url,
+            mimeType: "text/html",
+            type: "LINK",
+            fileSize: 0,
+            id: link.id,
+          })),
+          knowledgeId: knowledge?.id ?? "",
+          workflowId: workflowId,
+        }),
+      });
     } catch (error) {
       toast.error((error as Error).message);
-
-      setWorkflowLinks((prevLinks) => {
-        return prevLinks.filter(
-          (link) => !linksToAdd.some((l) => l.id === link.id)
-        );
-      });
+      console.error(error);
     }
+
+    setWorkflowLinks((prevLinks) => {
+      return prevLinks.filter(
+        (link) => !linksToAdd.some((l) => l.id === link.id)
+      );
+    });
 
     setIsSubmitting(false);
   };

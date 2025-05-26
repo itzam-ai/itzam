@@ -1,7 +1,7 @@
 "use client";
 
 import { Chunk } from "@itzam/server/ai/embeddings";
-import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
 import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
@@ -120,23 +120,37 @@ export const FileInput = ({
       );
     });
 
-    supabase.functions.invoke("create-knowledge-resource", {
-      body: JSON.stringify({
-        resources: files.map((file) => ({
+    // server action to check plan's limits
+    try {
+      await checkPlanLimits(
+        files.map((file) => ({
           fileName: file.name,
           url: file.url ?? "",
           mimeType: file.type,
-          type: "FILE",
-          fileSize: file.size,
-          id: file.id,
         })),
-        knowledgeId: knowledge?.id ?? "",
-        workflowId: workflowId,
-      }),
-    });
+        knowledge?.id ?? ""
+      );
+
+      supabase.functions.invoke("create-knowledge-resource", {
+        body: JSON.stringify({
+          resources: files.map((file) => ({
+            fileName: file.name,
+            url: file.url ?? "",
+            mimeType: file.type,
+            type: "FILE",
+            fileSize: file.size,
+            id: file.id,
+          })),
+          knowledgeId: knowledge?.id ?? "",
+          workflowId: workflowId,
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error((error as Error).message);
+    }
 
     setFiles([]);
-
     setIsSubmitting(false);
   };
 
