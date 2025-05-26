@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
+import { Itzam } from "itzam";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { openai } from "npm:@ai-sdk/openai@^0.0.66";
@@ -15,6 +16,8 @@ const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const TIKA_URL = Deno.env.get("TIKA_URL") || "http://localhost:9998/tika";
 const ITZAM_API_KEY = Deno.env.get("ITZAM_API_KEY")!;
 const ITZAM_API_URL = Deno.env.get("NEXT_PUBLIC_APP_URL")!;
+
+const itzam = new Itzam(ITZAM_API_KEY);
 
 const ResourceSchema = z.object({
   resources: z.array(
@@ -126,28 +129,19 @@ async function convertSingleFile(attachment: {
   }
 }
 
-// FILE TITLE GENERATION
 async function generateFileTitle(
   text: string,
   originalFileName: string
 ): Promise<string> {
   // limit text to 1000 characters
   const limitedText = text.slice(0, 1000);
-
   try {
-    const response = await fetch(`${ITZAM_API_URL}/v1/generate-text`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ITZAM_API_KEY}`,
-      },
-      body: JSON.stringify({
-        input: `
+    const response = await itzam.generateText({
+      input: `
         Original file name: ${originalFileName}
         File content: ${limitedText}
         `,
-        workflowSlug: "file-title-generator",
-      }),
+      workflowSlug: "file-title-generator",
     });
 
     if (!response.ok) {
@@ -299,7 +293,6 @@ Deno.serve(async (req: Request) => {
   // Get the session or user object
   const authHeader = req.headers.get("Authorization")!;
   const token = authHeader.replace("Bearer ", "");
-
   const { data, error } = await supabaseClient.auth.getUser(token);
   const user = data.user;
 
@@ -342,7 +335,7 @@ Deno.serve(async (req: Request) => {
   });
 
   return new Response(JSON.stringify({ resources: resourcesCreated }), {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...corsHeaders },
     status: 200,
   });
 });

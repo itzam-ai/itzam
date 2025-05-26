@@ -2,6 +2,7 @@
     "imports": {
         "drizzle-orm": "npm:drizzle-orm@0.33.0",
         "drizzle-orm/": "npm:/drizzle-orm@0.33.0/",
-        "postgres": "npm:postgres@3.4.4"
+        "postgres": "npm:postgres@3.4.4",
+        "itzam": "npm:itzam@^2.1.16"
     }
 }
