@@ -296,7 +296,6 @@ enabled = true
 policy = "per_worker"
 # Port to attach the Chrome inspector for debugging edge functions.
 inspector_port = 8083
-deno_version = 2
 
 
 
