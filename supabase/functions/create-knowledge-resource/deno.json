@@ -3,6 +3,6 @@
         "drizzle-orm": "npm:drizzle-orm@0.33.0",
         "drizzle-orm/": "npm:/drizzle-orm@0.33.0/",
         "postgres": "https://deno.land/x/postgresjs/mod.js",
-        "itzam": "npm:itzam@^2.1.16"
+        "itzam": "npm:itzam@^2.1.17"
     }
 }
