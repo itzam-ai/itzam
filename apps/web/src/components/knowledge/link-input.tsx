@@ -136,15 +136,15 @@ export const LinkInput = ({
         }),
       });
     } catch (error) {
+      setWorkflowLinks((prevLinks) => {
+        return prevLinks.filter(
+          (link) => !linksToAdd.some((l) => l.id === link.id)
+        );
+      });
+
       toast.error((error as Error).message);
       console.error(error);
     }
-
-    setWorkflowLinks((prevLinks) => {
-      return prevLinks.filter(
-        (link) => !linksToAdd.some((l) => l.id === link.id)
-      );
-    });
 
     setIsSubmitting(false);
   };
@@ -159,6 +159,7 @@ export const LinkInput = ({
         resourceId: string;
         title: string;
         chunks: Chunk[];
+        fileSize: number;
       }) => {
         setWorkflowLinks((links) => {
           return links.map((link) => {
@@ -168,6 +169,7 @@ export const LinkInput = ({
                 status: payload.status,
                 title: payload.title,
                 chunks: payload.chunks,
+                fileSize: payload.fileSize,
               };
             }
             return link;

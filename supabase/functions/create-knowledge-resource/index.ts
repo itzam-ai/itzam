@@ -105,7 +105,7 @@ const getChannelId = (resource: any) => {
 async function convertSingleFile(attachment: {
   file: string;
   mimeType: string;
-}): Promise<string> {
+}): Promise<{ text: string; fileSize: number }> {
   try {
     // Convert string to File object
     const file = await getFileFromString(
@@ -128,10 +128,10 @@ async function convertSingleFile(attachment: {
     }
 
     const text = await res.text();
-    return text;
+    return { text, fileSize: file.size };
   } catch (err) {
     console.error("Error processing file:", err);
-    return ""; // Return empty string for failed conversions
+    return { text: "", fileSize: 0 }; // Return empty string for failed conversions
   }
 }
 
@@ -231,10 +231,16 @@ async function createEmbeddings(
 
   try {
     // SEND TO TIKA
-    const textFromTika = await convertSingleFile({
+    const { text: textFromTika, fileSize } = await convertSingleFile({
       file: resource.url,
       mimeType: resource.mimeType,
     });
+
+    // UPDATE RESOURCE WITH FILE SIZE
+    await db
+      .update(resources)
+      .set({ fileSize })
+      .where(eq(resources.id, resource.id));
 
     title = await generateFileTitleForResource(textFromTika, resource, db);
 
@@ -246,6 +252,7 @@ async function createEmbeddings(
         resourceId: resource.id,
         title,
         chunks: [],
+        fileSize,
       },
     });
 
@@ -270,12 +277,6 @@ async function createEmbeddings(
       )
       .returning();
 
-    console.log("sending channel update", {
-      status: "PROCESSED",
-      resourceId: resource.id,
-      title,
-    });
-
     supabase.channel(getChannelId(resource)).send({
       type: "broadcast",
       event: "update",
@@ -284,6 +285,7 @@ async function createEmbeddings(
         resourceId: resource.id,
         title,
         chunks: createdChunks,
+        fileSize,
       },
     });
 
@@ -302,6 +304,7 @@ async function createEmbeddings(
         resourceId: resource.id,
         title,
         chunks: [],
+        fileSize: 0,
       },
     });
 

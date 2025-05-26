@@ -170,6 +170,7 @@ export const FileInput = ({
         resourceId: string;
         title: string;
         chunks: Chunk[];
+        fileSize: number;
       }) => {
         setWorkflowFiles((files) => {
           return files.map((file) => {
@@ -179,6 +180,7 @@ export const FileInput = ({
                 status: payload.status,
                 title: payload.title,
                 chunks: payload.chunks,
+                fileSize: payload.fileSize,
               };
             }
             return file;
