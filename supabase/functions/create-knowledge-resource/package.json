@@ -1,6 +1,7 @@
 {
     "name": "@itzam/create-knowledge-resource",
     "dependencies": {
-        "@itzam/server": "workspace:*"
+        "uuid": "^11.1.0",
+        "zod": "^3.24.2"
     }
 }

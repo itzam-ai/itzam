@@ -1,0 +1,6 @@
+{
+    "imports": {
+        "@itzam/server": "../../packages/server"
+    },
+    "nodeModulesDir": "auto"
+}

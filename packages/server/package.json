@@ -6,11 +6,12 @@
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
     "db:sample-data": "tsx src/db/sample-data.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "clean": "rm -rf dist node_modules .turbo"
   },
   "exports": {
-    "./*": "./src/*.ts",
-    ".": "./src/index.ts"
+    "./*": "./dist/*.cjs",
+    ".": "./dist/index.cjs"
   },
   "devDependencies": {
     "@types/node": "^20.17.28",

@@ -1,7 +1,6 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@supabase/supabase-js@2": "2.49.8",
     "npm:@ai-sdk/anthropic@^1.2.10": "1.2.12_zod@3.25.28",
     "npm:@ai-sdk/cohere@^1.2.9": "1.2.10_zod@3.25.28",
     "npm:@ai-sdk/deepseek@~0.2.11": "0.2.14_zod@3.25.28",
@@ -52,13 +51,7 @@
     "npm:@statsig/web-analytics@^3.15.0": "3.17.1",
     "npm:@stripe/react-stripe-js@^3.5.1": "3.7.0_@stripe+stripe-js@5.10.0_react@19.1.0_react-dom@19.1.0__react@19.1.0",
     "npm:@stripe/stripe-js@^5.10.0": "5.10.0",
-    "npm:@supabase/auth-js@2.69.1": "2.69.1",
-    "npm:@supabase/functions-js@2.4.4": "2.4.4",
-    "npm:@supabase/node-fetch@2.6.15": "2.6.15",
-    "npm:@supabase/postgrest-js@1.19.4": "1.19.4",
-    "npm:@supabase/realtime-js@2.11.2": "2.11.2",
     "npm:@supabase/ssr@~0.6.1": "0.6.1_@supabase+supabase-js@2.49.8",
-    "npm:@supabase/storage-js@2.7.1": "2.7.1",
     "npm:@supabase/supabase-js@^2.49.4": "2.49.8",
     "npm:@t3-oss/env-nextjs@0.12": "0.12.0_typescript@5.8.3_zod@3.25.28",
     "npm:@tailwindcss/typography@~0.5.16": "0.5.16_tailwindcss@3.4.17__postcss@8.5.3__ts-node@10.9.2___@types+node@20.17.50___typescript@5.8.3__@types+node@20.17.50__typescript@5.8.3_ts-node@10.9.2__@types+node@20.17.50__typescript@5.8.3_@types+node@20.17.50_typescript@5.8.3",
@@ -156,19 +149,6 @@
     "npm:zod-openapi@^4.2.4": "4.2.4_zod@3.25.28",
     "npm:zod-to-json-schema@^3.24.5": "3.24.5_zod@3.25.28",
     "npm:zod@^3.24.2": "3.25.28"
-  },
-  "jsr": {
-    "@supabase/supabase-js@2.49.8": {
-      "integrity": "fe1057c623e3297d627d8d795f8c8e7195b2973da8cec813f99e1484b6943b99",
-      "dependencies": [
-        "npm:@supabase/auth-js",
-        "npm:@supabase/functions-js",
-        "npm:@supabase/node-fetch",
-        "npm:@supabase/postgrest-js",
-        "npm:@supabase/realtime-js",
-        "npm:@supabase/storage-js"
-      ]
-    }
   },
   "npm": {
     "@ai-sdk/anthropic@1.2.12_zod@3.25.28": {
@@ -11687,9 +11667,6 @@
     }
   },
   "workspace": {
-    "dependencies": [
-      "jsr:@supabase/supabase-js@2"
-    ],
     "packageJson": {
       "dependencies": [
         "npm:@manypkg/cli@0.23",
@@ -12060,6 +12037,14 @@
             "npm:@types/node@^20.17.28",
             "npm:lucide-react@0.501",
             "npm:typescript@^5.8.3",
+            "npm:zod@^3.24.2"
+          ]
+        }
+      },
+      "supabase/functions/create-knowledge-resource": {
+        "packageJson": {
+          "dependencies": [
+            "npm:uuid@^11.1.0",
             "npm:zod@^3.24.2"
           ]
         }

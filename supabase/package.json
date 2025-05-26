@@ -1,0 +1,19 @@
+{
+    "name": "@itzam/supabase",
+    "type": "module",
+    "scripts": {
+        "dev": "supabase gen types typescript --project-id abcdefghijklmnopqrst > database.types.ts && supabase start && supabase functions serve"
+    },
+    "exports": {
+        "./*": "./utils/*.ts"
+    },
+    "dependencies": {
+        "@itzam/hono": "workspace:*",
+        "@itzam/server": "workspace:*",
+        "@itzam/utils": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@supabase/ssr": "^0.6.1",
+        "uuid": "^11.1.0",
+        "zod": "^3.24.2"
+    }
+}

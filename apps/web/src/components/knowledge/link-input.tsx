@@ -22,7 +22,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-
 export const LinkInput = ({
   workflowId,
   knowledge,

@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  createResources,
   deleteResource,
   Knowledge,
   type Resource,
 } from "@itzam/server/db/knowledge/actions";
+import { supabase } from "@itzam/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -20,7 +20,6 @@ import {
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { supabase } from "supabase/utils/client";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { uploadFileToR2 } from "~/lib/r2-client";
@@ -123,18 +122,20 @@ export const FileInput = ({
       );
     });
 
-    await createResources(
-      files.map((file) => ({
-        fileName: file.name,
-        url: file.url ?? "",
-        mimeType: file.type,
-        type: "FILE",
-        fileSize: file.size,
-        id: file.id,
-      })),
-      knowledge?.id ?? "",
-      workflowId
-    );
+    supabase.functions.invoke("create-knowledge-resource", {
+      body: JSON.stringify({
+        resources: files.map((file) => ({
+          fileName: file.name,
+          url: file.url ?? "",
+          mimeType: file.type,
+          type: "FILE",
+          fileSize: file.size,
+          id: file.id,
+        })),
+        knowledgeId: knowledge?.id ?? "",
+        workflowId: workflowId,
+      }),
+    });
 
     setFiles([]);
 

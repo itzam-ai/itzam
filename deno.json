@@ -1,10 +1,10 @@
 {
     "workspace": [
         "packages/*",
+        "packages/server",
         "apps/*",
-        "packages/supabase/functions/*"
+        "supabase",
+        "supabase/functions/*"
     ],
-    "imports": {
-        "@supabase/supabase-js": "jsr:@supabase/supabase-js@2"
-    }
+    "imports": {}
 }
