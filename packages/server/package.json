@@ -10,8 +10,8 @@
     "clean": "rm -rf dist node_modules .turbo"
   },
   "exports": {
-    "./*": "./dist/*.cjs",
-    ".": "./dist/index.cjs"
+    "./*": "./src/*.ts",
+    ".": "./src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^20.17.28",

@@ -6,7 +6,7 @@
         "dev": "supabase start",
         "predev": "pnpm run dev:gen-types",
         "dev:functions": "supabase functions serve",
-        "dev:gen-types": "supabase gen types typescript --project-id eekphrehuidmiwltaobe > database.types.ts"
+        "dev:gen-types": "supabase gen types typescript --project-id eekphrehuidmiwltaobe > functions/_shared/database.types.ts"
     },
     "exports": {
         "./*": "./utils/*.ts"
