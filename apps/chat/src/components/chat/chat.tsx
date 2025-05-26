@@ -57,20 +57,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { chatMetadataAtom } from "~/lib/atoms";
+import { FREE_MODELS, MAX_MESSAGES_PER_DAY } from "~/lib/config";
 import { uploadImageToR2 } from "~/lib/r2-client";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
-import { FilterButton } from "./filter-button";
-import { Message } from "./message";
 import { Badge } from "../ui/badge";
 import { ChatContainer } from "../ui/chat-container";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
-import { MAX_MESSAGES_PER_DAY, FREE_MODELS } from "~/lib/config";
 import { ProgressiveBlur } from "../ui/progressive-blur";
 import { ScrollButton } from "../ui/scroll-button";
 import { TextShimmer } from "../ui/text-shimmer";
-import { useCurrentUser } from "~/hooks/useCurrentUser";
+import { FilterButton } from "./filter-button";
+import { Message } from "./message";
 
 interface ExtendedMessage extends AiMessage {
   modelTag?: string;
@@ -299,7 +299,7 @@ export default function Chat({
     // upload the files to r2
     const uploadedFiles = await Promise.all(
       filesWithIds.map((file) =>
-        uploadImageToR2(file, user?.id ?? "").catch((error) => {
+        uploadImageToR2(file, file.id, user?.id ?? "").catch((error) => {
           console.error(error);
           toast.error(error.message);
           return {

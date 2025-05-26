@@ -333,3 +333,14 @@ entrypoint = "./functions/create-knowledge-resource/index.ts"
 # static_files = [ "./functions/create-knowledge-resource/*.html" ]
 
 
+
+[functions.upload-file]
+enabled = true
+verify_jwt = true
+import_map = "./functions/upload-file/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/upload-file/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/upload-file/*.html" ]

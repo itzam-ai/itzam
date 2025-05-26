@@ -1,3 +1,4 @@
+import { createClient } from "@itzam/supabase/server";
 import {
   type CoreUserMessage,
   jsonSchema,
@@ -10,7 +11,6 @@ import { z } from "zod";
 import type { Model } from "../db/model/actions";
 import { createRunWithCost } from "../db/run/actions";
 import { runs } from "../db/schema";
-import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
@@ -74,6 +74,32 @@ export async function getFileFromString(
   throw new Error("Invalid file");
 }
 
+async function uploadFileToBucket(file: File, userId: string) {
+  const supabase = await createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    throw new Error("No session found for file upload");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("userId", userId);
+
+  const response = await supabase.functions.invoke("upload-file", {
+    body: formData,
+  });
+
+  if (!response.data) {
+    throw new Error(`Failed to upload file: ${response.error}`);
+  }
+
+  const result = response.data;
+  return { imageUrl: result.imageUrl };
+}
+
 // @ts-expect-error TODO: fix typing
 export const createAiParams: CreateAiParamsFn = async ({
   userId,
@@ -129,23 +155,6 @@ export const createAiParams: CreateAiParamsFn = async ({
       const fileExt = extension(
         attachment.mimeType || "application/octet-stream"
       );
-      // if (attachment.type === "file") {
-      //   // get extension from mime type
-      //   // Convert to File instance if not already
-      //   const fileData = await getFileFromString(
-      //     attachment.file,
-      //     `file.${fileExt}`,
-      //     attachment.mimeType || "application/octet-stream"
-      //   );
-
-      //   // Upload file to R2
-      //   await uploadFileToBucket(fileData, "attachments");
-      //   content.push({
-      //     type: "file",
-      //     data: attachment.file,
-      //     mimeType: attachment.mimeType || fileData.type,
-      //   });
-      // } else if (attachment.type === "image") {
       // Convert to File instance if not already
       const imageData = await getFileFromString(
         attachment.file,
@@ -159,9 +168,6 @@ export const createAiParams: CreateAiParamsFn = async ({
         image: attachment.file,
         mimeType: attachment.mimeType || imageData.type,
       });
-      // } else {
-      //   throw new Error("Invalid attachment type");
-      // }
     }
   }
 

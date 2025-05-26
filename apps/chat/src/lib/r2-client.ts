@@ -1,25 +1,34 @@
-interface ExtendedFile extends File {
-  id: string;
-}
+import { supabase } from "@itzam/supabase/client";
 
-export async function uploadImageToR2(file: ExtendedFile, userId: string) {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("userId", userId);
+export async function uploadImageToR2(
+  file: File,
+  fileId: string,
+  userId: string
+) {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  const imageUrl = await fetch("/api/bucket/upload", {
-    method: "POST",
-    body: formData,
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
+    if (!session) {
+      throw new Error("No session found");
+    }
 
-      return (await response.text()).replaceAll('"', "");
-    })
-    .catch((error) => {
-      throw error;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("userId", userId);
+
+    const response = await supabase.functions.invoke("upload-file", {
+      body: formData,
     });
-  return { imageUrl, id: file.id };
+
+    return {
+      imageUrl: response.data.imageUrl,
+      id: fileId,
+      createdAt: file.lastModified,
+    };
+  } catch (error) {
+    console.error("Error in uploadImageToR2:", error);
+    throw error;
+  }
 }
