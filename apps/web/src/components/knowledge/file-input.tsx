@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
-import { uploadFileToR2 } from "~/lib/r2-client";
+
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -18,6 +18,33 @@ interface ExtendedFile extends File {
   id: string;
   url: string | null;
 }
+
+const uploadFileToSupabase = async (
+  file: File,
+  userId: string
+): Promise<{ url: string; id: string; createdAt: Date }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("userId", userId);
+
+  const { data, error } = await supabase.functions.invoke("upload-file", {
+    body: formData,
+  });
+
+  if (error) {
+    throw new Error(error.message || "Failed to upload file");
+  }
+
+  if (!data?.imageUrl) {
+    throw new Error("No URL returned from upload");
+  }
+
+  return {
+    url: data.imageUrl,
+    id: file.name, // Using filename as ID since the Supabase function doesn't return an ID
+    createdAt: new Date(),
+  };
+};
 
 export const FileInput = ({
   workflowId,
@@ -59,16 +86,19 @@ export const FileInput = ({
     setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
 
     startTransition(async () => {
-      // upload the files to r2
+      // upload the files using Supabase function
       const uploadedFiles = await Promise.all(
-        filesWithIds.map((file) => {
+        filesWithIds.map(async (file) => {
           try {
-            return uploadFileToR2(file, file.id, user?.id ?? "");
+            const result = await uploadFileToSupabase(file, user?.id ?? "");
+            return {
+              ...result,
+              id: file.id, // Keep the original file ID
+            };
           } catch (error) {
             console.error(error);
             toast.error((error as Error).message);
             return {
-              ...file,
               id: file.id,
               createdAt: new Date(),
               url: null,

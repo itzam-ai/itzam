@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@aws-sdk/client-s3": "npm:@aws-sdk/client-s3@^3.726.1"
+  }
+}

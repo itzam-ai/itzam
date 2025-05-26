@@ -1,5 +1,4 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { env } from "@itzam/utils";
 
 const s3Client = new S3Client({
@@ -9,35 +8,36 @@ const s3Client = new S3Client({
     accessKeyId: env.CLOUDFLARE_ACCESS_KEY_ID,
     secretAccessKey: env.CLOUDFLARE_SECRET_ACCESS_KEY,
   },
+  // Add compatibility settings for R2 as recommended by Cloudflare
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
 });
 
 export async function uploadFileToBucket(file: File, userId: string) {
-  const Key =
-    userId +
-    "/" +
-    file.name.replaceAll(" ", "-").split(".")[0] +
-    "-" +
-    Date.now() +
-    "." +
-    file.name.split(".")[1];
+  // Generate a safe filename
+  const fileExtension = file.name.split(".").pop() || "bin";
+  const baseName =
+    file.name.split(".").slice(0, -1).join(".").replaceAll(" ", "-") || "file";
 
+  const Key = `${userId}/${baseName}-${Date.now()}.${fileExtension}`;
   const Bucket = env.CLOUDFLARE_BUCKET;
 
-  const parallelUploads = new Upload({
-    client: s3Client,
-    params: {
-      Bucket,
-      Key,
-      Body: file.stream(),
-      ContentType: file.type,
-    },
-    leavePartsOnError: false,
+  // Convert file to ArrayBuffer for upload
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = new Uint8Array(arrayBuffer);
+
+  const uploadCommand = new PutObjectCommand({
+    Bucket,
+    Key,
+    Body: buffer,
+    ContentType: file.type,
+    ContentLength: file.size,
   });
 
-  const res = await parallelUploads.done();
+  const result = await s3Client.send(uploadCommand);
 
   return {
-    ...res,
+    ...result,
     imageUrl: "https://r2.itz.am/" + Key,
   };
 }

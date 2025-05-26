@@ -1,11 +1,11 @@
 {
   "name": "itzam",
-  "version": "2.1.16",
+  "version": "2.1.17",
   "description": "Itzam SDK",
   "author": "Itzam",
   "repository": {
     "type": "git",
-    "url": "https://github.com/itzam-ai/ts-sdk.git"
+    "url": "https://github.com/itzam-ai/itzam/tree/main/packages/sdk"
   },
   "files": [
     "dist"
