@@ -18,13 +18,14 @@
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
+  - [ ] Usage workflow selector
 
 - [ ] Knowledge
 
   - [x] Improve UI [G]
     - [x] TextLoop when status changes (add number of chunks)
     - [x] Animations
-    - [ ] Show usage
+    - [x] Show usage
   - [x] Validate plan limit [G]
     - [x] 50MB free tier?
   - [ ] Fix big files upload [A]

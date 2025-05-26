@@ -91,6 +91,22 @@ export async function checkPlanLimits(
   }
 }
 
+export async function getMaxLimit() {
+  const user = await getUser();
+
+  if (user.error || !user.data.user) {
+    throw new Error("User not found");
+  }
+
+  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+
+  const maxSize = isSubscribedToItzamPro.isSubscribed
+    ? 500 * 1024 * 1024
+    : 50 * 1024 * 1024;
+
+  return maxSize;
+}
+
 export async function deleteResource(resourceId: string) {
   await db
     .update(resources)

@@ -76,7 +76,7 @@
 
 @layer base {
   ::selection {
-    background: #ea5a0c55;
+    background: #8d796e27;
   }
   html {
     scroll-behavior: smooth;

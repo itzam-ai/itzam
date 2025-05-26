@@ -69,8 +69,6 @@ async function getFileFromString(
       throw new Error("Could not fetch file");
     }
 
-    console.log("File", file);
-
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     const type = mimeType || file.headers.get("content-type");
@@ -150,12 +148,7 @@ async function generateFileTitle(
       workflowSlug: "file-title-generator",
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to generate title: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.text || originalFileName;
+    return response.text || originalFileName;
   } catch (error) {
     console.error("Error generating file title:", error);
     return originalFileName;
