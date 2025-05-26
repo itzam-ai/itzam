@@ -312,7 +312,6 @@ Deno.serve(async (req: Request) => {
       status: 400,
     });
   }
-
   // Disable prefetch as it is not supported for "Transaction" pool mode
   const client = postgres(connectionString, { prepare: false });
   const db = drizzle(client);
