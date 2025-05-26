@@ -1,0 +1,24 @@
+{
+    "name": "@itzam/supabase",
+    "type": "module",
+    "scripts": {
+        "postdev": "pnpm run dev:functions",
+        "dev": "supabase start",
+        "predev": "pnpm run dev:gen-types",
+        "dev:functions": "supabase functions serve --env-file ../.env --no-verify-jwt",
+        "dev:gen-types": "supabase gen types typescript --project-id eekphrehuidmiwltaobe > functions/_shared/database.types.ts"
+    },
+    "exports": {
+        "./*": "./utils/*.ts"
+    },
+    "dependencies": {
+        "@itzam/hono": "workspace:*",
+        "@itzam/server": "workspace:*",
+        "@itzam/utils": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@supabase/ssr": "^0.6.1",
+        "next": "^15.3.1",
+        "uuid": "^11.1.0",
+        "zod": "^3.24.2"
+    }
+}

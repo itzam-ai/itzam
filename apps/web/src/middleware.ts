@@ -1,5 +1,5 @@
+import { updateSession } from "@itzam/supabase/middleware";
 import { type NextRequest } from "next/server";
-import { updateSession } from "supabase/utils/middleware";
 
 export async function middleware(request: NextRequest) {
   return await updateSession(request);

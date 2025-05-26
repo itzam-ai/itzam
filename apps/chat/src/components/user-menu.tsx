@@ -1,6 +1,7 @@
 "use client";
 
 import { createChat, OlderChat } from "@itzam/server/db/chat/actions";
+import { createClient } from "@itzam/supabase/client";
 import { useAtom } from "jotai";
 import {
   BarChart2,
@@ -16,6 +17,7 @@ import {
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -39,6 +41,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { statsForNerdsAtom } from "~/lib/atoms";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import { ChatItem } from "./chat/chat-item";
@@ -50,9 +53,6 @@ import {
   DialogTrigger,
 } from "./ui/dialog";
 import { Kbd } from "./ui/kbd";
-import { useCurrentUser } from "~/hooks/useCurrentUser";
-import { createClient } from "supabase/utils/client";
-import { useRouter } from "next/navigation";
 
 export function UserMenu({
   olderChats,

@@ -1,8 +1,8 @@
 import { createStripeCustomer } from "@itzam/server/db/billing/actions";
 import { createAdminAuthClient } from "@itzam/server/db/supabase/server";
+import { createClient } from "@itzam/supabase/server";
 import { env } from "@itzam/utils/env";
 import { NextResponse } from "next/server";
-import { createClient } from "supabase/utils/server";
 // The client you created from the Server-Side Auth instructions
 
 export async function GET(request: Request) {

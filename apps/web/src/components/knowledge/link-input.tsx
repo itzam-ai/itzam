@@ -1,11 +1,11 @@
 "use client";
 
 import { Chunk } from "@itzam/server/ai/embeddings";
-import { createResources, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { subscribeToChannel } from "supabase/utils/client";
 import { v7 } from "uuid";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
@@ -112,18 +112,18 @@ export const LinkInput = ({
     });
 
     try {
-      await createResources(
-        linksToAdd.map((link) => ({
-          fileName: link.url,
-          url: link.url,
-          mimeType: "text/html",
-          type: "LINK",
-          fileSize: 0,
-          id: link.id,
-        })),
-        knowledge?.id ?? "",
-        workflowId
-      );
+      // await createResources(
+      //   linksToAdd.map((link) => ({
+      //     fileName: link.url,
+      //     url: link.url,
+      //     mimeType: "text/html",
+      //     type: "LINK",
+      //     fileSize: 0,
+      //     id: link.id,
+      //   })),
+      //   knowledge?.id ?? "",
+      //   workflowId
+      // );
     } catch (error) {
       toast.error((error as Error).message);
 

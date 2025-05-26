@@ -3,12 +3,11 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import "server-only";
-import { v7 } from "uuid";
 import { db } from "..";
-import { createEmbeddings } from "../../ai/embeddings";
 import { getUser } from "../auth/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
 import { customerIsSubscribedToItzamPro } from "../billing/actions";
+import { createClient } from "../supabase/server";
 
 export type Knowledge = NonNullable<
   Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>
@@ -47,71 +46,6 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   });
 
   return knowledgeFromWorkflow;
-}
-
-export type Resource = typeof resources.$inferSelect;
-
-type ResourceInput = {
-  url: string;
-  type: "FILE" | "LINK";
-  mimeType: string;
-  fileName: string;
-  fileSize: number;
-  id?: string;
-};
-
-export async function createResources(
-  resourcesInput: ResourceInput[],
-  knowledgeId: string,
-  workflowId: string
-) {
-  const { error } = await getUser();
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!isSubscribedToItzamPro.isSubscribed) {
-    // check if the user has reached the limit in this workflow (50MB)
-    const resourcesSize = await db.query.resources.findMany({
-      where: and(
-        eq(resources.knowledgeId, knowledgeId),
-        eq(resources.active, true)
-      ),
-      columns: {
-        fileSize: true,
-      },
-    });
-
-    const totalSize = resourcesSize.reduce(
-      (acc, resource) => acc + (resource.fileSize ?? 0),
-      0
-    );
-
-    if (totalSize > 50 * 1024 * 1024) {
-      throw new Error(
-        "The free plan has a limit of 50MB. Subscribe to Itzam Pro!"
-      );
-    }
-  }
-
-  const resourcesCreated = await db
-    .insert(resources)
-    .values(
-      resourcesInput.map((resource) => ({
-        ...resource,
-        id: resource.id ?? v7(),
-        knowledgeId,
-      }))
-    )
-    .returning();
-
-  resourcesCreated.forEach((resource) => {
-    void createEmbeddings(resource, workflowId);
-  });
-
-  return resourcesCreated;
 }
 
 export async function deleteResource(resourceId: string) {

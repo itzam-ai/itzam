@@ -1,11 +1,12 @@
 "use client";
 
-import { createResources, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { Chunk } from "@itzam/server/ai/embeddings";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { subscribeToChannel } from "supabase/utils/client";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { uploadFileToR2 } from "~/lib/r2-client";
@@ -13,7 +14,6 @@ import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
 import { KnowledgeItem } from "./knowledge-item";
-import { Chunk } from "@itzam/server/ai/embeddings";
 interface ExtendedFile extends File {
   id: string;
   url: string | null;
@@ -120,9 +120,9 @@ export const FileInput = ({
       );
     });
 
-    try {
-      await createResources(
-        files.map((file) => ({
+    supabase.functions.invoke("create-knowledge-resource", {
+      body: JSON.stringify({
+        resources: files.map((file) => ({
           fileName: file.name,
           url: file.url ?? "",
           mimeType: file.type,
@@ -130,16 +130,12 @@ export const FileInput = ({
           fileSize: file.size,
           id: file.id,
         })),
-        knowledge?.id ?? "",
-        workflowId
-      );
-    } catch (error) {
-      toast.error((error as Error).message);
+        knowledgeId: knowledge?.id ?? "",
+        workflowId: workflowId,
+      }),
+    });
 
-      setWorkflowFiles((prevFiles) => {
-        return prevFiles.filter((file) => !files.some((f) => f.id === file.id));
-      });
-    }
+    setFiles([]);
 
     setIsSubmitting(false);
   };

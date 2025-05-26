@@ -1,6 +1,10 @@
 {
     "workspace": [
         "packages/*",
+        "packages/server",
+        "apps/*",
+        "supabase",
         "supabase/functions/*"
-    ]
+    ],
+    "imports": {}
 }
