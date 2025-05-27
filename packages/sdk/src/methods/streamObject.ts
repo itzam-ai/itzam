@@ -1,5 +1,6 @@
+import type { AppType } from "@itzam/hono/client/index.d";
+import { hc } from "hono/client";
 import zodToJsonSchema from "zod-to-json-schema";
-import { client } from "..";
 import { createItzamError } from "../errors";
 import type {
   GenerateObjectRequest,
@@ -26,6 +27,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 async function streamObject<T>(
+  client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   input: GenerateObjectRequest<T>
 ): Promise<StreamResponse<RecursivePartial<T>>> {

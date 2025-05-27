@@ -1,7 +1,11 @@
-import { client } from "..";
+import type { AppType } from "@itzam/hono/client/index.d";
+import { hc } from "hono/client";
 import { createItzamError } from "../errors";
 
-async function getModels(apiKey: string) {
+async function getModels(
+  client: ReturnType<typeof hc<AppType>>,
+  apiKey: string
+) {
   try {
     const res = await client.api.v1.models.$get(undefined, {
       headers: {

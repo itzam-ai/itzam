@@ -10,7 +10,6 @@ import { getRunById } from "./methods/getRunById";
 import { streamObject } from "./methods/streamObject";
 import { streamText } from "./methods/streamText";
 export type { InferRequestType, InferResponseType } from "hono/client";
-export const client = hc<AppType>(process.env.NEXT_PUBLIC_APP_URL!);
 
 // File attachment type
 export type Attachment = {
@@ -40,9 +39,12 @@ type StreamResponse<T = string> = {
   metadata: Promise<ResponseMetadata>;
 };
 
+// Create a temporary client for type inference
+const tempClient = hc<AppType>("");
+
 export type GenerateObjectRequest<T> = WithAttachments<
   Omit<
-    InferRequestType<typeof client.api.v1.generate.object.$post>["json"],
+    InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"],
     "schema"
   > & {
     schema: ZodType<T, ZodTypeDef, unknown> | JsonSchema7Type;
@@ -59,46 +61,55 @@ type JsonSchemaWithProperties = JsonSchema7Type & {
  *
  * @class Itzam
  * @param {string} apiKey - The API key to use for authentication
- * @param {ConfigurationParameters} [configuration] - The configuration to use for the API, used for debugging, you probably don't need to use this
+ * @param {object} [options] - Configuration options
+ * @param {string} [options.basePath] - The base URL for the API (defaults to NEXT_PUBLIC_APP_URL environment variable)
  */
 class Itzam {
   private apiKey: string;
+  private client: ReturnType<typeof hc<AppType>>;
 
   constructor(apiKey: string, options?: { basePath?: string }) {
     this.apiKey = apiKey;
+    const basePath = options?.basePath || process.env.NEXT_PUBLIC_APP_URL;
+    if (!basePath) {
+      throw new Error(
+        "Base path must be provided either through options.basePath or NEXT_PUBLIC_APP_URL environment variable"
+      );
+    }
+    this.client = hc<AppType>(basePath);
   }
 
   async generateText(
     generateTextRequest: InferRequestType<
-      typeof client.api.v1.generate.text.$post
+      typeof tempClient.api.v1.generate.text.$post
     >["json"]
   ) {
-    return generateText(this.apiKey, generateTextRequest);
+    return generateText(this.client, this.apiKey, generateTextRequest);
   }
 
   async generateObject<T>(request: GenerateObjectRequest<T>) {
-    return generateObject<T>(this.apiKey, request);
+    return generateObject<T>(this.client, this.apiKey, request);
   }
   async streamText(
-    input: InferRequestType<typeof client.api.v1.stream.text.$post>["json"]
+    input: InferRequestType<typeof tempClient.api.v1.stream.text.$post>["json"]
   ) {
-    return streamText(this.apiKey, input);
+    return streamText(this.client, this.apiKey, input);
   }
 
   async streamObject<T>(input: GenerateObjectRequest<T>) {
-    return streamObject<T>(this.apiKey, input);
+    return streamObject<T>(this.client, this.apiKey, input);
   }
 
   async getRunById(
     runId: InferRequestType<
-      (typeof client.api.v1.runs)[":id"]["$get"]
+      (typeof tempClient.api.v1.runs)[":id"]["$get"]
     >["param"]["id"]
   ) {
-    return getRunById(this.apiKey, runId);
+    return getRunById(this.client, this.apiKey, runId);
   }
 
   async getModels() {
-    return getModels(this.apiKey);
+    return getModels(this.client, this.apiKey);
   }
 }
 

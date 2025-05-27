@@ -1,7 +1,8 @@
+import type { AppType } from "@itzam/hono/client/index.d";
+import { hc } from "hono/client";
 import type { ZodType, ZodTypeDef } from "zod";
 import zodToJsonSchema, { type JsonSchema7Type } from "zod-to-json-schema";
 import {
-  client,
   type InferRequestType,
   type StreamMetadata,
   type WithAttachments,
@@ -24,9 +25,12 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
+// Create a temporary client for type inference
+const tempClient = hc<AppType>("");
+
 type GenerateObjectRequest<T> = WithAttachments<
   Omit<
-    InferRequestType<typeof client.api.v1.generate.object.$post>["json"],
+    InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"],
     "schema"
   > & {
     schema: ZodType<T, ZodTypeDef, unknown> | JsonSchema7Type;
@@ -34,6 +38,7 @@ type GenerateObjectRequest<T> = WithAttachments<
 >;
 
 async function generateObject<T>(
+  client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   request: GenerateObjectRequest<T>
 ): Promise<{

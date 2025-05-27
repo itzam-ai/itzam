@@ -1,4 +1,6 @@
-import { client, type InferRequestType, type WithAttachments } from "..";
+import type { AppType } from "@itzam/hono/client/index.d";
+import { hc } from "hono/client";
+import { type InferRequestType, type WithAttachments } from "..";
 import { createItzamError } from "../errors";
 
 // Helper function to convert Blob/File to base64
@@ -18,6 +20,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 async function generateText(
+  client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   generateTextRequest: WithAttachments<
     InferRequestType<typeof client.api.v1.generate.text.$post>["json"]

@@ -5,6 +5,6 @@ export default defineConfig({
   experimentalDts: true,
   noExternal: [/@itzam\/hono\/.*/, "@itzam/hono/client/schemas"],
   env: {
-    NEXT_PUBLIC_APP_URL: "https://itz.am",
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "https://itz.am",
   },
 });

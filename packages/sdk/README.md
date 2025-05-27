@@ -35,6 +35,11 @@ import { Itzam } from "itzam";
 // Initialize the client
 const itzam = new Itzam("your-api-key");
 
+// Or with custom base URL
+const itzam = new Itzam("your-api-key", {
+  basePath: "https://your-custom-api-url.com"
+});
+
 // Use your workflow
 const response = await itzam.generateText({
   input: "Your input text here",
@@ -43,6 +48,20 @@ const response = await itzam.generateText({
 
 console.log(response.output);
 ```
+
+## Configuration
+
+The Itzam SDK can be configured with the following options:
+
+```typescript
+const itzam = new Itzam("your-api-key", {
+  basePath: "https://your-custom-api-url.com" // Optional: Custom API base URL
+});
+```
+
+### Configuration Options
+
+- `basePath` (optional): Custom base URL for the API. Defaults to the `NEXT_PUBLIC_APP_URL` environment variable if not provided.
 
 ## Example: Building an AI Support Chat
 

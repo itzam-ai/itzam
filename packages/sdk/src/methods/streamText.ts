@@ -1,7 +1,12 @@
-import { client, type InferRequestType, type WithAttachments } from "..";
+import type { AppType } from "@itzam/hono/client/index.d";
+import { hc } from "hono/client";
+import { type InferRequestType, type WithAttachments } from "..";
 import { createItzamError } from "../errors";
 import type { StreamMetadata } from "../index";
 import { createEventStream, type EventHandler } from "../utils";
+
+// Create a temporary client for type inference
+const tempClient = hc<AppType>("");
 
 // Helper function to convert Blob/File to base64
 function blobToBase64(blob: Blob): Promise<string> {
@@ -20,9 +25,10 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 async function streamText(
+  client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   input: WithAttachments<
-    InferRequestType<typeof client.api.v1.stream.text.$post>["json"]
+    InferRequestType<typeof tempClient.api.v1.stream.text.$post>["json"]
   >
 ) {
   try {
