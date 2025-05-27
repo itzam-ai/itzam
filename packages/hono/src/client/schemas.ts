@@ -52,27 +52,32 @@ const BaseInput = z.object({
       ],
       description: "Optional attachments to include in the generation",
     }),
-  workflowSlug: z.string().min(1).openapi({
+  workflowSlug: z.string().optional().openapi({
     example: "my_great_workflow",
     description:
-      "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)",
+      "The slug of the Workflow to use for generation (required if threadId is not provided)",
   }),
   threadId: z.string().optional().openapi({
     example: "thread_1234567890",
     description:
-      "Optional thread ID to associate this run with a conversation thread",
+      "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
   }),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({
   ref: "TextCompletionInput",
-}).refine(
-  (data) => (data.attachments && data.attachments.length > 0) || data.input,
-  {
-    message: "Attachments or input are required",
-    path: ["attachments", "input"],
-  }
-);
+})
+  .refine(
+    (data) => (data.attachments && data.attachments.length > 0) || data.input,
+    {
+      message: "Attachments or input are required",
+      path: ["attachments", "input"],
+    }
+  )
+  .refine((data) => data.workflowSlug || data.threadId, {
+    message: "Either workflowSlug or threadId is required",
+    path: ["workflowSlug", "threadId"],
+  });
 
 export const ObjectCompletionInputSchema = BaseInput.extend({
   schema: z
@@ -104,6 +109,10 @@ export const ObjectCompletionInputSchema = BaseInput.extend({
     (data) => (data.attachments && data.attachments.length > 0) || data.input,
     "Attachments or input are required"
   )
+  .refine((data) => data.workflowSlug || data.threadId, {
+    message: "Either workflowSlug or threadId is required",
+    path: ["workflowSlug", "threadId"],
+  })
   .openapi({ ref: "ObjectCompletionInput" });
 
 export const StreamEventSchema = z
@@ -417,13 +426,18 @@ export const GetRunByIdParamsSchema = z.object({
 // -------- THREADS --------
 export const CreateThreadInputSchema = z
   .object({
-    name: z.string().min(1).openapi({
+    name: z.string().optional().openapi({
       example: "My Thread",
-      description: "The name of the thread",
+      description:
+        "The name of the thread (optional, will auto-generate if not provided)",
     }),
     lookupKey: z.string().optional().openapi({
       example: "user-123-session",
       description: "Optional lookup key for finding the thread later",
+    }),
+    workflowSlug: z.string().min(1).openapi({
+      example: "my_great_workflow",
+      description: "The slug of the workflow this thread belongs to",
     }),
   })
   .openapi({ ref: "CreateThreadInput" });

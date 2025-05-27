@@ -4,8 +4,11 @@ import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
+import { db } from "@itzam/server/db/index";
+import { threads } from "@itzam/server/db/schema";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
 import { tryCatch } from "@itzam/utils/try-catch";
+import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -67,17 +70,45 @@ export const setupRunGeneration = async ({
   attachments,
 }: {
   userId: string;
-  workflowSlug: string;
+  workflowSlug?: string;
   threadId: string | null;
   schema?: NonLiteralJson | null;
   stream?: boolean;
   input: string;
   attachments?: Attachment[];
 }) => {
-  const workflow = await getWorkflowBySlugAndUserIdWithModelAndModelSettings(
-    userId,
-    workflowSlug
-  );
+  let workflow;
+
+  if (workflowSlug) {
+    // Get workflow by slug
+    workflow = await getWorkflowBySlugAndUserIdWithModelAndModelSettings(
+      userId,
+      workflowSlug
+    );
+  } else if (threadId) {
+    const thread = await db.query.threads.findFirst({
+      where: eq(threads.id, threadId),
+      with: {
+        workflow: {
+          with: {
+            model: true,
+            modelSettings: true,
+          },
+        },
+      },
+    });
+
+    if (!thread) {
+      return { error: "Thread not found", status: 404 as StatusCode };
+    }
+
+    workflow = thread.workflow;
+  } else {
+    return {
+      error: "Either workflowSlug or threadId is required",
+      status: 400 as StatusCode,
+    };
+  }
 
   if (!workflow || "error" in workflow) {
     return { error: "Workflow not found", status: 404 as StatusCode };

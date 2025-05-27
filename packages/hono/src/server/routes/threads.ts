@@ -1,5 +1,5 @@
 import { db } from "@itzam/server/db/index";
-import { threads } from "@itzam/server/db/schema";
+import { threads, workflows } from "@itzam/server/db/schema";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
@@ -35,16 +35,30 @@ export const threadsRoute = new Hono()
     createThreadValidator,
     async (c) => {
       try {
-        const { name, lookupKey } = c.req.valid("json");
+        const { name, lookupKey, workflowSlug } = c.req.valid("json");
+
+        // Find the workflow by slug and userId
+        const workflow = await db.query.workflows.findFirst({
+          where: eq(workflows.slug, workflowSlug),
+        });
+
+        if (!workflow) {
+          return c.json(
+            createErrorResponse(new Error("Workflow not found")),
+            404
+          );
+        }
 
         const threadId = v7();
+        const threadName = name || `thread_${threadId.substring(0, 10)}`;
 
         const [thread] = await db
           .insert(threads)
           .values({
             id: threadId,
-            name,
+            name: threadName,
             lookupKey: lookupKey || null,
+            workflowId: workflow.id,
           })
           .returning();
 

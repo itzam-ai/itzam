@@ -479,6 +479,7 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
     references: [contexts.id],
   }),
   runs: many(runs),
+  threads: many(threads),
   knowledge: one(knowledge, {
     fields: [workflows.knowledgeId],
     references: [knowledge.id],
@@ -628,6 +629,9 @@ export const threads = createTable(
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
     name: varchar("name", { length: 256 }).notNull(),
     lookupKey: varchar("lookup_key", { length: 256 }).unique(),
+    workflowId: varchar("workflow_id", { length: 256 })
+      .notNull()
+      .references(() => workflows.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -638,10 +642,15 @@ export const threads = createTable(
   (table) => ({
     lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
     createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
+    workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
   })
 );
 
 // -------- Thread --------
-export const threadRelations = relations(threads, ({ many }) => ({
+export const threadRelations = relations(threads, ({ many, one }) => ({
   runs: many(runs),
+  workflow: one(workflows, {
+    fields: [threads.workflowId],
+    references: [workflows.id],
+  }),
 }));
