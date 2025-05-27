@@ -20,16 +20,23 @@ const response = await itzam.generateText({
   workflowSlug: "my_great_workflow",
   // Optional parameters
   groupId: "my-group-id",
+  attachments: [
+    {
+      file: "https://example.com/image.jpg",
+      mimeType: "image/jpeg"
+    }
+  ]
 });
 ```
 
 ### Parameters
 
-| Parameter      | Type     | Description                                     |
-| -------------- | -------- | ----------------------------------------------- |
-| `input`        | `string` | The input text to generate a response for.      |
-| `workflowSlug` | `string` | The slug of the Workflow to use for generation. |
-| `groupId`      | `string` | Optional. Identifier for grouping related runs. |
+| Parameter      | Type           | Description                                                                                    |
+| -------------- | -------------- | ---------------------------------------------------------------------------------------------- |
+| `input`        | `string`       | The input text to generate a response for.                                                     |
+| `workflowSlug` | `string`       | The slug of the Workflow to use for generation.                                                |
+| `groupId`      | `string`       | Optional. Identifier for grouping related runs.                                                |
+| `attachments`  | `Attachment[]` | Optional. Array of files to include. See [Attachments](/sdks/javascript/attachments) for details. |
 
 ### Return Value
 

@@ -10,6 +10,7 @@ Itzam provides tools for seamlessly integrating AI into your applications. With 
 - 💬 **Prompt Hot Swap** - Update prompts on the fly and compare outputs
 - 💳 **Unified Billing** - Manage all AI spending in one place
 - 🔌 **Simple Integration** - Add AI features with just a few lines of code
+- 📎 **Multimodal Support** - Send files, images, and documents as attachments
 - 🗃️ **Context Management** _(coming soon)_ - Easily manage AI context including docs, images, and more
 - 📐 **Custom Rules** _(coming soon)_ - Create automated rules for model switching and workflow management
 
@@ -47,6 +48,53 @@ const response = await itzam.generateText({
 });
 
 console.log(response.output);
+```
+
+## Working with Attachments
+
+Send files, images, and documents with your requests:
+
+```typescript
+// With base64 data
+const response = await itzam.generateText({
+  input: "What do you see in this image?",
+  workflowSlug: "vision-workflow",
+  attachments: [
+    {
+      file: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+      mimeType: "image/png"
+    }
+  ]
+});
+
+// With URLs
+const response2 = await itzam.generateText({
+  input: "Analyze this document",
+  workflowSlug: "document-analysis",
+  attachments: [
+    {
+      file: "https://example.com/document.pdf",
+      mimeType: "application/pdf"
+    }
+  ]
+});
+
+// With File objects (automatically converted to base64)
+const fileInput = document.getElementById('fileInput') as HTMLInputElement;
+const file = fileInput.files?.[0];
+
+if (file) {
+  const response3 = await itzam.generateText({
+    input: "Process this file",
+    workflowSlug: "file-processor",
+    attachments: [
+      {
+        file: file, // SDK handles conversion automatically
+        mimeType: file.type
+      }
+    ]
+  });
+}
 ```
 
 ## Configuration

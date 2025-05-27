@@ -38,6 +38,7 @@
                   "sdks/javascript/stream-text",
                   "sdks/javascript/generate-object",
                   "sdks/javascript/stream-object",
+                  "sdks/javascript/attachments",
                   "sdks/javascript/get-run-by-id",
                   "sdks/javascript/get-models",
                   "sdks/javascript/errors"

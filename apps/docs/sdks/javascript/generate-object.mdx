@@ -29,6 +29,12 @@ const response = await itzam.generateObject({
   input: "tell me who are the characters in atlas shrugged",
   workflowSlug: "code-assistant",
   schema,
+  attachments: [
+    {
+      file: "https://example.com/book-cover.jpg",
+      mimeType: "image/jpeg"
+    }
+  ]
 });
 
 console.log(response.object); // The generated object
@@ -37,12 +43,13 @@ console.log(response.metadata); // Metadata about the run
 
 ### Parameters
 
-| Parameter      | Type                   | Description                                                      |
-| -------------- | ---------------------- | ---------------------------------------------------------------- |
-| `input`        | `string`               | The input text to generate a response for.                       |
-| `workflowSlug` | `string`               | The slug of the Workflow to use for generation.                  |
-| `groupId`      | `string`               | Optional. Identifier for grouping related runs.                  |
-| `schema`       | `ZodType`/`JsonSchema` | The Zod or JSON schema describing the expected object structure. |
+| Parameter      | Type                   | Description                                                                                    |
+| -------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| `input`        | `string`               | The input text to generate a response for.                                                     |
+| `workflowSlug` | `string`               | The slug of the Workflow to use for generation.                                                |
+| `groupId`      | `string`               | Optional. Identifier for grouping related runs.                                                |
+| `schema`       | `ZodType`/`JsonSchema` | The Zod or JSON schema describing the expected object structure.                               |
+| `attachments`  | `Attachment[]`         | Optional. Array of files to include. See [Attachments](/sdks/javascript/attachments) for details. |
 
 ### Return Value
 
