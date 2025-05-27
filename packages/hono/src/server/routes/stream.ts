@@ -37,12 +37,13 @@ export const streamRoute = new Hono()
     textCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
-      const { workflowSlug, groupId, input, attachments } = c.req.valid("json");
+      const { workflowSlug, threadId, input, attachments } =
+        c.req.valid("json");
 
       const setup = await setupRunGeneration({
         userId,
         workflowSlug,
-        groupId: groupId || null,
+        threadId: threadId || null,
         input,
         attachments,
       });
@@ -88,13 +89,13 @@ export const streamRoute = new Hono()
     objectCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
-      const { workflowSlug, groupId, input, schema, attachments } =
+      const { workflowSlug, threadId, input, schema, attachments } =
         c.req.valid("json");
 
       const setup = await setupRunGeneration({
         userId,
         workflowSlug,
-        groupId: groupId || null,
+        threadId: threadId || null,
         input,
         schema,
         attachments,

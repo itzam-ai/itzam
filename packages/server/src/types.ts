@@ -3,7 +3,7 @@ export type PreRunDetails = {
   origin: "SDK" | "WEB";
   input: string;
   prompt: string;
-  groupId: string | null;
+  threadId: string | null;
   modelId: string;
   workflowId: string;
   resourceIds: string[];

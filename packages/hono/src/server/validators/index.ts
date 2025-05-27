@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  CreateThreadInputSchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
 } from "../../client/schemas";
@@ -70,4 +71,9 @@ export const textCompletionValidator = zValidator(
 export const objectCompletionValidator = zValidator(
   "json",
   ObjectCompletionInputSchema
+);
+
+export const createThreadValidator = zValidator(
+  "json",
+  CreateThreadInputSchema
 );

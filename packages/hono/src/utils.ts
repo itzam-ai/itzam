@@ -15,7 +15,7 @@ export type PreRunDetails = {
   origin: "SDK" | "WEB";
   input: string;
   prompt: string;
-  groupId: string | null;
+  threadId: string | null;
   modelId: string;
   workflowId: string;
   resourceIds: string[];
@@ -60,7 +60,7 @@ export const createErrorResponse = (error: unknown) => {
 export const setupRunGeneration = async ({
   userId,
   workflowSlug,
-  groupId,
+  threadId,
   schema,
   input,
   stream,
@@ -68,7 +68,7 @@ export const setupRunGeneration = async ({
 }: {
   userId: string;
   workflowSlug: string;
-  groupId: string | null;
+  threadId: string | null;
   schema?: NonLiteralJson | null;
   stream?: boolean;
   input: string;
@@ -88,7 +88,7 @@ export const setupRunGeneration = async ({
     origin: "SDK" as const,
     input,
     prompt: workflow.prompt,
-    groupId: groupId || null,
+    threadId: threadId || null,
     modelId: workflow.modelId,
     workflowId: workflow.id,
     resourceIds: [],

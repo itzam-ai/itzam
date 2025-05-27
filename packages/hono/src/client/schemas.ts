@@ -57,10 +57,10 @@ const BaseInput = z.object({
     description:
       "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)",
   }),
-  groupId: z.string().optional().openapi({
-    example: "my-group-id",
+  threadId: z.string().optional().openapi({
+    example: "thread_1234567890",
     description:
-      "Optional identifier for grouping related runs (e.g. user ID, session ID, etc.)",
+      "Optional thread ID to associate this run with a conversation thread",
   }),
 });
 
@@ -413,6 +413,84 @@ export const GetRunByIdParamsSchema = z.object({
     description: "The ID of the run to retrieve",
   }),
 });
+
+// -------- THREADS --------
+export const CreateThreadInputSchema = z
+  .object({
+    name: z.string().min(1).openapi({
+      example: "My Thread",
+      description: "The name of the thread",
+    }),
+    lookupKey: z.string().optional().openapi({
+      example: "user-123-session",
+      description: "Optional lookup key for finding the thread later",
+    }),
+  })
+  .openapi({ ref: "CreateThreadInput" });
+
+export const CreateThreadResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "thread_1234567890",
+      description: "The ID of the created thread",
+    }),
+    name: z.string().openapi({
+      example: "My Thread",
+      description: "The name of the thread",
+    }),
+    lookupKey: z.string().nullable().openapi({
+      example: "user-123-session",
+      description: "The lookup key of the thread",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the thread",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the thread",
+    }),
+  })
+  .openapi({ ref: "CreateThreadResponse" });
+
+export const GetThreadByIdParamsSchema = z.object({
+  id: z.string().openapi({
+    example: "thread_1234567890",
+    description: "The ID of the thread to retrieve",
+  }),
+});
+
+export const GetThreadByLookupKeyParamsSchema = z.object({
+  lookupKey: z.string().openapi({
+    example: "user-123-session",
+    description: "The lookup key of the thread to retrieve",
+  }),
+});
+
+export const GetThreadResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "thread_1234567890",
+      description: "The ID of the thread",
+    }),
+    name: z.string().openapi({
+      example: "My Thread",
+      description: "The name of the thread",
+    }),
+    lookupKey: z.string().nullable().openapi({
+      example: "user-123-session",
+      description: "The lookup key of the thread",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the thread",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the thread",
+    }),
+  })
+  .openapi({ ref: "GetThreadResponse" });
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;

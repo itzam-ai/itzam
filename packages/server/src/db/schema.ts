@@ -232,6 +232,9 @@ export const runs = createTable(
     fullResponse: jsonb("full_response"),
     metadata: jsonb("metadata").default({}),
     groupId: varchar("group_id", { length: 256 }),
+    threadId: varchar("thread_id", { length: 256 }).references(
+      () => threads.id
+    ),
     modelId: varchar("model_id", { length: 256 }).references(() => models.id),
     workflowId: varchar("workflow_id", { length: 256 }).references(
       () => workflows.id
@@ -247,6 +250,7 @@ export const runs = createTable(
     workflowIdIndex: index("run_workflow_id_idx").on(table.workflowId),
     statusIndex: index("run_status_idx").on(table.status),
     createdAtIndex: index("run_created_at_idx").on(table.createdAt),
+    threadIdIndex: index("run_thread_id_idx").on(table.threadId),
   })
 );
 
@@ -525,6 +529,10 @@ export const runRelations = relations(runs, ({ one, many }) => ({
     references: [models.id],
   }),
   runResources: many(runResources),
+  thread: one(threads, {
+    fields: [runs.threadId],
+    references: [threads.id],
+  }),
 }));
 
 // -------- ApiKey --------
@@ -611,4 +619,29 @@ export const runResourceRelations = relations(runResources, ({ one }) => ({
     fields: [runResources.resourceId],
     references: [resources.id],
   }),
+}));
+
+// -------- THREADS --------
+export const threads = createTable(
+  "thread",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    name: varchar("name", { length: 256 }).notNull(),
+    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
+    createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
+  })
+);
+
+// -------- Thread --------
+export const threadRelations = relations(threads, ({ many }) => ({
+  runs: many(runs),
 }));
