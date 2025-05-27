@@ -8,6 +8,7 @@ import { embedMany } from "npm:ai@^4.0.0";
 import { v7 } from "npm:uuid@^11.1.0";
 import { z } from "npm:zod@^3.24.2";
 import postgres from "postgres";
+import { chunk } from "../_shared/chunker.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { chunks, resources } from "../_shared/schema.ts";
 
@@ -155,7 +156,7 @@ async function generateFileTitle(
   }
 }
 
-// CHUNKER (currently splits by new line)
+// CHUNKER (using our custom sentence chunker)
 const chunker = (input: string): string[] => {
   // Pre-process text to remove excessive whitespace
   input = input.replace(/\s+/g, " ").trim();
@@ -163,10 +164,60 @@ const chunker = (input: string): string[] => {
   // Remove tabs
   input = input.replace(/\t/g, "");
 
-  return input
-    .trim()
-    .split(/\n\n\n+/) // split
-    .filter((i) => i !== "");
+  // Safety check for extremely large inputs
+  const maxInputSize = 1000000; // 1MB character limit
+  if (input.length > maxInputSize) {
+    console.warn(
+      `Input text is very large (${input.length} characters), truncating to ${maxInputSize} characters`
+    );
+    input = input.substring(0, maxInputSize);
+  }
+
+  try {
+    // Chunk the text using our custom sentence chunker
+    const chunks = chunk(input, {
+      chunkSize: 512,
+      chunkOverlap: 50,
+      minSentencesPerChunk: 1,
+      minCharactersPerSentence: 12,
+      delim: [". ", "! ", "? ", "\n"],
+      includeDelim: "prev",
+    });
+
+    console.log(`Generated ${chunks.length} custom chunks`);
+
+    // Extract text from chunk objects and filter empty chunks
+    const textChunks = chunks
+      .map((chunk) => chunk.text)
+      .filter((text) => text.trim() !== "");
+
+    // Additional safety check - limit total number of chunks
+    const maxChunks = 1000;
+    if (textChunks.length > maxChunks) {
+      console.warn(
+        `Too many chunks generated (${textChunks.length}), limiting to ${maxChunks}`
+      );
+      return textChunks.slice(0, maxChunks);
+    }
+
+    return textChunks;
+  } catch (error) {
+    console.error("Error during chunking:", error);
+    // Fallback: simple character-based chunking
+    return fallbackChunker(input);
+  }
+};
+
+// Fallback chunker for when the main chunker fails
+const fallbackChunker = (input: string): string[] => {
+  const chunks: string[] = [];
+  const chunkSize = 2000; // characters
+
+  for (let i = 0; i < input.length; i += chunkSize) {
+    chunks.push(input.substring(i, i + chunkSize));
+  }
+
+  return chunks.filter((chunk) => chunk.trim().length > 0);
 };
 
 // MULTIPLE EMBEDDINGS (for files and links)
