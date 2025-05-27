@@ -1,3 +1,4 @@
+import { getRunByIdAndUserId } from "@itzam/server/db/run/actions";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -9,7 +10,6 @@ import {
 import { createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
-import { getRunByIdAndUserId } from "@itzam/server/db/run/actions";
 
 export const runsRoute = new Hono().use(apiKeyMiddleware).get(
   "/:id",
@@ -41,7 +41,7 @@ export const runsRoute = new Hono().use(apiKeyMiddleware).get(
       // @ts-expect-error
       const response: z.infer<typeof GetRunByIdResponseSchema> = {
         ...run,
-        groupId: run.groupId ?? "",
+        threadId: run.threadId ?? null,
         model: {
           name: run.model?.name ?? "",
           tag: run.model?.tag ?? "",

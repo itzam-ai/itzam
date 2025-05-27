@@ -387,9 +387,9 @@ export const GetRunByIdResponseSchema = z
       example: 100,
       description: "The duration of the run in milliseconds",
     }),
-    groupId: z.string().openapi({
-      example: "group_1234567890",
-      description: "The group ID of the run",
+    threadId: z.string().nullable().openapi({
+      example: "thread_1234567890",
+      description: "The thread ID of the run",
     }),
     model: z.object({
       name: z.string().openapi({

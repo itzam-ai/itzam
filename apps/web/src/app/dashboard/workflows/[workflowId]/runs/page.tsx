@@ -31,8 +31,10 @@ export default async function RunsTable({
   const paramsFromQuery = {
     modelId:
       typeof queryParams.modelId === "string" ? queryParams.modelId : undefined,
-    groupId:
-      typeof queryParams.groupId === "string" ? queryParams.groupId : undefined,
+    threadId:
+      typeof queryParams.threadId === "string"
+        ? queryParams.threadId
+        : undefined,
     status:
       typeof queryParams.status === "string"
         ? (queryParams.status as "RUNNING" | "COMPLETED" | "FAILED")

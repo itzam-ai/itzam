@@ -231,7 +231,6 @@ export const runs = createTable(
     durationInMs: integer("duration_in_ms").notNull(),
     fullResponse: jsonb("full_response"),
     metadata: jsonb("metadata").default({}),
-    groupId: varchar("group_id", { length: 256 }),
     threadId: varchar("thread_id", { length: 256 }).references(
       () => threads.id
     ),

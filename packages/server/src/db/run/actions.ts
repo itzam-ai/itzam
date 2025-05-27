@@ -1,12 +1,12 @@
 "use server";
+import { addDays, endOfDay, subDays } from "date-fns";
 import { and, eq, sql } from "drizzle-orm";
+import { v4 as uuidv4 } from "uuid";
 import { db } from "..";
 import { sendDiscordNotification } from "../../discord/actions";
+import { customerIsSubscribedToItzamPro } from "../billing/actions";
 import { models, runResources, runs } from "../schema";
 import { calculateRunCost } from "./utils";
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
-import { addDays, endOfDay, subDays } from "date-fns";
-import { v4 as uuidv4 } from "uuid";
 export type Run = typeof runs.$inferSelect;
 
 export type RunWithModel = NonNullable<Awaited<ReturnType<typeof getRunById>>>;
@@ -63,7 +63,7 @@ export async function getRunsByWorkflowId(
   page: number = 1,
   params: {
     modelId?: string;
-    groupId?: string;
+    threadId?: string;
     status?: "RUNNING" | "COMPLETED" | "FAILED";
     startDate?: string;
     endDate?: string;
@@ -81,8 +81,8 @@ export async function getRunsByWorkflowId(
     whereConditions.push(eq(runs.modelId, params.modelId));
   }
 
-  if (params.groupId) {
-    whereConditions.push(eq(runs.groupId, params.groupId));
+  if (params.threadId) {
+    whereConditions.push(eq(runs.threadId, params.threadId));
   }
 
   if (params.status) {
@@ -156,7 +156,7 @@ export async function getRunsCount(
   workflowId: string,
   params: {
     modelId?: string;
-    groupId?: string;
+    threadId?: string;
     status?: "RUNNING" | "COMPLETED" | "FAILED";
     startDate?: string;
     endDate?: string;
@@ -170,8 +170,8 @@ export async function getRunsCount(
     whereConditions.push(eq(runs.modelId, params.modelId));
   }
 
-  if (params.groupId) {
-    whereConditions.push(eq(runs.groupId, params.groupId));
+  if (params.threadId) {
+    whereConditions.push(eq(runs.threadId, params.threadId));
   }
 
   if (params.status) {

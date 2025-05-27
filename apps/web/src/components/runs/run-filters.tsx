@@ -3,6 +3,7 @@
 import { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import { addDays, endOfDay, format, startOfDay } from "date-fns";
 import { Bot, CalendarIcon, Circle, CircleX, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
@@ -19,7 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useRouter } from "next/navigation";
 
 export default function RunFilters({
   models,
@@ -29,7 +29,7 @@ export default function RunFilters({
   isSubscribedToItzamPro: boolean;
 }) {
   const router = useRouter();
-  const [groupId, setGroupId] = useQueryState("groupId", {
+  const [threadId, setThreadId] = useQueryState("threadId", {
     shallow: false,
   });
   const [modelId, setModelId] = useQueryState("modelId", {
@@ -54,9 +54,9 @@ export default function RunFilters({
     <div className="flex justify-between">
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Group ID"
-          value={groupId ?? ""}
-          onChange={(e) => setGroupId(e.target.value)}
+          placeholder="Thread ID"
+          value={threadId ?? ""}
+          onChange={(e) => setThreadId(e.target.value)}
           className="h-8 w-[150px]"
         />
 
@@ -263,13 +263,13 @@ export default function RunFilters({
           </Popover>
         </div>
 
-        {groupId || modelId || status || startDate || endDate ? (
+        {threadId || modelId || status || startDate || endDate ? (
           <Button
             variant="outline"
             size="icon"
             className="size-8 min-w-8"
             onClick={() => {
-              setGroupId(null);
+              setThreadId(null);
               setModelId(null);
               setStatus(null);
               setStartDate(null);

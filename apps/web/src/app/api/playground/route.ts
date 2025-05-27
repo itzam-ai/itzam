@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       origin: "WEB" as const,
       input,
       prompt,
-      groupId: null,
+      threadId: null,
       modelId: modelId,
       workflowId: workflowId,
       resourceIds: [],

@@ -10,6 +10,7 @@ import {
   LinkIcon,
   XIcon,
 } from "lucide-react";
+import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -18,7 +19,6 @@ import { RunOriginType } from "~/lib/mappers/run-origin";
 import { formatDate } from "~/lib/utils";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
-import Link from "next/link";
 export function ExpandableRunRow({
   run,
 }: {
@@ -223,10 +223,10 @@ export function ExpandableRunRow({
 
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">
-                        Group ID
+                        Thread ID
                       </h4>
                       <div className="mt-1 flex items-center gap-2">
-                        <p className="text-sm">{run.groupId ?? "N/A"}</p>
+                        <p className="text-sm">{run.threadId ?? "N/A"}</p>
                       </div>
                     </div>
                   </div>
