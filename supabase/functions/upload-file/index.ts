@@ -96,10 +96,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    if (file.size > 1024 * 1024 * 10) {
-      // 10MB
+    if (file.size > 1024 * 1024 * 50) {
+      // 50MB
       return new Response(
-        JSON.stringify({ error: "File size exceeds 10MB limit" }),
+        JSON.stringify({ error: "File size exceeds 50MB limit" }),
         {
           headers: { "Content-Type": "application/json", ...corsHeaders },
           status: 400,
