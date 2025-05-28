@@ -47,6 +47,7 @@
   - [x] Fix streamed response
   - [ ] Improve error treatment
   - [ ] Attachments
+  - [ ] Check knowledge
 
 - [ ] Prompt tab
 

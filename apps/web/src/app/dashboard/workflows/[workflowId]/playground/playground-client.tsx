@@ -122,8 +122,6 @@ export default function PlaygroundClient({
         // Filter out metadata comments and only append actual text content
         const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
         if (cleanText) {
-          console.log(cleanText);
-
           setOutput(cleanText);
         }
       }
