@@ -1089,6 +1089,9 @@ importers:
       drizzle-orm:
         specifier: ^0.33.0
         version: 0.33.0(@opentelemetry/api@1.9.0)(@types/pg@8.15.2)(@types/react@19.1.0)(pg@8.16.0)(postgres@3.4.7)(react@19.1.0)
+      itzam:
+        specifier: workspace:*
+        version: link:../sdk
       postgres:
         specifier: ^3.4.4
         version: 3.4.7

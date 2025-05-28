@@ -4,10 +4,12 @@ import { openai } from "@ai-sdk/openai";
 import { db } from "@itzam/server/db/index";
 import { chunks, resources } from "@itzam/server/db/schema";
 import { supabase } from "@itzam/supabase/server";
+import { env } from "@itzam/utils/env";
 import { TokenTextSplitter } from "@langchain/textsplitters";
 import { logger, task } from "@trigger.dev/sdk/v3";
 import { embedMany } from "ai";
 import { eq } from "drizzle-orm";
+import { Itzam } from "itzam";
 import { v7 } from "uuid";
 import { z } from "zod";
 
@@ -91,7 +93,7 @@ const convertSingleFile = async (attachment: {
       );
 
       // Send to Tika
-      const tikaUrl = process.env.TIKA_URL || "http://localhost:9998/tika";
+      const tikaUrl = env.TIKA_URL || "http://localhost:9998/tika";
       const res = await fetch(tikaUrl, {
         method: "PUT",
         headers: {
@@ -130,6 +132,8 @@ const convertSingleFile = async (attachment: {
   });
 };
 
+const itzam = new Itzam(env.ITZAM_API_KEY);
+
 const generateFileTitle = async (
   text: string,
   originalFileName: string
@@ -141,35 +145,25 @@ const generateFileTitle = async (
     try {
       // For now, use a simple approach - in production you'd want to call your AI service
       // This is a placeholder - you should replace with actual AI call
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/workflows/file-title-generator/generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.ITZAM_API_KEY}`,
-          },
-          body: JSON.stringify({
-            input: `
-            Original file name: ${originalFileName}
-            File content: ${limitedText}
+      const response = await itzam.generateText({
+        input: `
+          Original file name: ${originalFileName}
+          File content: ${limitedText}
           `,
-          }),
-        }
-      );
+        workflowSlug: "file-title-generator",
+      });
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.text) {
         const end = Date.now();
         logger.log("File title generated", {
           originalFileName,
-          generatedTitle: data.text || originalFileName,
+          generatedTitle: response.text || originalFileName,
           durationMs: end - start,
         });
         span.setAttribute("originalFileName", originalFileName);
-        span.setAttribute("generatedTitle", data.text || originalFileName);
+        span.setAttribute("generatedTitle", response.text || originalFileName);
         span.setAttribute("durationMs", end - start);
-        return data.text || originalFileName;
+        return response.text || originalFileName;
       }
 
       const end = Date.now();
@@ -193,7 +187,7 @@ const generateFileTitle = async (
   });
 };
 
-const getChannelId = (resource: any) => {
+const getChannelId = (resource: typeof resources.$inferSelect) => {
   return `knowledge-${resource.knowledgeId}-${
     resource.type === "FILE" ? "files" : "links"
   }`;
@@ -333,16 +327,11 @@ const createEmbeddings = async (
         )
         .returning();
 
-      supabase.channel(getChannelId(resource)).send({
-        type: "broadcast",
-        event: "update",
-        payload: {
-          status: "PROCESSED",
-          resourceId: resource.id,
-          title,
-          chunks: createdChunks,
-          fileSize,
-        },
+      await sendUpdate(resource, {
+        status: "PROCESSED",
+        title,
+        chunks: createdChunks,
+        fileSize,
       });
 
       logger.log("Chunks created successfully", {
@@ -519,3 +508,22 @@ export const chunkAndEmbedTask = task({
     });
   },
 });
+
+const sendUpdate = async (
+  resource: typeof resources.$inferSelect,
+  payload = {
+    status: "PROCESSED",
+    title: resource.title,
+    chunks: 0,
+    fileSize: resource.fileSize,
+  }
+) => {
+  await supabase.channel(getChannelId(resource)).send({
+    type: "broadcast",
+    event: "update",
+    payload: {
+      ...payload,
+      resourceId: resource.id,
+    },
+  });
+};
