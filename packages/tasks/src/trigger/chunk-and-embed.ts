@@ -3,12 +3,13 @@ import "server-only";
 import { openai } from "@ai-sdk/openai";
 import { db } from "@itzam/server/db/index";
 import { chunks, resources } from "@itzam/server/db/schema";
+import { supabase } from "@itzam/supabase/server";
+import { TokenTextSplitter } from "@langchain/textsplitters";
 import { logger, task } from "@trigger.dev/sdk/v3";
 import { embedMany } from "ai";
 import { eq } from "drizzle-orm";
 import { v7 } from "uuid";
 import { z } from "zod";
-import { simpleChunk } from "./utils/chunker";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 
@@ -37,24 +38,10 @@ const getFileFromString = async (
   mimeType: string
 ): Promise<File> => {
   logger.log("Getting file from string", {
-    url: url.substring(0, 100) + "...", // Log only first 100 chars for security
+    url,
     filename,
     mimeType,
   });
-
-  if (isBase64File(url)) {
-    const arr = url.split(",");
-    const mime = arr[0]?.match(/:(.*?);/)?.[1];
-    const bstr = atob(arr[arr.length - 1] ?? "");
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    const file = new File([u8arr], filename, { type: mime || mimeType });
-    return Promise.resolve(file);
-  }
 
   if (isUrlFile(url)) {
     const file = await fetch(url);
@@ -93,34 +80,54 @@ const convertSingleFile = async (attachment: {
   mimeType: string;
   fileName: string;
 }): Promise<{ text: string; fileSize: number }> => {
-  try {
-    // Convert string to File object
-    const file = await getFileFromString(
-      attachment.file,
-      attachment.fileName,
-      attachment.mimeType || "application/octet-stream"
-    );
+  return logger.trace("convert-single-file", async (span) => {
+    const start = Date.now();
+    try {
+      // Convert string to File object
+      const file = await getFileFromString(
+        attachment.file,
+        attachment.fileName,
+        attachment.mimeType || "application/octet-stream"
+      );
 
-    // Send to Tika
-    const tikaUrl = process.env.TIKA_URL || "http://localhost:9998/tika";
-    const res = await fetch(tikaUrl, {
-      method: "PUT",
-      headers: {
-        Accept: "text/plain",
-      },
-      body: file,
-    });
+      // Send to Tika
+      const tikaUrl = process.env.TIKA_URL || "http://localhost:9998/tika";
+      const res = await fetch(tikaUrl, {
+        method: "PUT",
+        headers: {
+          Accept: "text/plain",
+        },
+        body: file,
+      });
 
-    if (!res.ok) {
-      throw new Error(`Failed to convert file: ${res.statusText}`);
+      if (!res.ok) {
+        throw new Error(`Failed to convert file: ${res.statusText}`);
+      }
+
+      const text = await res.text();
+      const end = Date.now();
+      logger.log("Tika conversion completed", {
+        fileName: attachment.fileName,
+        durationMs: end - start,
+        fileSize: file.size,
+        textLength: text.length,
+      });
+      span.setAttribute("fileName", attachment.fileName);
+      span.setAttribute("durationMs", end - start);
+      span.setAttribute("fileSize", file.size);
+      span.setAttribute("textLength", text.length);
+      return { text, fileSize: file.size };
+    } catch (err) {
+      const end = Date.now();
+      logger.error("Error processing file:", {
+        error: err,
+        durationMs: end - start,
+      });
+      span.setAttribute("error", String(err));
+      span.setAttribute("durationMs", end - start);
+      return { text: "", fileSize: 0 }; // Return empty string for failed conversions
     }
-
-    const text = await res.text();
-    return { text, fileSize: file.size };
-  } catch (err) {
-    logger.error("Error processing file:", { error: err });
-    return { text: "", fileSize: 0 }; // Return empty string for failed conversions
-  }
+  });
 };
 
 const generateFileTitle = async (
@@ -129,64 +136,101 @@ const generateFileTitle = async (
 ): Promise<string> => {
   // limit text to 1000 characters
   const limitedText = text.slice(0, 1000);
-  try {
-    // For now, use a simple approach - in production you'd want to call your AI service
-    // This is a placeholder - you should replace with actual AI call
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/workflows/file-title-generator/generate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.ITZAM_API_KEY}`,
-        },
-        body: JSON.stringify({
-          input: `
-          Original file name: ${originalFileName}
-          File content: ${limitedText}
-        `,
-        }),
+  return logger.trace("generate-file-title", async (span) => {
+    const start = Date.now();
+    try {
+      // For now, use a simple approach - in production you'd want to call your AI service
+      // This is a placeholder - you should replace with actual AI call
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/workflows/file-title-generator/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.ITZAM_API_KEY}`,
+          },
+          body: JSON.stringify({
+            input: `
+            Original file name: ${originalFileName}
+            File content: ${limitedText}
+          `,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const end = Date.now();
+        logger.log("File title generated", {
+          originalFileName,
+          generatedTitle: data.text || originalFileName,
+          durationMs: end - start,
+        });
+        span.setAttribute("originalFileName", originalFileName);
+        span.setAttribute("generatedTitle", data.text || originalFileName);
+        span.setAttribute("durationMs", end - start);
+        return data.text || originalFileName;
       }
-    );
 
-    if (response.ok) {
-      const data = await response.json();
-      return data.text || originalFileName;
+      const end = Date.now();
+      logger.log("File title fallback to original", {
+        originalFileName,
+        durationMs: end - start,
+      });
+      span.setAttribute("originalFileName", originalFileName);
+      span.setAttribute("durationMs", end - start);
+      return originalFileName;
+    } catch (error) {
+      const end = Date.now();
+      logger.error("Error generating file title:", {
+        error,
+        durationMs: end - start,
+      });
+      span.setAttribute("error", String(error));
+      span.setAttribute("durationMs", end - start);
+      return originalFileName;
     }
+  });
+};
 
-    return originalFileName;
-  } catch (error) {
-    logger.error("Error generating file title:", { error });
-    return originalFileName;
-  }
+const getChannelId = (resource: any) => {
+  return `knowledge-${resource.knowledgeId}-${
+    resource.type === "FILE" ? "files" : "links"
+  }`;
 };
 
 // MULTIPLE EMBEDDINGS (for files and links)
 const generateEmbeddings = async (
   value: string
 ): Promise<Array<{ embedding: number[]; content: string | undefined }>> => {
-  logger.log("Chunking value", { textLength: value.length });
+  return logger.trace("generate-embeddings", async (span) => {
+    const start = Date.now();
+    logger.log("Chunking value", { textLength: value.length });
+    span.setAttribute("textLength", value.length);
+    const splitter = new TokenTextSplitter();
 
-  const chunkedTexts = simpleChunk(value, {
-    chunkSize: 512,
-    chunkOverlap: 50,
-    minSentencesPerChunk: 1,
-    minCharactersPerSentence: 12,
-    delim: [". ", "! ", "? ", "\n"],
-    includeDelim: "prev",
+    const docOutput = await splitter.splitText(value);
+
+    span.setAttribute("chunksCount", docOutput.length);
+
+    const { embeddings } = await embedMany({
+      model: EMBEDDING_MODEL,
+      values: docOutput,
+    });
+
+    const end = Date.now();
+    logger.log("Generated embeddings", {
+      count: embeddings.length,
+      durationMs: end - start,
+    });
+    span.setAttribute("embeddingsCount", embeddings.length);
+    span.setAttribute("durationMs", end - start);
+
+    return embeddings.map((e: any, i: number) => ({
+      content: docOutput[i],
+      embedding: e,
+    }));
   });
-
-  const { embeddings } = await embedMany({
-    model: EMBEDDING_MODEL,
-    values: chunkedTexts,
-  });
-
-  logger.log("Generated embeddings", { count: embeddings.length });
-
-  return embeddings.map((e: any, i: string | number) => ({
-    content: chunkedTexts[i],
-    embedding: e,
-  }));
 };
 
 const generateFileTitleForResource = async (
@@ -194,22 +238,36 @@ const generateFileTitleForResource = async (
   resource: any,
   db: any
 ) => {
-  let title = "";
-  try {
-    title = await generateFileTitle(text, resource.fileName ?? "");
-  } catch (error) {
-    title = resource.fileName ?? "";
-    logger.error("Error generating file title", { error });
-  }
+  return logger.trace("generate-file-title-for-resource", async (span) => {
+    let title = "";
+    const start = Date.now();
+    try {
+      title = await generateFileTitle(text, resource.fileName ?? "");
+    } catch (error) {
+      title = resource.fileName ?? "";
+      logger.error("Error generating file title", { error });
+      span.setAttribute("error", String(error));
+    }
 
-  await db
-    .update(resources)
-    .set({
-      title: title,
-    })
-    .where(eq(resources.id, resource.id));
+    await db
+      .update(resources)
+      .set({
+        title: title,
+      })
+      .where(eq(resources.id, resource.id));
 
-  return title;
+    const end = Date.now();
+    logger.log("Resource title updated", {
+      resourceId: resource.id,
+      title,
+      durationMs: end - start,
+    });
+    span.setAttribute("resourceId", resource.id);
+    span.setAttribute("title", title);
+    span.setAttribute("durationMs", end - start);
+
+    return title;
+  });
 };
 
 // MAIN EMBEDDING CREATION FUNCTION
@@ -219,186 +277,245 @@ const createEmbeddings = async (
   userId: string,
   db: any
 ) => {
-  let title = resource.fileName ?? "";
+  return logger.trace("create-embeddings", async (span) => {
+    let title = resource.fileName ?? "";
+    const start = Date.now();
 
-  try {
-    logger.log("Starting embedding creation", {
-      resourceId: resource.id,
-      workflowId,
-    });
+    try {
+      logger.log("Starting embedding creation", {
+        resourceId: resource.id,
+        workflowId,
+        startTime: new Date(start).toISOString(),
+      });
+      span.setAttribute("resourceId", resource.id);
+      span.setAttribute("workflowId", workflowId);
 
-    // SEND TO TIKA
-    const { text: textFromTika, fileSize } = await convertSingleFile({
-      file: resource.url,
-      mimeType: resource.mimeType,
-      fileName: resource.fileName,
-    });
+      // SEND TO TIKA
+      const { text: textFromTika, fileSize } = await convertSingleFile({
+        file: resource.url,
+        mimeType: resource.mimeType,
+        fileName: resource.fileName,
+      });
 
-    // UPDATE RESOURCE WITH FILE SIZE
-    await db
-      .update(resources)
-      .set({ fileSize })
-      .where(eq(resources.id, resource.id));
+      // UPDATE RESOURCE WITH FILE SIZE
+      await db
+        .update(resources)
+        .set({ fileSize })
+        .where(eq(resources.id, resource.id));
 
-    title = await generateFileTitleForResource(textFromTika, resource, db);
+      title = await generateFileTitleForResource(textFromTika, resource, db);
 
-    logger.log("File converted and title generated", {
-      resourceId: resource.id,
-      title,
-      textLength: textFromTika.length,
-    });
+      logger.log("File converted and title generated", {
+        resourceId: resource.id,
+        title,
+        textLength: textFromTika.length,
+      });
+      span.setAttribute("title", title);
 
-    if (!textFromTika) {
-      throw new Error("No text from Tika conversion");
-    }
+      if (!textFromTika) {
+        throw new Error("No text from Tika conversion");
+      }
 
-    // GENERATE EMBEDDINGS
-    const embeddings = await generateEmbeddings(textFromTika);
+      // GENERATE EMBEDDINGS
+      const embeddings = await generateEmbeddings(textFromTika);
 
-    // SAVE CHUNK TO DB
-    const createdChunks = await db
-      .insert(chunks)
-      .values(
-        embeddings.map((embedding) => ({
-          ...embedding,
-          id: v7(),
+      // SAVE CHUNK TO DB
+      const createdChunks = await db
+        .insert(chunks)
+        .values(
+          embeddings.map((embedding) => ({
+            ...embedding,
+            id: v7(),
+            resourceId: resource.id,
+            content: embedding.content ?? "",
+            workflowId,
+          }))
+        )
+        .returning();
+
+      supabase.channel(getChannelId(resource)).send({
+        type: "broadcast",
+        event: "update",
+        payload: {
+          status: "PROCESSED",
           resourceId: resource.id,
-          content: embedding.content ?? "",
-          workflowId,
-        }))
-      )
-      .returning();
+          title,
+          chunks: createdChunks,
+          fileSize,
+        },
+      });
 
-    logger.log("Chunks created successfully", {
-      resourceId: resource.id,
-      chunksCount: createdChunks.length,
-    });
+      logger.log("Chunks created successfully", {
+        resourceId: resource.id,
+        chunksCount: createdChunks.length,
+      });
+      span.setAttribute("chunksCount", createdChunks.length);
 
-    await db
-      .update(resources)
-      .set({ status: "PROCESSED" })
-      .where(eq(resources.id, resource.id));
+      await db
+        .update(resources)
+        .set({ status: "PROCESSED" })
+        .where(eq(resources.id, resource.id));
 
-    return {
-      resourceId: resource.id,
-      title,
-      chunksCount: createdChunks.length,
-      status: "PROCESSED" as const,
-    };
-  } catch (error) {
-    logger.error("Error creating embeddings", {
-      error,
-      resourceId: resource.id,
-    });
+      const end = Date.now();
+      logger.log("Embedding creation completed", {
+        resourceId: resource.id,
+        durationMs: end - start,
+        endTime: new Date(end).toISOString(),
+      });
+      span.setAttribute("durationMs", end - start);
+      span.setAttribute("endTime", new Date(end).toISOString());
 
-    await db
-      .update(resources)
-      .set({ status: "FAILED" })
-      .where(eq(resources.id, resource.id));
+      return {
+        resourceId: resource.id,
+        title,
+        chunksCount: createdChunks.length,
+        status: "PROCESSED" as const,
+      };
+    } catch (error) {
+      const end = Date.now();
+      logger.error("Error creating embeddings", {
+        error,
+        resourceId: resource.id,
+        durationMs: end - start,
+        endTime: new Date(end).toISOString(),
+      });
+      span.setAttribute("error", String(error));
+      span.setAttribute("durationMs", end - start);
+      span.setAttribute("endTime", new Date(end).toISOString());
 
-    return {
-      resourceId: resource.id,
-      title,
-      chunksCount: 0,
-      status: "FAILED" as const,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
+      await db
+        .update(resources)
+        .set({ status: "FAILED" })
+        .where(eq(resources.id, resource.id));
+
+      return {
+        resourceId: resource.id,
+        title,
+        chunksCount: 0,
+        status: "FAILED" as const,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
+  });
 };
 
 export const chunkAndEmbedTask = task({
   id: "chunk-and-embed",
   maxDuration: 300, // 5 minutes
   run: async (payload: z.infer<typeof ResourceSchema>) => {
-    logger.log("Starting chunk and embed task", {
-      resourcesCount: payload.resources.length,
-      knowledgeId: payload.knowledgeId,
-      workflowId: payload.workflowId,
-    });
-
-    // Validate payload
-    const parsed = ResourceSchema.safeParse(payload);
-    if (!parsed.success) {
-      throw new Error(`Invalid payload: ${parsed.error.message}`);
-    }
-
-    try {
-      // Create resources in database
-      const resourcesCreated = await db
-        .insert(resources)
-        .values(
-          parsed.data.resources.map((resource) => ({
-            ...resource,
-            id: resource.id ?? v7(),
-            knowledgeId: parsed.data.knowledgeId,
-          }))
-        )
-        .returning();
-
-      logger.log("Resources created in database", {
-        count: resourcesCreated.length,
+    return logger.trace("chunk-and-embed-task", async (span) => {
+      const start = Date.now();
+      logger.log("Starting chunk and embed task", {
+        resourcesCount: payload.resources.length,
+        knowledgeId: payload.knowledgeId,
+        workflowId: payload.workflowId,
+        startTime: new Date(start).toISOString(),
       });
+      span.setAttribute("resourcesCount", payload.resources.length);
+      span.setAttribute("knowledgeId", payload.knowledgeId);
+      span.setAttribute("workflowId", payload.workflowId);
 
-      // Process each resource for embeddings
-      const results = await Promise.allSettled(
-        resourcesCreated.map((resource) =>
-          createEmbeddings(
-            resource,
-            parsed.data.workflowId,
-            parsed.data.userId,
-            db
+      // Validate payload
+      const parsed = ResourceSchema.safeParse(payload);
+      if (!parsed.success) {
+        throw new Error(`Invalid payload: ${parsed.error.message}`);
+      }
+
+      try {
+        // Create resources in database
+        const resourcesCreated = await db
+          .insert(resources)
+          .values(
+            parsed.data.resources.map((resource) => ({
+              ...resource,
+              id: resource.id ?? v7(),
+              knowledgeId: parsed.data.knowledgeId,
+            }))
           )
-        )
-      );
+          .returning();
 
-      // Collect results
-      const processedResults = results.map((result, index) => {
-        if (result.status === "fulfilled") {
-          return result.value;
-        } else {
-          logger.error("Failed to process resource", {
-            resourceIndex: index,
-            error: result.reason,
-          });
-          return {
-            resourceId: resourcesCreated[index]?.id || "unknown",
-            title: resourcesCreated[index]?.fileName || "unknown",
-            chunksCount: 0,
-            status: "FAILED" as const,
-            error:
-              result.reason instanceof Error
-                ? result.reason.message
-                : "Processing failed",
-          };
-        }
-      });
+        logger.log("Resources created in database", {
+          count: resourcesCreated.length,
+        });
+        span.setAttribute("resourcesCreatedCount", resourcesCreated.length);
 
-      const successCount = processedResults.filter(
-        (r) => r.status === "PROCESSED"
-      ).length;
-      const failedCount = processedResults.filter(
-        (r) => r.status === "FAILED"
-      ).length;
+        // Process each resource for embeddings
+        const results = await Promise.allSettled(
+          resourcesCreated.map((resource) =>
+            createEmbeddings(
+              resource,
+              parsed.data.workflowId,
+              parsed.data.userId,
+              db
+            )
+          )
+        );
 
-      logger.log("Task completed", {
-        totalResources: resourcesCreated.length,
-        successCount,
-        failedCount,
-      });
+        // Collect results
+        const processedResults = results.map((result, index) => {
+          if (result.status === "fulfilled") {
+            return result.value;
+          } else {
+            logger.error("Failed to process resource", {
+              resourceIndex: index,
+              error: result.reason,
+            });
+            return {
+              resourceId: resourcesCreated[index]?.id || "unknown",
+              title: resourcesCreated[index]?.fileName || "unknown",
+              chunksCount: 0,
+              status: "FAILED" as const,
+              error:
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : "Processing failed",
+            };
+          }
+        });
 
-      return {
-        success: true,
-        resources: resourcesCreated,
-        results: processedResults,
-        summary: {
-          total: resourcesCreated.length,
-          processed: successCount,
-          failed: failedCount,
-        },
-      };
-    } catch (error) {
-      logger.error("Error in chunk and embed task", { error });
-      throw error;
-    }
+        const successCount = processedResults.filter(
+          (r) => r.status === "PROCESSED"
+        ).length;
+        const failedCount = processedResults.filter(
+          (r) => r.status === "FAILED"
+        ).length;
+
+        const end = Date.now();
+        logger.log("Task completed", {
+          totalResources: resourcesCreated.length,
+          successCount,
+          failedCount,
+          durationMs: end - start,
+          endTime: new Date(end).toISOString(),
+        });
+        span.setAttribute("totalResources", resourcesCreated.length);
+        span.setAttribute("successCount", successCount);
+        span.setAttribute("failedCount", failedCount);
+        span.setAttribute("durationMs", end - start);
+        span.setAttribute("endTime", new Date(end).toISOString());
+
+        return {
+          success: true,
+          resources: resourcesCreated,
+          results: processedResults,
+          summary: {
+            total: resourcesCreated.length,
+            processed: successCount,
+            failed: failedCount,
+          },
+        };
+      } catch (error) {
+        const end = Date.now();
+        logger.error("Error in chunk and embed task", {
+          error,
+          durationMs: end - start,
+          endTime: new Date(end).toISOString(),
+        });
+        span.setAttribute("error", String(error));
+        span.setAttribute("durationMs", end - start);
+        span.setAttribute("endTime", new Date(end).toISOString());
+        throw error;
+      }
+    });
   },
 });

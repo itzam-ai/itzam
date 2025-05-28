@@ -2,11 +2,13 @@
 
 import { Chunk } from "@itzam/server/ai/embeddings";
 import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToChannel, supabase } from "@itzam/supabase/client";
+import { subscribeToChannel } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { v7 } from "uuid";
+import { chunkAndEmbed } from "~/components/knowledge/actions";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -21,7 +23,6 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { KnowledgeItem } from "./knowledge-item";
-import { toast } from "sonner";
 
 type LinkToAdd = {
   id: string;
@@ -121,19 +122,17 @@ export const LinkInput = ({
         knowledge?.id ?? ""
       );
 
-      supabase.functions.invoke("create-knowledge-resource", {
-        body: JSON.stringify({
-          resources: linksToAdd.map((link) => ({
-            fileName: link.url,
-            url: link.url,
-            mimeType: "text/html",
-            type: "LINK",
-            fileSize: 0,
-            id: link.id,
-          })),
-          knowledgeId: knowledge?.id ?? "",
-          workflowId: workflowId,
-        }),
+      await chunkAndEmbed({
+        resources: linksToAdd.map((link) => ({
+          fileName: link.url,
+          url: link.url,
+          mimeType: "text/html",
+          type: "LINK",
+          fileSize: 0,
+          id: link.id,
+        })),
+        knowledgeId: knowledge?.id ?? "",
+        workflowId: workflowId,
       });
     } catch (error) {
       setWorkflowLinks((prevLinks) => {

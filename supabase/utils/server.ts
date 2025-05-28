@@ -1,5 +1,6 @@
 import { env } from "@itzam/utils/env";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function createClient() {
@@ -28,3 +29,8 @@ export async function createClient() {
     }
   );
 }
+
+export const supabase = createSupabaseClient(
+  env.NEXT_PUBLIC_SUPABASE_URL,
+  env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
