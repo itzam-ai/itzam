@@ -131,9 +131,9 @@ export const KnowledgeItem = ({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             asChild
             disabled={!resource.url || isDeleting}
@@ -152,7 +152,7 @@ export const KnowledgeItem = ({
             </Link>
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={handleDelete}
             disabled={isDeleting}
