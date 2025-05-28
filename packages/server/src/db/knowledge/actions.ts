@@ -1,13 +1,11 @@
 "use server";
 
-import { and, desc, eq, inArray, InferSelectModel } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
-import { chunks, knowledge, resources, workflows } from "../schema";
 import { customerIsSubscribedToItzamPro } from "../billing/actions";
-import { createClient } from "../supabase/server";
+import { chunks, knowledge, resources, workflows } from "../schema";
 
 export type Knowledge = NonNullable<
   Awaited<ReturnType<typeof getKnowledgeByWorkflowId>>

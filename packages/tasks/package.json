@@ -4,6 +4,9 @@
   "scripts": {
     "dev": "pnpx trigger.dev@latest dev"
   },
+  "exports": {
+    ".": "./src/trigger/index.ts"
+  },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.16",
     "@itzam/server": "workspace:*",

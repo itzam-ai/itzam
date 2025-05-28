@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
+import { chunkAndEmbed } from "~/components/knowledge/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -161,19 +162,17 @@ export const FileInput = ({
         knowledge?.id ?? ""
       );
 
-      supabase.functions.invoke("create-knowledge-resource", {
-        body: JSON.stringify({
-          resources: files.map((file) => ({
-            fileName: file.name,
-            url: file.url ?? "",
-            mimeType: file.type,
-            type: "FILE",
-            fileSize: file.size,
-            id: file.id,
-          })),
-          knowledgeId: knowledge?.id ?? "",
-          workflowId: workflowId,
-        }),
+      await chunkAndEmbed({
+        resources: files.map((file) => ({
+          fileName: file.name,
+          url: file.url ?? "",
+          mimeType: file.type,
+          type: "FILE",
+          fileSize: file.size,
+          id: file.id,
+        })),
+        knowledgeId: knowledge?.id ?? "",
+        workflowId: workflowId,
       });
     } catch (error) {
       console.error(error);

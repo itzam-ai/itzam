@@ -399,6 +399,9 @@ importers:
       '@itzam/supabase':
         specifier: workspace:*
         version: link:../../supabase
+      '@itzam/tasks':
+        specifier: workspace:*
+        version: link:../../packages/tasks
       '@itzam/utils':
         specifier: workspace:*
         version: link:../../packages/utils

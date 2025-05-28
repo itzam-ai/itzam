@@ -8,7 +8,7 @@ import { embedMany } from "ai";
 import { eq } from "drizzle-orm";
 import { v7 } from "uuid";
 import { z } from "zod";
-import { simpleChunk } from "./utils/chunker.js";
+import { simpleChunk } from "./utils/chunker";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 
