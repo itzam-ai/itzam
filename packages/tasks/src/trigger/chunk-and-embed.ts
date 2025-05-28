@@ -201,15 +201,22 @@ const generateEmbeddings = async (
     const start = Date.now();
     logger.log("Chunking value", { textLength: value.length });
     span.setAttribute("textLength", value.length);
-    const splitter = new TokenTextSplitter();
 
-    const docOutput = await splitter.splitText(value);
+    // Maximum tokens for embedding model (conservative limit for text-embedding-3-small)
+    const MAX_TOKENS_PER_CHUNK = 1000;
 
-    span.setAttribute("chunksCount", docOutput.length);
+    const splitter = new TokenTextSplitter({
+      chunkSize: MAX_TOKENS_PER_CHUNK,
+      chunkOverlap: 200,
+    });
+
+    let chunks = await splitter.splitText(value);
+
+    span.setAttribute("chunksCount", chunks.length);
 
     const { embeddings } = await embedMany({
       model: EMBEDDING_MODEL,
-      values: docOutput,
+      values: chunks,
     });
 
     const end = Date.now();
@@ -221,7 +228,7 @@ const generateEmbeddings = async (
     span.setAttribute("durationMs", end - start);
 
     return embeddings.map((e: any, i: number) => ({
-      content: docOutput[i],
+      content: chunks[i],
       embedding: e,
     }));
   });
@@ -376,6 +383,13 @@ const createEmbeddings = async (
         .update(resources)
         .set({ status: "FAILED" })
         .where(eq(resources.id, resource.id));
+
+      await sendUpdate(resource, {
+        status: "FAILED",
+        title,
+        chunks: 0,
+        fileSize: resource.fileSize,
+      });
 
       return {
         resourceId: resource.id,
