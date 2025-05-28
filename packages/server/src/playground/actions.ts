@@ -137,7 +137,7 @@ export async function generateStreamedText(
     model,
     startTime,
     undefined,
-    "object"
+    "text"
   );
 
   if (!response.body) {

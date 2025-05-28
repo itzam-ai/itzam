@@ -1,4 +1,4 @@
-import { Play } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 import EmptyStateDetails from "~/components/empty-state/empty-state-detais";
 import { ResponseTextArea } from "~/components/playground/response-text-area";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -32,7 +32,7 @@ export function ResponseCard({
             <EmptyStateDetails
               title="No response yet"
               description="Test your workflow by clicking the generate button"
-              icon={<Play />}
+              icon={<MessageSquareText />}
               className="flex items-center justify-center"
             />
           </div>

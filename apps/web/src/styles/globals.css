@@ -92,9 +92,12 @@
 }
 
 number-flow-react::part(suffix) {
-  margin-left: 4px;
-  font-weight: normal;
-  font-size: 0.5em;
+  margin-left: 2px;
+  color: hsl(var(--muted-foreground));
+}
+
+number-flow-react::part(prefix) {
+  margin-right: 2px;
   color: hsl(var(--muted-foreground));
 }
 

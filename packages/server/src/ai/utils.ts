@@ -74,7 +74,6 @@ export const createAiParams: CreateAiParamsFn = async ({
   attachments,
   prompt,
   schema: schemaProp,
-  stream = false,
   run,
   ...rest
 }) => {

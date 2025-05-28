@@ -1,5 +1,5 @@
 import { getAvailableModelsBasedOnUserKeys } from "@itzam/server/db/model/actions";
-import PlaygroundClient from "~/app/dashboard/workflows/[workflowId]/playground/PlaygroundClient";
+import PlaygroundClient from "~/app/dashboard/workflows/[workflowId]/playground/playground-client";
 import { getWorkflow } from "~/lib/workflows";
 
 export default async function PlaygroundPage({

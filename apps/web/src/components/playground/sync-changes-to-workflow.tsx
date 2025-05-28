@@ -2,7 +2,7 @@
 
 import { syncPlaygroundChangesToWorkflow } from "@itzam/server/db/workflow/actions";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { RefreshCcw } from "lucide-react";
+import { Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -69,8 +69,8 @@ export function SyncChangesToWorkflow({
                 disabled={!enabled}
                 className="px-3"
               >
-                <RefreshCcw className="size-3" />
-                <span className="hidden sm:inline">Sync Changes</span>
+                <Save className="size-3" />
+                <span className="hidden sm:inline">Sync</span>
                 <span className="sm:hidden">Sync</span>
               </Button>
             </DialogTrigger>

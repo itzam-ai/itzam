@@ -63,14 +63,12 @@ export const setupRunGeneration = async ({
   groupId,
   schema,
   input,
-  stream,
   attachments,
 }: {
   userId: string;
   workflowSlug: string;
   groupId: string | null;
   schema?: NonLiteralJson | null;
-  stream?: boolean;
   input: string;
   attachments?: Attachment[];
 }) => {
@@ -107,7 +105,6 @@ export const setupRunGeneration = async ({
     model: workflow.model,
     // @ts-expect-error TODO: fix typing
     schema,
-    stream,
     attachments,
     run,
   });

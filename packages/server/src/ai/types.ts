@@ -19,7 +19,6 @@ type CreateAiParamsInput = {
   prompt: string;
   model: Model;
   schema?: ItzamRequestSchema | null;
-  stream?: boolean;
   enum?: string[];
   run: PreRunDetails;
 };

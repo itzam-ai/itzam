@@ -38,7 +38,7 @@ export default function Home() {
           />
         </section>
         {/* Unified Billing Section */}
-        <section id="unified-billing" className="border-t pt-24">
+        <section id="costs-usage" className="border-t pt-24">
           <Feature
             icon={Wallet}
             title="Spend less on AI"

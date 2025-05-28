@@ -16,24 +16,13 @@ export async function getRunById(runId: string) {
     where: eq(runs.id, runId),
     with: {
       model: true,
+      runResources: {
+        with: {
+          resource: true,
+        },
+      },
     },
   });
-}
-
-export async function getRunByIdAndUserId(runId: string, userId: string) {
-  const run = await db.query.runs.findFirst({
-    where: eq(runs.id, runId),
-    with: {
-      model: true,
-      workflow: true,
-    },
-  });
-
-  if (!run || !run.workflow || run.workflow.userId !== userId) {
-    return null;
-  }
-
-  return run;
 }
 
 export type RunWithModelAndResources = NonNullable<
