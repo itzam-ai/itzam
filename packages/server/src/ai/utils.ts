@@ -1,14 +1,9 @@
-import {
-  type CoreUserMessage,
-  jsonSchema,
-  type UserContent,
-  zodSchema,
-} from "ai";
+import { jsonSchema, type UserContent, zodSchema } from "ai";
 import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
 import { z } from "zod";
 import type { Model } from "../db/model/actions";
-import { createRunWithCost } from "../db/run/actions";
+import { createRunWithCost, getRunsByThreadId } from "../db/run/actions";
 import { runs } from "../db/schema";
 import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
@@ -157,12 +152,48 @@ export const createAiParams: CreateAiParamsFn = async ({
     }
   }
 
-  const messages: CoreUserMessage[] = [
+  const messages: {
+    role: "user" | "assistant";
+    content: UserContent | string;
+  }[] = [
     {
       role: "user",
       content,
     },
   ];
+
+  // If threadId is provided, get conversation history and prepend to messages
+  if (run.threadId) {
+    const threadRuns = await getRunsByThreadId(run.threadId);
+
+    // Convert thread runs to messages format and prepend to current messages
+    const conversationHistory: {
+      role: "user" | "assistant";
+      content: string;
+    }[] = [];
+
+    for (const threadRun of threadRuns) {
+      // Skip the current run if it's already in the thread
+      if (threadRun.id === run.id) continue;
+
+      // Add user message
+      conversationHistory.push({
+        role: "user",
+        content: threadRun.input,
+      });
+
+      // Add assistant message if there's output
+      if (threadRun.output) {
+        conversationHistory.push({
+          role: "assistant",
+          content: threadRun.output,
+        });
+      }
+    }
+
+    // Prepend conversation history to current messages
+    messages.unshift(...conversationHistory);
+  }
 
   const providerRegistry = await createUserProviderRegistry(userId);
 
@@ -174,18 +205,14 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   console.log("System prompt with knowledge", systemPromptWithKnowledge);
 
-  // Common Parameters
-  const aiParams = {
-    // @ts-expect-error TODO: fix typing
-    model: providerRegistry.languageModel(model.tag),
+  return {
+    model: providerRegistry.languageModel(model.tag as any),
     system: systemPromptWithKnowledge,
     messages,
     schema,
     output,
     ...rest,
   };
-
-  return aiParams;
 };
 
 type HandleRunCompletionParams = {

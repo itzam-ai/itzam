@@ -308,3 +308,16 @@ export async function addResourcesToRun(runId: string, resourceIds: string[]) {
     }))
   );
 }
+
+export async function getRunsByThreadId(threadId: string) {
+  return await db.query.runs.findMany({
+    where: and(
+      eq(runs.threadId, threadId),
+      eq(runs.status, "COMPLETED") // Only get completed runs for conversation history
+    ),
+    orderBy: (runs, { asc }) => [asc(runs.createdAt)],
+    with: {
+      model: true,
+    },
+  });
+}

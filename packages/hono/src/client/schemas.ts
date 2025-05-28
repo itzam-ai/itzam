@@ -506,6 +506,74 @@ export const GetThreadResponseSchema = z
   })
   .openapi({ ref: "GetThreadResponse" });
 
+export const GetThreadsByWorkflowParamsSchema = z.object({
+  workflowSlug: z.string().openapi({
+    example: "my_great_workflow",
+    description: "The slug of the workflow to get threads for",
+  }),
+});
+
+export const GetThreadsByWorkflowQuerySchema = z.object({
+  lookupKey: z.string().optional().openapi({
+    example: "user-123-session",
+    description: "Optional lookup key to filter threads",
+  }),
+});
+
+export const GetThreadsByWorkflowResponseSchema = z
+  .object({
+    threads: z.array(GetThreadResponseSchema).openapi({
+      description: "Array of threads for the workflow",
+    }),
+  })
+  .openapi({ ref: "GetThreadsByWorkflowResponse" });
+
+export const GetRunsByThreadParamsSchema = z.object({
+  threadId: z.string().openapi({
+    example: "thread_1234567890",
+    description: "The ID of the thread to get runs for",
+  }),
+});
+
+export const ThreadRunSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "run_1234567890",
+      description: "The ID of the run",
+    }),
+    input: z.string().openapi({
+      example: "What is React?",
+      description: "The input of the run",
+    }),
+    output: z.string().openapi({
+      example: "React is a JavaScript library...",
+      description: "The output of the run",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the run",
+    }),
+    model: z.object({
+      name: z.string().openapi({
+        example: "gpt-4o",
+        description: "The name of the model",
+      }),
+      tag: z.string().openapi({
+        example: "openai:gpt-4o",
+        description: "The tag of the model",
+      }),
+    }),
+  })
+  .openapi({ ref: "ThreadRun" });
+
+export const GetRunsByThreadResponseSchema = z
+  .object({
+    runs: z.array(ThreadRunSchema).openapi({
+      description: "Array of runs in the thread",
+    }),
+  })
+  .openapi({ ref: "GetRunsByThreadResponse" });
+
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | { [key: string]: Json } | Json[];
