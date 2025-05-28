@@ -1,3 +1,4 @@
+import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
@@ -22,7 +23,10 @@ export default defineConfig({
   // Environment-specific build configuration
   build: {
     extensions: [
-      // Add any build extensions if needed
+      syncVercelEnvVars({
+        projectId: "prj_KSiT1md6dVUfD2lwIl4ndxL0rIxX",
+        vercelTeamId: "team_NyW385GwLLFmTa1xMVPYAmNg",
+      }),
     ],
   },
 });
