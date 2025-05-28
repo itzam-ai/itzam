@@ -262,6 +262,7 @@ export default function AdminSdkPage() {
         </div>
       </div>
       <ResponseCard
+        model={null}
         output={response}
         streamStatus={streamStatus}
         isLoading={isLoading}

@@ -48,9 +48,6 @@ export async function POST(request: NextRequest) {
       run,
     });
 
-    console.log("aiParams");
-    console.log(aiParams);
-
     const response = await generateTextStream(
       aiParams,
       run,
@@ -59,9 +56,6 @@ export async function POST(request: NextRequest) {
       undefined,
       "text"
     );
-
-    console.log("response");
-    console.log(response);
 
     // Return the response directly since it's now a proper text stream
     return response;

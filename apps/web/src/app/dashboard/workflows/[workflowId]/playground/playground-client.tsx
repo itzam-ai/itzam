@@ -1,6 +1,7 @@
 "use client";
 
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
+import { AnimatePresence } from "framer-motion";
 import { Loader2, Play } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
@@ -121,7 +122,9 @@ export default function PlaygroundClient({
         // Filter out metadata comments and only append actual text content
         const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
         if (cleanText) {
-          setOutput((prev) => prev + cleanText);
+          console.log(cleanText);
+
+          setOutput(cleanText);
         }
       }
 
@@ -136,36 +139,13 @@ export default function PlaygroundClient({
   };
 
   return (
-    <Card className="grid grid-cols-2 gap-4 p-6">
-      <div className="flex h-full flex-col gap-4">
-        <div className="relative flex items-start justify-between">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-medium flex items-center gap-2">
-              {workflow.name}
-              {(modelChanged || promptChanged) && (
-                <div className="size-2 rounded-full bg-yellow-500 animate-in fade-in duration-1000" />
-              )}
-            </h1>
-            <p className="text-muted-foreground/50 text-sm">
-              {workflow.description}
-            </p>
-          </div>
-
-          {(modelChanged || promptChanged) && (
-            <SyncChangesToWorkflow
-              workflowId={workflowId}
-              modelId={model?.id ?? ""}
-              prompt={prompt}
-              enabled={modelChanged || promptChanged}
-              onSuccess={handleSyncSuccess}
-            />
-          )}
-        </div>
-        <div className="space-y-4">
+    <Card className="grid grid-cols-3 gap-8 p-6">
+      <div className="flex h-full flex-col gap-8">
+        <div className="space-y-6">
           <div className="space-y-2">
             <Label
               htmlFor="model"
-              className="flex items-center font-normal text-muted-foreground text-sm"
+              className="text-muted-foreground text-sm font-normal ml-0.5"
             >
               Model
             </Label>
@@ -182,7 +162,7 @@ export default function PlaygroundClient({
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <ModelIcon tag={model?.tag ?? ""} size="sm" />
+                <ModelIcon tag={model?.tag ?? ""} size="xs" />
                 <p className="font-medium text-sm">{model?.name ?? ""}</p>
                 <ChangeModel models={models} setModel={setModel} />
               </div>
@@ -192,7 +172,7 @@ export default function PlaygroundClient({
           <div className="space-y-2">
             <Label
               htmlFor="prompt"
-              className="font-normal text-muted-foreground text-sm"
+              className="text-muted-foreground text-sm font-normal ml-0.5"
             >
               System Prompt
             </Label>
@@ -200,52 +180,67 @@ export default function PlaygroundClient({
               id="prompt"
               placeholder="Enter your prompt here..."
               value={prompt}
-              className="min-h-[200px]"
+              className="min-h-[250px]"
               onChange={(e) => setPrompt(e.target.value)}
             />
           </div>
-        </div>
 
-        <div className="space-y-4">
           <div className="space-y-2">
             <Label
               htmlFor="input-text"
-              className="font-normal text-muted-foreground text-sm"
+              className="text-muted-foreground text-sm font-normal ml-0.5"
             >
               User Input
             </Label>
             <Textarea
               id="input-text"
-              placeholder="Enter your input text here..."
-              className="min-h-[100px]"
+              placeholder="I want to know about..."
+              className="min-h-[150px]"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isPending}
             />
           </div>
         </div>
-        <Button
-          onClick={handleSubmit}
-          disabled={!input.trim() || isPending}
-          className="w-full"
-          size="sm"
-          variant="primary"
-        >
-          {isPending ? (
-            <Loader2 className="size-3 animate-spin" />
-          ) : (
-            <>
-              Generate
-              <Play className="size-3" fill="currentColor" />
-            </>
-          )}
-        </Button>
+
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center">
+            <AnimatePresence>
+              {(modelChanged || promptChanged) && (
+                <SyncChangesToWorkflow
+                  workflowId={workflowId}
+                  modelId={model?.id ?? ""}
+                  prompt={prompt}
+                  enabled={modelChanged || promptChanged}
+                  onSuccess={handleSyncSuccess}
+                />
+              )}
+            </AnimatePresence>
+            <Button
+              onClick={handleSubmit}
+              disabled={!input.trim() || isPending}
+              className="w-full active:scale-[0.99]"
+              size="sm"
+              variant="primary"
+            >
+              {isPending ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : (
+                <>
+                  Send
+                  <Play className="size-2.5" fill="currentColor" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
 
-      <div className="flex h-full flex-col gap-4">
+      <div className="flex h-full flex-col gap-6 col-span-2">
         <DetailsCard metadata={metadata} />
         <ResponseCard
           output={output}
+          model={model ?? models[0]!}
           isLoading={isPending}
           streamStatus={streamStatus}
         />

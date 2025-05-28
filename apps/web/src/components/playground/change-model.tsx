@@ -45,7 +45,7 @@ export default function ChangeModel({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="size-6">
+        <Button variant="ghost" size="icon" className="size-6">
           <Pencil className="size-2.5" />
         </Button>
       </DialogTrigger>

@@ -98,6 +98,9 @@ export async function generateTextStream(
         (event as unknown as { metadata: unknown }).metadata = metadata;
       }
 
+      console.log("Event ⬇️");
+      console.log(event);
+
       await streamSSE?.writeSSE({
         data: JSON.stringify(event),
         event: event.type,

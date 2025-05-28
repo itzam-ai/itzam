@@ -98,8 +98,6 @@ export const createAiParams: CreateAiParamsFn = async ({
     }
   }
 
-  console.log("Schema", schema);
-
   const content: UserContent = input
     ? [
         {
@@ -171,7 +169,8 @@ export const createAiParams: CreateAiParamsFn = async ({
     run
   );
 
-  console.log("System prompt with knowledge", systemPromptWithKnowledge);
+  console.log("System prompt with knowledge ⬇️");
+  console.log(systemPromptWithKnowledge);
 
   // Common Parameters
   const aiParams = {
@@ -214,11 +213,6 @@ export async function handleRunCompletion({
 }: HandleRunCompletionParams) {
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
-
-  console.log("Run completion", {
-    text,
-    type: typeof text,
-  });
 
   void createRunWithCost({
     ...run,

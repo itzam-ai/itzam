@@ -28,6 +28,21 @@ export async function getRunById(runId: string) {
 export type RunWithModelAndResources = NonNullable<
   Awaited<ReturnType<typeof getLast30RunsInTheLast30Days>>[number]
 >;
+export async function getRunByIdAndUserId(runId: string, userId: string) {
+  const run = await db.query.runs.findFirst({
+    where: eq(runs.id, runId),
+    with: {
+      model: true,
+      workflow: true,
+    },
+  });
+
+  if (!run || !run.workflow || run.workflow.userId !== userId) {
+    return null;
+  }
+
+  return run;
+}
 
 export async function getLast30RunsInTheLast30Days(workflowId: string) {
   return await db.query.runs.findMany({

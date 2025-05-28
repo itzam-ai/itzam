@@ -12,6 +12,7 @@
 ### Other improvements
 
 - [ ] Error treatment in SDK
+- [ ] Check metadata in SDK
 
 - [ ] Grouping messages (threads)
 
@@ -42,9 +43,10 @@
 
 - [ ] Playground tab
 
-  - [ ] Improve UI (less boxes)
+  - [x] Improve UI (less boxes)
+  - [x] Fix streamed response
   - [ ] Improve error treatment
-  - [ ] Fix streamed response
+  - [ ] Attachments
 
 - [ ] Prompt tab
 
