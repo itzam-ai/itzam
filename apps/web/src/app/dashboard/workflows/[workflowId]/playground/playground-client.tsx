@@ -196,7 +196,6 @@ export default function PlaygroundClient({
               className="min-h-[150px]"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={isPending}
             />
           </div>
         </div>
