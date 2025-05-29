@@ -14,7 +14,8 @@ import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
-import type { CreateAiParamsFn } from "./types";
+import type { AttachmentWithUrl, CreateAiParamsFn } from "./types";
+import type { Attachment } from "./types";
 
 const defaultSchema = z.object({
   text: z.string().describe("The generated output text"),
@@ -109,48 +110,11 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   if (attachments) {
     for (const attachment of attachments) {
-      const mimeType =
-        attachment.mimeType ||
-        (attachment.file.startsWith("data:")
-          ? attachment.file.split(";")[0]?.split(":")[1]
-          : attachment.file.split(".").pop());
-
-      const fileExt = extension(
-        attachment.mimeType || "application/octet-stream"
-      );
-      // if (attachment.type === "file") {
-      //   // get extension from mime type
-      //   // Convert to File instance if not already
-      //   const fileData = await getFileFromString(
-      //     attachment.file,
-      //     `file.${fileExt}`,
-      //     attachment.mimeType || "application/octet-stream"
-      //   );
-
-      //   // Upload file to R2
-      //   await uploadFileToBucket(fileData, "attachments");
-      //   content.push({
-      //     type: "file",
-      //     data: attachment.file,
-      //     mimeType: attachment.mimeType || fileData.type,
-      //   });
-      // } else if (attachment.type === "image") {
-      // Convert to File instance if not already
-      const imageData = await getFileFromString(
-        attachment.file,
-        `image.${fileExt}`,
-        attachment.mimeType || "image/png"
-      );
-      // Upload image to R2
-      await uploadFileToBucket(imageData, "attachments");
       content.push({
         type: "image",
         image: attachment.file,
-        mimeType: attachment.mimeType || imageData.type,
+        mimeType: attachment.mimeType,
       });
-      // } else {
-      //   throw new Error("Invalid attachment type");
-      // }
     }
   }
 
@@ -180,6 +144,7 @@ export const createAiParams: CreateAiParamsFn = async ({
     messages,
     schema,
     output,
+    attachments,
     ...rest,
   };
 
@@ -197,6 +162,7 @@ type HandleRunCompletionParams = {
   error?: string;
   fullResponse: unknown;
   metadata: Record<string, unknown>;
+  attachments: AttachmentWithUrl[];
 };
 
 export async function handleRunCompletion({
@@ -210,6 +176,7 @@ export async function handleRunCompletion({
   fullResponse,
   metadata,
   error,
+  attachments,
 }: HandleRunCompletionParams) {
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
@@ -259,4 +226,36 @@ export async function insertKnowledgeInPrompt(
 Relevant content found in user's provided knowledge base:
 ${similarChunks.map((c) => c.content).join("\n")}
 </context>`;
+}
+
+export async function processAttachments(
+  attachments: Attachment[],
+  userId: string
+) {
+  const processedAttachments: AttachmentWithUrl[] = [];
+
+  for (const attachment of attachments) {
+    // Get file extension from mime type
+    const fileExt = extension(
+      attachment.mimeType || "application/octet-stream"
+    );
+
+    // Convert to File instance if not already
+    const file = await getFileFromString(
+      attachment.file,
+      `image.${fileExt}`,
+      attachment.mimeType || "image/png"
+    );
+
+    // Upload image to R2
+    const { imageUrl } = await uploadFileToBucket(file, userId);
+
+    processedAttachments.push({
+      ...attachment,
+      url: imageUrl,
+      mimeType: attachment.mimeType || file.type,
+    });
+  }
+
+  return processedAttachments;
 }

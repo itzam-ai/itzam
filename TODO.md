@@ -1,3 +1,11 @@
+## Now (22w · 2025)
+
+- [ ] Knowledge
+  - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
+- [ ] Threads
+- [x] Attachments
+  - [x] UI (be able to see attachments used in a run)
+
 ## Next features
 
 - [ ] Attachments | _Send attachments - docs, images - via API & SDKs_

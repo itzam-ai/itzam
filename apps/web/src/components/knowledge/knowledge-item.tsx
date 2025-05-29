@@ -109,9 +109,9 @@ export const KnowledgeItem = ({
             >
               chunk{resource.chunks?.length === 1 ? "" : "s"}
             </p>
+          </div>
 
-            <span className="text-muted-foreground/40">•</span>
-
+          <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <p
               className="text-muted-foreground whitespace-nowrap"
               style={{

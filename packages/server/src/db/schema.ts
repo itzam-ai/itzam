@@ -250,6 +250,24 @@ export const runs = createTable(
   })
 );
 
+// Attachment table
+export const attachments = createTable("attachment", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  url: varchar("url", { length: 1024 }).notNull(),
+  mimeType: varchar("mime_type", { length: 256 }).notNull(),
+
+  runId: varchar("run_id", { length: 256 })
+    .notNull()
+    .references(() => runs.id),
+
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
 // RunResource table
 export const runResources = createTable(
   "run_resource",
@@ -525,6 +543,7 @@ export const runRelations = relations(runs, ({ one, many }) => ({
     references: [models.id],
   }),
   runResources: many(runResources),
+  attachments: many(attachments),
 }));
 
 // -------- ApiKey --------
@@ -532,6 +551,14 @@ export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   user: one(users, {
     fields: [apiKeys.userId],
     references: [users.id],
+  }),
+}));
+
+// -------- Attachment --------
+export const attachmentRelations = relations(attachments, ({ one }) => ({
+  run: one(runs, {
+    fields: [attachments.runId],
+    references: [runs.id],
   }),
 }));
 

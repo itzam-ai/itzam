@@ -12,10 +12,14 @@ export type Attachment = {
   mimeType?: string;
 };
 
+export type AttachmentWithUrl = Attachment & {
+  url: string;
+};
+
 type CreateAiParamsInput = {
   userId: string;
   input?: string;
-  attachments?: Attachment[];
+  attachments?: AttachmentWithUrl[];
   prompt: string;
   model: Model;
   schema?: ItzamRequestSchema | null;

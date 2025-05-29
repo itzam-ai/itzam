@@ -110,25 +110,26 @@ export function SyncChangesToWorkflow({
           <DialogDescription>
             This will change the current prompt and model of the workflow.
           </DialogDescription>
-          <DialogFooter className="pt-4">
-            <DialogClose asChild>
-              <Button variant="outline" size="sm">
-                Cancel
-              </Button>
-            </DialogClose>
-            <DialogClose asChild>
-              <Button
-                variant="primary"
-                onClick={onSubmit}
-                disabled={isLoading}
-                className="w-20"
-                size="sm"
-              >
-                {isLoading ? <Spinner /> : "Sync"}
-              </Button>
-            </DialogClose>
-          </DialogFooter>
         </DialogHeader>
+
+        <DialogFooter className="pt-4">
+          <DialogClose asChild>
+            <Button variant="outline" size="sm">
+              Cancel
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button
+              variant="primary"
+              onClick={onSubmit}
+              disabled={isLoading}
+              className="w-20"
+              size="sm"
+            >
+              {isLoading ? <Spinner /> : "Sync"}
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

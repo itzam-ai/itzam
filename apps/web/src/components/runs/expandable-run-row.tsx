@@ -1,6 +1,6 @@
 "use client";
 
-import { RunWithModelAndResources } from "@itzam/server/db/run/actions";
+import { RunWithModelAndResourcesAndAttachments } from "@itzam/server/db/run/actions";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckIcon,
@@ -19,10 +19,11 @@ import { formatDate } from "~/lib/utils";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
 import Link from "next/link";
+import Image from "next/image";
 export function ExpandableRunRow({
   run,
 }: {
-  run: RunWithModelAndResources | null;
+  run: RunWithModelAndResourcesAndAttachments | null;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -120,7 +121,7 @@ export function ExpandableRunRow({
                 className="overflow-hidden"
               >
                 <div className="flex gap-12 px-4 pt-6 pb-12">
-                  <div className="flex w-3/6 flex-col gap-4">
+                  <div className="flex w-3/6 flex-col gap-6">
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Prompt</h4>
                       <p className="mt-1 max-w-[400px] whitespace-pre-wrap font-mono text-xs">
@@ -159,6 +160,34 @@ export function ExpandableRunRow({
                         {run.input}
                       </p>
                     </div>
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-muted-foreground text-sm">
+                        Attachments
+                      </h4>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {run.attachments.map((attachment) => (
+                          <Link
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            key={attachment.url}
+                            className="flex size-12 items-center justify-center rounded-lg border border-muted shadow-sm transition-all hover:border-muted-foreground/40"
+                          >
+                            {attachment.mimeType.startsWith("image/") ? (
+                              <Image
+                                src={attachment.url}
+                                alt={attachment.mimeType}
+                                width={1920}
+                                height={1080}
+                                className="size-12 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <FileIcon className="size-4" />
+                            )}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
                     {run.output && (
                       <div className="flex flex-col gap-1">
                         <h4 className="text-muted-foreground text-sm">
@@ -179,7 +208,7 @@ export function ExpandableRunRow({
                     )}
                   </div>
 
-                  <div className="flex w-1/6 flex-col gap-4">
+                  <div className="flex w-1/6 flex-col gap-6">
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Status</h4>
                       <div className="mt-1 flex items-center">
@@ -231,7 +260,7 @@ export function ExpandableRunRow({
                     </div>
                   </div>
 
-                  <div className="flex w-1/6 flex-col gap-4">
+                  <div className="flex w-1/6 flex-col gap-6">
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Model</h4>
                       <div className="mt-1 flex items-center gap-2">

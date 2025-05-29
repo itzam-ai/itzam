@@ -13,11 +13,12 @@ import { ResponseCard } from "~/components/playground/response-card";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
+
 const abdulLocalKey =
   "itzam_61b01ef4-bbaf-47ac-a1e2-580c33921e83_czzo14zxl7smr9y4ahqunreqy7hh52z";
 
 const gustavoLocalKey =
-  "itzam_7e1ae4da-8094-4126-bdcd-9fdfc09a1969_w5aqevkax4qxrbxmiofgvxosvl089v2d";
+  "itzam_1346408f-2401-4fea-8545-bd816776fbc4_xamqeu207qpk54xvf6btp1s6sajtfn57";
 
 const slug = "code-assistant";
 
@@ -35,11 +36,11 @@ type Metadata = {
 
 type GetRunByIdResponse = z.infer<typeof GetRunByIdResponseSchema>;
 
-const toBase64 = (file: File) =>
+const toBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
   });
 
@@ -75,9 +76,7 @@ export default function AdminSdkPage() {
     attachments: file
       ? [
           {
-            type: "file" as const,
-            file: "https://media.licdn.com/dms/image/v2/C4D03AQHObUgkHnWxKA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1623547025381?e=1752105600&v=beta&t=8IZlHar624bap4cBpi9-w8obfZb2uHyGHLLE442198M",
-            mimeType: "image/jpeg",
+            file: await toBase64(file),
           },
         ]
       : [],
@@ -95,7 +94,7 @@ export default function AdminSdkPage() {
     const config = await makeConfig();
     try {
       const response = await itzam.generateText(config);
-      setResponse(JSON.stringify(response.text, null, 2));
+      setResponse(response.text);
       setMetadata(response.metadata);
 
       handleGetRunById({ runId: response.metadata.runId });
@@ -189,7 +188,6 @@ export default function AdminSdkPage() {
       setModels(
         models.models.map((model) => ({ name: model.name, tag: model.tag }))
       );
-      toast.success(`Fetched ${models.models.length} models`);
     } catch (error) {
       toast.error("Error fetching models");
       if (error instanceof ItzamError) {
@@ -200,10 +198,11 @@ export default function AdminSdkPage() {
 
   useEffect(() => {
     handleGetModels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div className="flex justify-between">
         <h2 className="font-bold text-2xl">
           Input <span className="text-muted-foreground">({slug})</span>
@@ -261,34 +260,40 @@ export default function AdminSdkPage() {
           />
         </div>
       </div>
-      <ResponseCard
-        model={null}
-        output={response}
-        streamStatus={streamStatus}
-        isLoading={isLoading}
-      />
-      <div className="flex justify-between">
-        <div className="flex w-1/2 flex-col gap-2">
-          <p className="font-bold">Metadata:</p>
-          <p>Run ID: {metadata?.runId}</p>
-          <p>Cost: {metadata?.cost}</p>
-          <p>
-            Model: {metadata?.model?.name} ({metadata?.model?.tag})
-          </p>
-          <p>Duration: {metadata?.durationInMs}</p>
-          <p>Input tokens: {metadata?.inputTokens}</p>
-          <p>Output tokens: {metadata?.outputTokens}</p>
+      <div className="flex gap-8">
+        <div className="w-2/3 min-h-[400px]">
+          <ResponseCard
+            model={null}
+            output={response}
+            streamStatus={streamStatus}
+            isLoading={isLoading}
+          />
         </div>
+        <div className="flex flex-col gap-8 text-sm">
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-sm">Metadata</p>
+            <p>Run ID: {metadata?.runId ?? "-"}</p>
+            <p>Cost: {metadata?.cost ?? "-"}</p>
+            <p>
+              Model: {metadata?.model?.name ?? "-"} (
+              {metadata?.model?.tag ?? "-"})
+            </p>
+            <p>Duration: {metadata?.durationInMs ?? "-"}</p>
+            <p>Input tokens: {metadata?.inputTokens ?? "-"}</p>
+            <p>Output tokens: {metadata?.outputTokens ?? "-"}</p>
+          </div>
 
-        <div className="flex w-1/2 flex-col justify-start gap-2">
-          <p className="font-bold">Get Run By Id (1s delay):</p>
-          <p>Cost: {runById?.cost}</p>
-          <p>
-            Model: {runById?.model?.name} ({runById?.model?.tag})
-          </p>
-          <p>Duration: {runById?.durationInMs}</p>
-          <p>Input tokens: {runById?.inputTokens}</p>
-          <p>Output tokens: {runById?.outputTokens}</p>
+          <div className="flex flex-col justify-start gap-2">
+            <p className="font-semibold text-sm">Get Run By Id (1s delay)</p>
+            <p>Cost: {runById?.cost ?? "-"}</p>
+            <p>
+              Model: {runById?.model?.name ?? "-"} ({runById?.model?.tag ?? "-"}
+              )
+            </p>
+            <p>Duration: {runById?.durationInMs ?? "-"}</p>
+            <p>Input tokens: {runById?.inputTokens ?? "-"}</p>
+            <p>Output tokens: {runById?.outputTokens ?? "-"}</p>
+          </div>
         </div>
       </div>
 

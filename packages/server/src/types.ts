@@ -1,3 +1,5 @@
+import { AttachmentWithUrl } from "./ai/types";
+
 export type PreRunDetails = {
   id: string;
   origin: "SDK" | "WEB";
@@ -7,4 +9,5 @@ export type PreRunDetails = {
   modelId: string;
   workflowId: string;
   resourceIds: string[];
+  attachments: AttachmentWithUrl[];
 };

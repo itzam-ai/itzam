@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       modelId: modelId,
       workflowId: workflowId,
       resourceIds: [],
+      attachments: [],
     };
 
     const aiParams = await createAiParams({

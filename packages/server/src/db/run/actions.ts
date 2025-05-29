@@ -7,6 +7,8 @@ import { calculateRunCost } from "./utils";
 import { customerIsSubscribedToItzamPro } from "../billing/actions";
 import { addDays, endOfDay, subDays } from "date-fns";
 import { v4 as uuidv4 } from "uuid";
+import { AttachmentWithUrl } from "../../ai/types";
+import { attachments as attachmentsTable } from "../schema";
 export type Run = typeof runs.$inferSelect;
 
 export type RunWithModel = NonNullable<Awaited<ReturnType<typeof getRunById>>>;
@@ -25,7 +27,7 @@ export async function getRunById(runId: string) {
   });
 }
 
-export type RunWithModelAndResources = NonNullable<
+export type RunWithModelAndResourcesAndAttachments = NonNullable<
   Awaited<ReturnType<typeof getLast30RunsInTheLast30Days>>[number]
 >;
 export async function getRunByIdAndUserId(runId: string, userId: string) {
@@ -58,6 +60,7 @@ export async function getLast30RunsInTheLast30Days(workflowId: string) {
           resource: true,
         },
       },
+      attachments: true,
     },
     limit: 30,
   });
@@ -75,7 +78,7 @@ export async function getRunsByWorkflowId(
   },
   sort: string | undefined = "createdAt:desc"
 ) {
-  const limit = 10;
+  const limit = 50;
   const offset = (page - 1) * limit;
 
   const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
@@ -146,6 +149,7 @@ export async function getRunsByWorkflowId(
           resource: true,
         },
       },
+      attachments: true,
     },
     orderBy: (runs, { desc, asc }) => [
       order === "desc"
@@ -278,6 +282,7 @@ export type CreateRunInput = Omit<
 > & {
   error?: string | null;
   resourceIds?: string[];
+  attachments?: AttachmentWithUrl[];
 };
 
 export async function createRunWithCost(
@@ -299,8 +304,14 @@ export async function createRunWithCost(
     cost: runCost.toString(),
   });
 
+  // Add resources to run
   if (run.resourceIds && run.resourceIds.length > 0) {
     await addResourcesToRun(run.id, run.resourceIds);
+  }
+
+  // Add attachments to run
+  if (run.attachments && run.attachments.length > 0) {
+    await addAttachmentsToRun(run.id, run.attachments);
   }
 }
 
@@ -310,6 +321,20 @@ export async function addResourcesToRun(runId: string, resourceIds: string[]) {
       id: uuidv4(),
       runId,
       resourceId,
+    }))
+  );
+}
+
+export async function addAttachmentsToRun(
+  runId: string,
+  attachments: AttachmentWithUrl[]
+) {
+  await db.insert(attachmentsTable).values(
+    attachments.map((attachment) => ({
+      id: uuidv4(),
+      runId,
+      url: attachment.url,
+      mimeType: attachment.mimeType || "application/octet-stream",
     }))
   );
 }
