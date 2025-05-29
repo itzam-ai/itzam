@@ -68,6 +68,21 @@ export default function UsagePage() {
         <Card>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between">
+              <p>Runs</p>
+              <Play className="size-4 text-muted-foreground/50" />
+            </CardTitle>
+            <CardDescription>Current month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="font-semibold text-3xl">
+              <NumberFlow value={usageData?.totalRequests ?? 0} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center justify-between">
               <p>Total Cost</p>
               <CircleDollarSign className="size-4 text-muted-foreground/50" />
             </CardTitle>
@@ -79,26 +94,11 @@ export default function UsagePage() {
                 value={usageData?.totalCost ?? 0}
                 format={{
                   currency: "USD",
-                  maximumFractionDigits: 2,
+                  maximumFractionDigits: 3,
                   minimumFractionDigits: 2,
                 }}
                 prefix="$"
               />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center justify-between">
-              <p>Runs</p>
-              <Play className="size-4 text-muted-foreground/50" />
-            </CardTitle>
-            <CardDescription>Current month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="font-semibold text-3xl">
-              <NumberFlow value={usageData?.totalRequests ?? 0} />
             </div>
           </CardContent>
         </Card>

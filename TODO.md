@@ -19,7 +19,7 @@
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
-  - [ ] Usage workflow selector
+  - [x] Usage workflow selector
 
 - [ ] Knowledge
 

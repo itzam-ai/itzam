@@ -59,6 +59,7 @@ export async function getLast30RunsInTheLast30Days(workflowId: string) {
         },
       },
     },
+    limit: 30,
   });
 }
 
