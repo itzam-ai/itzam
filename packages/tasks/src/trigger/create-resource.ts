@@ -210,8 +210,9 @@ const getChannelId = (resource: Resource) => {
 const generateEmbeddings = async (
   value: string
 ): Promise<Array<{ embedding: number[]; content: string | undefined }>> => {
-  return logger.trace("generate-embeddings", async (span) => {
+  const chunks = await logger.trace("chunking", async (span) => {
     const start = Date.now();
+
     logger.log("Chunking value", { textLength: value.length });
     span.setAttribute("textLength", value.length);
 
@@ -225,7 +226,19 @@ const generateEmbeddings = async (
 
     let chunks = await splitter.splitText(value);
 
+    const end = Date.now();
+    logger.log("Chunking completed", {
+      chunksCount: chunks.length,
+      durationMs: end - start,
+    });
     span.setAttribute("chunksCount", chunks.length);
+    span.setAttribute("durationMs", end - start);
+
+    return chunks;
+  });
+
+  return await logger.trace("embedding", async (span) => {
+    const start = Date.now();
 
     const { embeddings } = await embedMany({
       model: EMBEDDING_MODEL,
