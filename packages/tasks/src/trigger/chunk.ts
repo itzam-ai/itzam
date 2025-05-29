@@ -1,10 +1,13 @@
 import { python } from "@trigger.dev/python";
 import { task } from "@trigger.dev/sdk/v3";
 
-export const myScript = task({
+export const chunkTask = task({
   id: "chunk",
-  run: async ({ text }: { text: string }) => {
-    const result = await python.runScript("../python/chunk.py", [text]);
+  run: async ({ content, mimeType }: { content: string; mimeType: string }) => {
+    const result = await python.runScript("../python/chunk.py", [
+      content,
+      mimeType,
+    ]);
     return result.stdout;
   },
 });

@@ -19,58 +19,71 @@ const ResourceSchema = z.object({
   resources: z.array(
     z.discriminatedUnion("type", [
       z.object({
-        file: z.instanceof(File),
-        type: z.literal("FILE"),
+        url: z.string(),
+        type: z.literal("LINK"),
+        id: z.string().uuid().optional(),
       }),
       z.object({
         url: z.string(),
-        type: z.literal("LINK"),
+        type: z.literal("FILE"),
+        mimeType: z.string(),
+        fileName: z.string(),
+        fileSize: z.number(),
+        id: z.string().uuid().optional(),
       }),
     ])
   ),
   knowledgeId: z.string(),
   workflowId: z.string(),
+  userId: z.string(),
 });
+
+type Resource = z.infer<typeof ResourceSchema>["resources"][number];
 
 // UTILITY FUNCTIONS
 
 // return a promise that resolves with a File instance
-const getFileFromString = async (
-  url: string,
-  filename: string,
-  mimeType: string
-): Promise<File> => {
-  logger.log("Getting file from string", {
-    url,
-    filename,
-    mimeType,
+const fetchFile = async (resource: Resource): Promise<File> => {
+  return logger.trace("fetch-file", async (span) => {
+    span.setAttribute("url", resource.url);
+
+    if (resource.type === "FILE") {
+      span.setAttribute("filename", resource.fileName);
+      span.setAttribute("mimeType", resource.mimeType);
+    } else {
+      span.setAttribute("filename", resource.url);
+      span.setAttribute("mimeType", "application/octet-stream");
+    }
+
+    if (isUrlFile(resource.url)) {
+      const file = await fetch(resource.url);
+
+      if (!file.ok) {
+        throw new Error(`Could not fetch file: ${file.statusText}`);
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const type =
+        resource.type === "FILE"
+          ? resource.mimeType
+          : file.headers.get("content-type");
+
+      if (!type) {
+        throw new Error("Could not determine mime type");
+      }
+
+      return new File(
+        [buffer],
+        resource.type === "FILE" ? resource.fileName : resource.url,
+        {
+          type,
+        }
+      );
+    }
+
+    throw new Error("Invalid file format");
   });
-
-  if (isUrlFile(url)) {
-    const file = await fetch(url);
-
-    if (!file.ok) {
-      throw new Error(`Could not fetch file: ${file.statusText}`);
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-    const type = mimeType || file.headers.get("content-type");
-
-    if (!type) {
-      throw new Error("Could not determine mime type");
-    }
-
-    return new File([buffer], filename, {
-      type,
-    });
-  }
-
-  throw new Error("Invalid file format");
-};
-
-const isBase64File = (file: string): boolean => {
-  return file.startsWith("data:");
 };
 
 const isUrlFile = (file: string): boolean => {
@@ -78,20 +91,14 @@ const isUrlFile = (file: string): boolean => {
 };
 
 // TIKA CONVERSION
-const convertSingleFile = async (attachment: {
-  file: string;
-  mimeType: string;
-  fileName: string;
-}): Promise<{ text: string; fileSize: number }> => {
+const convertSingleFile = async (
+  resource: Resource
+): Promise<{ text: string; fileSize: number }> => {
   return logger.trace("convert-single-file", async (span) => {
     const start = Date.now();
     try {
       // Convert string to File object
-      const file = await getFileFromString(
-        attachment.file,
-        attachment.fileName,
-        attachment.mimeType || "application/octet-stream"
-      );
+      const file = await fetchFile(resource);
 
       // Send to Tika
       const tikaUrl = env.TIKA_URL || "http://localhost:9998/tika";
@@ -273,23 +280,20 @@ const generateFileTitleForResource = async (
 };
 
 // MAIN EMBEDDING CREATION FUNCTION
-const createEmbeddings = async (
-  resource: any,
-  workflowId: string,
-  userId: string,
-  db: any
-) => {
+const createEmbeddings = async (resource: Resource, workflowId: string) => {
   return logger.trace("create-embeddings", async (span) => {
-    let title = resource.fileName ?? "";
+    let title = resource.type === "FILE" ? resource.fileName : resource.url;
     const start = Date.now();
+
+    let resourceId = resource.id ?? v7();
 
     try {
       logger.log("Starting embedding creation", {
-        resourceId: resource.id,
+        resourceId,
         workflowId,
         startTime: new Date(start).toISOString(),
       });
-      span.setAttribute("resourceId", resource.id);
+      span.setAttribute("resourceId", resourceId);
       span.setAttribute("workflowId", workflowId);
 
       // SEND TO TIKA

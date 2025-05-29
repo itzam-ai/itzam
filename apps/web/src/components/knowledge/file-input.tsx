@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
-import { chunkAndEmbed } from "~/components/knowledge/actions";
+import { createResourceTask } from "~/components/knowledge/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -162,7 +162,7 @@ export const FileInput = ({
         knowledge?.id ?? ""
       );
 
-      await chunkAndEmbed({
+      await createResourceTask({
         resources: files.map((file) => ({
           fileName: file.name,
           url: file.url ?? "",

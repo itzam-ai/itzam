@@ -1,22 +1,22 @@
 "use server";
 
 import { getUser } from "@itzam/server/db/auth/actions";
-import { tasks, type chunkAndEmbedTask } from "@itzam/tasks";
+import {
+  createResourceTask as createResourceTaskTrigger,
+  tasks,
+} from "@itzam/tasks";
 
-type ResourceInput = {
-  fileName: string;
-  url: string;
-  mimeType: string;
-};
-
-export async function chunkAndEmbed({
+type ResourceInput = Parameters<
+  typeof tasks.trigger<typeof createResourceTaskTrigger>
+>[1]["resources"];
+export async function createResourceTask({
   knowledgeId,
   workflowId,
   resources,
 }: {
   knowledgeId: string;
   workflowId: string;
-  resources: ResourceInput[];
+  resources: ResourceInput;
 }) {
   const user = await getUser();
 
@@ -24,8 +24,8 @@ export async function chunkAndEmbed({
     throw new Error("User not found");
   }
 
-  const handle = await tasks.trigger<typeof chunkAndEmbedTask>(
-    "chunk-and-embed",
+  const handle = await tasks.trigger<typeof createResourceTaskTrigger>(
+    "create-resource",
     {
       knowledgeId,
       resources,

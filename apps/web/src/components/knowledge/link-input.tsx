@@ -8,7 +8,7 @@ import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
-import { chunkAndEmbed } from "~/components/knowledge/actions";
+import { createResourceTask } from "~/components/knowledge/actions";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -122,7 +122,7 @@ export const LinkInput = ({
         knowledge?.id ?? ""
       );
 
-      await chunkAndEmbed({
+      await createResourceTask({
         resources: linksToAdd.map((link) => ({
           fileName: link.url,
           url: link.url,
