@@ -17,18 +17,19 @@ const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 
 const ResourceSchema = z.object({
   resources: z.array(
-    z.object({
-      url: z.string(),
-      type: z.enum(["FILE", "LINK"]),
-      mimeType: z.string(),
-      fileName: z.string(),
-      fileSize: z.number(),
-      id: z.string().uuid().optional(),
-    })
+    z.discriminatedUnion("type", [
+      z.object({
+        file: z.instanceof(File),
+        type: z.literal("FILE"),
+      }),
+      z.object({
+        url: z.string(),
+        type: z.literal("LINK"),
+      }),
+    ])
   ),
   knowledgeId: z.string(),
   workflowId: z.string(),
-  userId: z.string().uuid(),
 });
 
 // UTILITY FUNCTIONS
@@ -402,8 +403,8 @@ const createEmbeddings = async (
   });
 };
 
-export const chunkAndEmbedTask = task({
-  id: "chunk-and-embed",
+export const createResourceTask = task({
+  id: "create-resource",
   maxDuration: 300, // 5 minutes
   run: async (payload: z.infer<typeof ResourceSchema>) => {
     return logger.trace("chunk-and-embed-task", async (span) => {

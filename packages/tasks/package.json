@@ -13,6 +13,7 @@
     "@itzam/supabase": "workspace:*",
     "@itzam/utils": "workspace:*",
     "@langchain/textsplitters": "^0.1.0",
+    "@trigger.dev/python": "^3.3.17",
     "@trigger.dev/sdk": "^3.3.17",
     "ai": "^4.3.9",
     "drizzle-orm": "^0.33.0",
@@ -22,6 +23,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
     "@trigger.dev/build": "^3.3.17",
     "@types/uuid": "^10.0.0"
   }

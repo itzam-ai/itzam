@@ -1080,6 +1080,9 @@ importers:
       '@langchain/textsplitters':
         specifier: ^0.1.0
         version: 0.1.0(@langchain/core@0.3.57(openai@4.103.0(ws@8.18.2)(zod@3.25.28)))
+      '@trigger.dev/python':
+        specifier: ^3.3.17
+        version: 3.3.17(@trigger.dev/build@3.3.17(typescript@5.8.3))(@trigger.dev/sdk@3.3.17(zod@3.25.28))
       '@trigger.dev/sdk':
         specifier: ^3.3.17
         version: 3.3.17(zod@3.25.28)
@@ -4079,6 +4082,13 @@ packages:
   '@trigger.dev/core@3.3.17':
     resolution: {integrity: sha512-KjnRxCuHq4R+MnE0zPvIQ7EIz4QSpJL+1Yn74n2cCGjyHYgQ/g8rcARn0Nxf2s8jzE38CnyRufjUrwG8k+DJrw==}
     engines: {node: '>=18.20.0'}
+
+  '@trigger.dev/python@3.3.17':
+    resolution: {integrity: sha512-8Wv1xjlLLfemZ1poYAB5MF2QHgGpiBVgu8M5km/NRV5nhngTIlY4xZIKjCWoIf6A/4+IJNwvimzt10ZGKp09Rg==}
+    engines: {node: '>=18.20.0'}
+    peerDependencies:
+      '@trigger.dev/build': ^3.3.17
+      '@trigger.dev/sdk': ^3.3.17
 
   '@trigger.dev/sdk@3.3.17':
     resolution: {integrity: sha512-wjIjlQWKybYWw/J7LxFIOO1pXzxXoj9lxbFMvjb51JtfebxnQnh6aExN47nOGhVhV38wHYstfBI/8ClWwBnFYw==}
@@ -12549,6 +12559,17 @@ snapshots:
       zod: 3.23.8
       zod-error: 1.5.0
       zod-validation-error: 1.5.0(zod@3.23.8)
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+
+  '@trigger.dev/python@3.3.17(@trigger.dev/build@3.3.17(typescript@5.8.3))(@trigger.dev/sdk@3.3.17(zod@3.25.28))':
+    dependencies:
+      '@trigger.dev/build': 3.3.17(typescript@5.8.3)
+      '@trigger.dev/core': 3.3.17
+      '@trigger.dev/sdk': 3.3.17(zod@3.25.28)
+      tinyexec: 0.3.2
     transitivePeerDependencies:
       - bufferutil
       - supports-color

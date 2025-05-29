@@ -1,4 +1,5 @@
 import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
+import { pythonExtension } from "@trigger.dev/python/extension";
 import { defineConfig } from "@trigger.dev/sdk/v3";
 
 export default defineConfig({
@@ -23,6 +24,9 @@ export default defineConfig({
   // Environment-specific build configuration
   build: {
     extensions: [
+      pythonExtension({
+        scripts: ["./src/python/**/*.py"],
+      }),
       syncVercelEnvVars({
         projectId: "prj_KSiT1md6dVUfD2lwIl4ndxL0rIxX",
         vercelTeamId: "team_NyW385GwLLFmTa1xMVPYAmNg",
