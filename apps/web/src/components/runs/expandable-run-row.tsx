@@ -7,9 +7,11 @@ import {
   ChevronDownIcon,
   CircleIcon,
   FileIcon,
-  LinkIcon,
+  GlobeIcon,
   XIcon,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -18,8 +20,6 @@ import { RunOriginType } from "~/lib/mappers/run-origin";
 import { formatDate } from "~/lib/utils";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
-import Link from "next/link";
-import Image from "next/image";
 export function ExpandableRunRow({
   run,
 }: {
@@ -145,7 +145,7 @@ export function ExpandableRunRow({
                                 {resource.resource.type === "FILE" ? (
                                   <FileIcon className="size-3 text-muted-foreground" />
                                 ) : (
-                                  <LinkIcon className="size-3 text-muted-foreground" />
+                                  <GlobeIcon className="size-3 text-muted-foreground" />
                                 )}
                                 {resource.resource.title}
                               </div>
