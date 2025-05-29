@@ -38,7 +38,10 @@ const ResourceSchema = z.object({
   userId: z.string(),
 });
 
-type Resource = z.infer<typeof ResourceSchema>["resources"][number];
+type Resource = Omit<typeof resources.$inferSelect, "fileName" | "mimeType"> & {
+  fileName: string;
+  mimeType: string;
+};
 
 // UTILITY FUNCTIONS
 
@@ -91,7 +94,7 @@ const isUrlFile = (file: string): boolean => {
 };
 
 // TIKA CONVERSION
-const convertSingleFile = async (
+const getTextFromResource = async (
   resource: Resource
 ): Promise<{ text: string; fileSize: number }> => {
   return logger.trace("convert-single-file", async (span) => {
@@ -114,15 +117,17 @@ const convertSingleFile = async (
         throw new Error(`Failed to convert file: ${res.statusText}`);
       }
 
+      const fileName =
+        resource.type === "FILE" ? resource.fileName : resource.url;
       const text = await res.text();
       const end = Date.now();
       logger.log("Tika conversion completed", {
-        fileName: attachment.fileName,
+        fileName,
         durationMs: end - start,
         fileSize: file.size,
         textLength: text.length,
       });
-      span.setAttribute("fileName", attachment.fileName);
+      span.setAttribute("fileName", fileName);
       span.setAttribute("durationMs", end - start);
       span.setAttribute("fileSize", file.size);
       span.setAttribute("textLength", text.length);
@@ -195,7 +200,7 @@ const generateFileTitle = async (
   });
 };
 
-const getChannelId = (resource: typeof resources.$inferSelect) => {
+const getChannelId = (resource: Resource) => {
   return `knowledge-${resource.knowledgeId}-${
     resource.type === "FILE" ? "files" : "links"
   }`;
@@ -244,8 +249,7 @@ const generateEmbeddings = async (
 
 const generateFileTitleForResource = async (
   text: string,
-  resource: any,
-  db: any
+  resource: Resource
 ) => {
   return logger.trace("generate-file-title-for-resource", async (span) => {
     let title = "";
@@ -297,22 +301,19 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
       span.setAttribute("workflowId", workflowId);
 
       // SEND TO TIKA
-      const { text: textFromTika, fileSize } = await convertSingleFile({
-        file: resource.url,
-        mimeType: resource.mimeType,
-        fileName: resource.fileName,
-      });
+      const { text: textFromTika, fileSize } =
+        await getTextFromResource(resource);
 
       // UPDATE RESOURCE WITH FILE SIZE
       await db
         .update(resources)
         .set({ fileSize })
-        .where(eq(resources.id, resource.id));
+        .where(eq(resources.id, resourceId));
 
-      title = await generateFileTitleForResource(textFromTika, resource, db);
+      title = await generateFileTitleForResource(textFromTika, resource);
 
       logger.log("File converted and title generated", {
-        resourceId: resource.id,
+        resourceId,
         title,
         textLength: textFromTika.length,
       });
@@ -332,7 +333,7 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
           embeddings.map((embedding) => ({
             ...embedding,
             id: v7(),
-            resourceId: resource.id,
+            resourceId,
             content: embedding.content ?? "",
             workflowId,
           }))
@@ -342,7 +343,7 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
       await sendUpdate(resource, {
         status: "PROCESSED",
         title,
-        chunks: createdChunks,
+        chunks: createdChunks.length,
         fileSize,
       });
 
@@ -434,11 +435,31 @@ export const createResourceTask = task({
         const resourcesCreated = await db
           .insert(resources)
           .values(
-            parsed.data.resources.map((resource) => ({
-              ...resource,
-              id: resource.id ?? v7(),
-              knowledgeId: parsed.data.knowledgeId,
-            }))
+            parsed.data.resources.map((resource) => {
+              const id = resource.id ?? v7();
+
+              if (resource.type === "FILE") {
+                return {
+                  id,
+                  type: "FILE" as const,
+                  url: resource.url,
+                  fileName: resource.fileName,
+                  mimeType: resource.mimeType,
+                  fileSize: resource.fileSize,
+                };
+              } else if (resource.type === "LINK") {
+                return {
+                  id,
+                  type: "LINK" as const,
+                  url: resource.url,
+                  fileName: resource.url,
+                  mimeType: "application/octet-stream",
+                  fileSize: 0,
+                };
+              }
+
+              throw new Error("Invalid resource type");
+            })
           )
           .returning();
 
@@ -450,12 +471,7 @@ export const createResourceTask = task({
         // Process each resource for embeddings
         const results = await Promise.allSettled(
           resourcesCreated.map((resource) =>
-            createEmbeddings(
-              resource,
-              parsed.data.workflowId,
-              parsed.data.userId,
-              db
-            )
+            createEmbeddings(resource as Resource, parsed.data.workflowId)
           )
         );
 
@@ -529,7 +545,7 @@ export const createResourceTask = task({
 });
 
 const sendUpdate = async (
-  resource: typeof resources.$inferSelect,
+  resource: Resource,
   payload = {
     status: "PROCESSED",
     title: resource.title,
