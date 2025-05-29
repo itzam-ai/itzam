@@ -1,4 +1,36 @@
-## Next features
+## Now (22w 2025)
+- [ ] Knowledge
+  - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
+- [ ] Threads
+- [ ] Attachments
+  - [ ] UI (be able to see attachments used in a run)
+
+## Next
+### 23w 2025
+- [ ] Context (segmented knowledge)
+  - [ ] Docs 
+    - [ ] Excalidraw illustrations
+    - [ ] Glossary
+  - [ ] CRUD (UI)
+  - [ ] SDK (Integration with threads API)
+- [ ] Link rescrape (knowledge/context) 
+```ts 
+itzam.thread.create({
+  workflowSlug: "my-workflow",
+  context: [ // context id
+    "context-1", 
+    "context-2",
+    "context-3"
+  ]
+})
+```
+### 24w 2025
+- [ ] Context (segmented knowledge)
+  - [ ] CRUD (SDK)
+    - [ ] How the user can sync a context programmatically?
+- [ ] SDK/API error treatment 
+
+## Future
 
 - [ ] Attachments | _Send attachments - docs, images - via API & SDKs_
   - [ ] - UI
@@ -11,26 +43,12 @@
 
 ### Other improvements
 
-- [ ] Error treatment in SDK
-
-- [ ] Grouping messages (threads)
-
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
-  - [ ] Usage workflow selector
 
 - [ ] Knowledge
 
-  - [x] Improve UI [G]
-    - [x] TextLoop when status changes (add number of chunks)
-    - [x] Animations
-    - [x] Show usage
-  - [x] Validate plan limit [G]
-    - [x] 50MB free tier?
-  - [ ] Fix big files upload [A]
-  - [ ] Better chunking algorithm [A]
-  - [ ] Reranking before inserting in prompt
   - [ ] Test using tools instead of retrieve
 
 - [ ] Workflow UI
@@ -72,3 +90,15 @@
 
 - [ ] Demos
   - [ ] Add file/link to knowledge and now models knows who you are
+
+### Past (Done)
+#### 22w 2025
+- [x] Usage workflow selector 
+##### Knowledge 
+- [x] Improve UI [G]
+  - [x] TextLoop when status changes (add number of chunks)
+  - [x] Animations
+  - [x] Show usage
+- [x] Validate plan limit [G]
+  - [x] 50MB free tier?
+- [x] Fix big files upload [A]
