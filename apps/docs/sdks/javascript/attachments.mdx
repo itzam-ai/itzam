@@ -15,33 +15,29 @@ Attachments can be sent in the following ways:
 - **Base64 encoded data**: For files you have locally or want to upload directly
 - **Remote URLs**: For files hosted on the web that the AI can access
 
-## Usage with Generate Text
+## Using URLs
 
 ```typescript
-import Itzam from "itzam";
-
-const itzam = new Itzam("YOUR_API_KEY");
-
-// Using base64 encoded data
 const response = await itzam.generateText({
   input: "What do you see in this image?",
   workflowSlug: "vision-workflow",
   attachments: [
     {
-      file: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-      mimeType: "image/png",
+      file: "https://example.com/document.pdf",
     },
   ],
 });
+```
 
-// Using remote URLs
-const response2 = await itzam.generateText({
+## Using Base64
+
+```typescript
+const response = await itzam.generateText({
   input: "Analyze this document",
   workflowSlug: "document-analysis",
   attachments: [
     {
-      file: "https://example.com/document.pdf",
-      mimeType: "application/pdf",
+      file: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
     },
   ],
 });
@@ -69,7 +65,6 @@ const response = await itzam.generateObject({
   attachments: [
     {
       file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg",
     },
   ],
 });
@@ -131,7 +126,7 @@ Common MIME types that work well with AI models:
 
 ## Best Practices
 
-### File Size Considerations
+### File Size
 
 - Keep file sizes reasonable for better performance
 - Large files may increase processing time and costs
@@ -140,14 +135,14 @@ Common MIME types that work well with AI models:
 ### MIME Type Specification
 
 ```typescript
-// Always specify MIME type for better processing
+// Always try to specify MIME type for better processing
 {
   file: base64Data,
   mimeType: "image/jpeg" // Helps the AI understand the file type
 }
 ```
 
-### URL Requirements
+### URLs
 
 ```typescript
 // URLs must be publicly accessible
@@ -184,28 +179,4 @@ try {
     console.error("Attachment error:", error.message);
   }
 }
-```
-
-## Stream Methods
-
-Attachments work with streaming methods as well:
-
-```typescript
-const stream = await itzam.streamText({
-  input: "Describe this image as you process it",
-  workflowSlug: "streaming-vision",
-  attachments: [
-    {
-      file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg",
-    },
-  ],
-});
-
-for await (const chunk of stream.stream) {
-  console.log(chunk); // Streaming text response
-}
-
-const metadata = await stream.metadata;
-console.log("Final metadata:", metadata);
 ```

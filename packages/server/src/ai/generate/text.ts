@@ -36,7 +36,6 @@ export async function generateTextStream(
           status: "FAILED",
           fullResponse: response,
           metadata: { error: "No object returned" },
-          attachments: run.attachments,
         });
         return;
       }
@@ -57,7 +56,6 @@ export async function generateTextStream(
         status: "COMPLETED",
         fullResponse: response,
         metadata,
-        attachments: run.attachments,
       });
     },
     onError: async ({ error }) => {
@@ -73,7 +71,6 @@ export async function generateTextStream(
         fullResponse: response,
         metadata: { error },
         error: error as string,
-        attachments: run.attachments,
       });
     },
   });

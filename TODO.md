@@ -7,9 +7,13 @@
 - [ ] Threads
 
 - [x] Attachments
+
   - [x] UI (be able to see attachments used in a run)
   - [ ] Test SDK
-  - [ ] Check docs
+    - [x] URLs
+    - [ ] Base64
+    - [ ] Implement File / Blob? If so, add to docs
+  - [x] Check docs
 
 ### 23w · 2025
 

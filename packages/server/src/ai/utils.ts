@@ -162,7 +162,6 @@ type HandleRunCompletionParams = {
   error?: string;
   fullResponse: unknown;
   metadata: Record<string, unknown>;
-  attachments: AttachmentWithUrl[];
 };
 
 export async function handleRunCompletion({
@@ -176,7 +175,6 @@ export async function handleRunCompletion({
   fullResponse,
   metadata,
   error,
-  attachments,
 }: HandleRunCompletionParams) {
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
