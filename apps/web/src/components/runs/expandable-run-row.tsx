@@ -160,34 +160,36 @@ export function ExpandableRunRow({
                         {run.input}
                       </p>
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">
-                        Attachments
-                      </h4>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {run.attachments.map((attachment) => (
-                          <Link
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            key={attachment.url}
-                            className="flex size-12 items-center justify-center rounded-lg border border-muted shadow-sm transition-all hover:border-muted-foreground/40"
-                          >
-                            {attachment.mimeType.startsWith("image/") ? (
-                              <Image
-                                src={attachment.url}
-                                alt={attachment.mimeType}
-                                width={1920}
-                                height={1080}
-                                className="size-12 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <FileIcon className="size-4" />
-                            )}
-                          </Link>
-                        ))}
+                    {run.attachments.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <h4 className="text-muted-foreground text-sm">
+                          Attachments
+                        </h4>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {run.attachments.map((attachment) => (
+                            <Link
+                              href={attachment.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              key={attachment.url}
+                              className="flex size-12 items-center justify-center rounded-lg border border-muted shadow-sm transition-all hover:border-muted-foreground/40"
+                            >
+                              {attachment.mimeType.startsWith("image/") ? (
+                                <Image
+                                  src={attachment.url}
+                                  alt={attachment.mimeType}
+                                  width={1920}
+                                  height={1080}
+                                  className="size-12 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <FileIcon className="size-4" />
+                              )}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     {run.output && (
                       <div className="flex flex-col gap-1">
                         <h4 className="text-muted-foreground text-sm">

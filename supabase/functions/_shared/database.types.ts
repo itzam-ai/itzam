@@ -42,6 +42,41 @@ export type Database = {
         }
         Relationships: []
       }
+      attachment: {
+        Row: {
+          created_at: string
+          id: string
+          mime_type: string
+          run_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          mime_type: string
+          run_id: string
+          updated_at: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mime_type?: string
+          run_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachment_run_id_run_id_fk"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "run"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat: {
         Row: {
           created_at: string

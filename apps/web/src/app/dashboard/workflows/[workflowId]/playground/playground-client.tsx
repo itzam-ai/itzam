@@ -2,7 +2,6 @@
 
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import { AnimatePresence } from "framer-motion";
-import { Loader2, Play } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
@@ -14,6 +13,7 @@ import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import { useKeyboardShortcut } from "~/lib/shortcut";
 import type { Workflow } from "~/lib/workflows";
 
 // Type for the metadata returned by the stream
@@ -136,6 +136,14 @@ export default function PlaygroundClient({
     }
   };
 
+  useKeyboardShortcut("Enter", false, true, false, () => {
+    if (!input.trim() || isPending || streamStatus === "streaming") {
+      return;
+    }
+
+    handleSubmit();
+  });
+
   return (
     <Card className="grid grid-cols-3 gap-8 p-6">
       <div className="flex h-full flex-col gap-8">
@@ -159,9 +167,11 @@ export default function PlaygroundClient({
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <ModelIcon tag={model?.tag ?? ""} size="xs" />
-                <p className="font-medium text-sm">{model?.name ?? ""}</p>
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <ModelIcon tag={model?.tag ?? ""} size="xs" />
+                  <p className="font-medium text-sm">{model?.name ?? ""}</p>
+                </div>
                 <ChangeModel models={models} setModel={setModel} />
               </div>
             )}
@@ -215,19 +225,34 @@ export default function PlaygroundClient({
             </AnimatePresence>
             <Button
               onClick={handleSubmit}
-              disabled={!input.trim() || isPending}
-              className="w-full active:scale-[0.99]"
+              disabled={
+                !input.trim() || isPending || streamStatus === "streaming"
+              }
+              className="w-full active:scale-[0.99] relative"
               size="sm"
               variant="primary"
             >
-              {isPending ? (
-                <Loader2 className="size-3 animate-spin" />
-              ) : (
-                <>
-                  Send
-                  <Play className="size-2.5" fill="currentColor" />
-                </>
-              )}
+              <div className="flex items-center gap-1.5">
+                Send
+                <div className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center gap-1">
+                  <span
+                    style={{
+                      fontSize: "10px",
+                    }}
+                    className="text-muted font-mono bg-muted/30 rounded-sm px-1"
+                  >
+                    ⌘
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "8px",
+                    }}
+                    className="text-muted font-mono bg-muted/30 rounded-sm px-1"
+                  >
+                    Enter
+                  </span>
+                </div>
+              </div>
             </Button>
           </div>
         </div>

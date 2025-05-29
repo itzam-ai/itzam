@@ -1,45 +1,69 @@
 ## Now (22w · 2025)
 
 - [ ] Knowledge
+
   - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
+
 - [ ] Threads
+
 - [x] Attachments
   - [x] UI (be able to see attachments used in a run)
+  - [ ] Test SDK
+  - [ ] Check docs
 
-## Next features
+### 23w · 2025
 
-- [ ] Attachments | _Send attachments - docs, images - via API & SDKs_
-  - [ ] - UI
-  - [x] - SDK
-  - [ ] - Docs
-- [ ] Rules | _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
-- [ ] Model Recommendation | _Get recommendations on the best model (balancing cost, latency, and intelligence)_
-- [ ] Guardrails | _Create limits for the AI’s response._
-- [ ] Tools | _Integrate tools to your workflow._
+- [ ] Context (segmented knowledge)
+
+  - [ ] Docs
+    - [ ] Excalidraw illustrations
+    - [ ] Glossary
+  - [ ] CRUD (UI)
+  - [ ] SDK (Integration with threads API)
+
+- [ ] Link rescrape (knowledge/context)
+
+```ts
+// Context usage example
+
+itzam.thread.create({
+  workflowSlug: "my-workflow",
+  context: [
+    // context id
+    "context-1",
+    "context-2",
+    "context-3",
+  ],
+});
+```
+
+### 24w · 2025
+
+- [ ] Context (segmented knowledge)
+
+  - [ ] Docs
+    - [ ] API
+    - [ ] SDK
+  - [ ] CRUD (SDK)
+    - [ ] How the user can sync a context programmatically?
+
+- [ ] SDK/API error treatment
+
+## Future
+
+- [ ] Rules · _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
+- [ ] Model Recommendation · _Get recommendations on the best model (balancing cost, latency, and intelligence)_
+- [ ] Guardrails · _Create limits for the AI’s response._
+- [ ] Tools · _Integrate tools to your workflow._
 
 ### Other improvements
-
-- [ ] Error treatment in SDK
-- [ ] Check metadata in SDK
-
-- [ ] Grouping messages (threads)
 
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
-  - [x] Usage workflow selector
 
 - [ ] Knowledge
 
-  - [x] Improve UI [G]
-    - [x] TextLoop when status changes (add number of chunks)
-    - [x] Animations
-    - [x] Show usage
-  - [x] Validate plan limit [G]
-    - [x] 50MB free tier?
-  - [ ] Fix big files upload [A]
-  - [ ] Better chunking algorithm [A]
-  - [ ] Reranking before inserting in prompt
   - [ ] Test using tools instead of retrieve
 
 - [ ] Workflow UI
@@ -51,11 +75,9 @@
 
 - [ ] Playground tab
 
-  - [x] Improve UI (less boxes)
-  - [x] Fix streamed response
   - [ ] Improve error treatment
   - [ ] Attachments
-  - [ ] Check knowledge
+  - [ ] Check knowledge in production
 
 - [ ] Prompt tab
 
@@ -79,7 +101,25 @@
 - [ ] Support other models (Groq, Perplexity, Lamma, Azure)
 - [ ] Status page
 
-### Others
+### Past (Done)
 
-- [ ] Demos
-  - [ ] Add file/link to knowledge and now models knows who you are
+#### 22w 2025
+
+Playground
+
+- [x] Improve UI (less boxes)
+- [x] Fix streamed response
+
+Usage
+
+- [x] Usage workflow selector
+
+Knowledge
+
+- [x] Improve UI [G]
+  - [x] TextLoop when status changes (add number of chunks)
+  - [x] Animations
+  - [x] Show usage
+- [x] Validate plan limit [G]
+  - [x] 50MB free tier
+- [x] Fix big files upload [A]

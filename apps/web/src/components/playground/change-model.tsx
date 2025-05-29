@@ -45,9 +45,10 @@ export default function ChangeModel({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-6">
-          <Pencil className="size-2.5" />
-        </Button>
+        <Pencil
+          className="size-3 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          strokeWidth={2.5}
+        />
       </DialogTrigger>
       <DialogContent className="!outline-none !focus:outline-none !focus:ring-0 sm:max-w-6xl">
         <DialogHeader>
