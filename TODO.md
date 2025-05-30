@@ -9,10 +9,9 @@
 - [x] Attachments
 
   - [x] UI (be able to see attachments used in a run)
-  - [ ] Test SDK
+  - [x] Test SDK
     - [x] URLs
-    - [ ] Base64
-    - [ ] Implement File / Blob? If so, add to docs
+    - [x] Base64
   - [x] Check docs
 
 ### 23w · 2025

@@ -30,7 +30,8 @@ export async function getFileFromString(
   filename: string,
   mimeType: string
 ) {
-  if (isBase64File(url)) {
+  // Data URI
+  if (isDataUri(url)) {
     const arr = url.split(",");
     const mime = arr[0]?.match(/:(.*?);/)?.[1];
     const bstr = atob(arr[arr.length - 1] ?? "");
@@ -40,10 +41,41 @@ export async function getFileFromString(
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
-    const file = new File([u8arr], filename, { type: mime || mimeType });
+
+    const finalMimeType = mime || mimeType;
+    if (!finalMimeType) {
+      throw new Error(
+        "Could not determine mime type from data URI or provided mimeType"
+      );
+    }
+
+    const file = new File([u8arr], filename, { type: finalMimeType });
     return Promise.resolve(file);
   }
 
+  // Base64
+  if (isBase64String(url)) {
+    if (!mimeType) {
+      throw new Error("Mime type is required for raw base64 strings");
+    }
+
+    try {
+      const bstr = atob(url);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+
+      const file = new File([u8arr], filename, { type: mimeType });
+      return Promise.resolve(file);
+    } catch (error) {
+      throw new Error("Invalid base64 string provided");
+    }
+  }
+
+  // URL
   if (isUrlFile(url)) {
     const file = await fetch(url);
 
@@ -56,7 +88,9 @@ export async function getFileFromString(
     const type = mimeType || file.headers.get("content-type");
 
     if (!type) {
-      throw new Error("Could not determine mime type");
+      throw new Error(
+        "Could not determine mime type from URL response or provided mimeType"
+      );
     }
 
     return new File([buffer], filename, {
@@ -64,7 +98,7 @@ export async function getFileFromString(
     });
   }
 
-  throw new Error("Invalid file");
+  throw new Error("Invalid file: must be a data URI, base64 string, or URL");
 }
 
 // @ts-expect-error TODO: fix typing
@@ -193,11 +227,24 @@ export async function handleRunCompletion({
   });
 }
 
-export function isBase64File(file: string) {
+export function isDataUri(file: string): boolean {
   return file.startsWith("data:");
 }
 
-export function isUrlFile(file: string) {
+export function isBase64String(str: string): boolean {
+  // Check if string contains only valid base64 characters
+  const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+
+  // Base64 strings should have length that's a multiple of 4 (when properly padded)
+  // and should be at least a reasonable length for a file
+  if (str.length < 4 || str.length % 4 !== 0) {
+    return false;
+  }
+
+  return base64Regex.test(str);
+}
+
+export function isUrlFile(file: string): boolean {
   return file.startsWith("http");
 }
 
