@@ -50,38 +50,131 @@ const getChannelId = (resource: Resource) => {
   }`;
 };
 
-// MULTIPLE EMBEDDINGS (for files and links)
+// MULTIPLE EMBEDDINGS (using Chonkie's OpenAIEmbeddings with Supabase saving)
 const generateEmbeddings = async (
-  resource: Resource
-): Promise<Array<{ embedding: number[]; content: string | undefined }>> => {
-  const chunks = await chunkTask.triggerAndWait({
-    resource,
-  });
-
-  if (!chunks.ok) {
-    throw new Error("Failed to chunk");
-  }
-
+  resource: Resource,
+  workflowId: string
+): Promise<
+  | Array<{ embedding: number[]; content: string | undefined }>
+  | { savedToSupabase: boolean; chunksSaved: number; chunkIds: string[] }
+> => {
   return await logger.trace("embedding", async (span) => {
     const start = Date.now();
 
-    const { embeddings } = await embedMany({
-      model: EMBEDDING_MODEL,
-      values: chunks.output,
-    });
+    try {
+      // Try using Chonkie's OpenAIEmbeddings with direct Supabase saving
+      const result = await chunkTask.triggerAndWait({
+        resource,
+        generateEmbeddings: true,
+        saveToSupabase: true,
+        workflowId,
+      });
 
-    const end = Date.now();
-    logger.log("Generated embeddings", {
-      count: embeddings.length,
-      durationMs: end - start,
-    });
-    span.setAttribute("embeddingsCount", embeddings.length);
-    span.setAttribute("durationMs", end - start);
+      if (!result.ok) {
+        throw new Error("Failed to chunk with embeddings and Supabase save");
+      }
 
-    return embeddings.map((e: any, i: number) => ({
-      content: chunks.output[i],
-      embedding: e,
-    }));
+      const output = result.output;
+
+      // Check if result indicates successful Supabase save
+      if (typeof output === "object" && "savedToSupabase" in output) {
+        if (output.savedToSupabase) {
+          // Success with direct Supabase saving
+          const end = Date.now();
+          logger.log(
+            "Generated and saved embeddings using Chonkie + Supabase",
+            {
+              chunksSaved: output.chunksSaved,
+              durationMs: end - start,
+            }
+          );
+          span.setAttribute("chunksSaved", output.chunksSaved);
+          span.setAttribute("durationMs", end - start);
+          span.setAttribute("method", "chonkie-openai-supabase");
+
+          return {
+            savedToSupabase: true,
+            chunksSaved: output.chunksSaved,
+            chunkIds: output.chunkIds,
+          };
+        } else {
+          // Save failed, fall back to TypeScript approach
+          throw new Error(`Supabase save failed: ${output.saveError}`);
+        }
+      }
+
+      // Check if result has embeddings (fallback to regular embedding generation)
+      if (
+        typeof output === "object" &&
+        "chunks" in output &&
+        "embeddings" in output
+      ) {
+        const { chunks, embeddings, embeddingsError } = output;
+
+        if (embeddings && embeddings.length === chunks.length) {
+          // Success with Chonkie OpenAIEmbeddings (no Supabase save)
+          const end = Date.now();
+          logger.log("Generated embeddings using Chonkie OpenAIEmbeddings", {
+            count: embeddings.length,
+            durationMs: end - start,
+          });
+          span.setAttribute("embeddingsCount", embeddings.length);
+          span.setAttribute("durationMs", end - start);
+          span.setAttribute("method", "chonkie-openai");
+
+          return embeddings.map((embedding, i) => ({
+            content: chunks[i],
+            embedding,
+          }));
+        } else {
+          // Log embedding error if available
+          if (embeddingsError) {
+            logger.warn("Chonkie embeddings failed, falling back to ai SDK", {
+              error: embeddingsError,
+            });
+          }
+          throw new Error("Embeddings generation failed in Chonkie");
+        }
+      } else {
+        throw new Error("Unexpected result format from chunk task");
+      }
+    } catch (error) {
+      // Fallback to original approach using ai SDK
+      logger.warn("Falling back to ai SDK for embeddings", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      const chunksResult = await chunkTask.triggerAndWait({
+        resource,
+        generateEmbeddings: false,
+      });
+
+      if (!chunksResult.ok) {
+        throw new Error("Failed to chunk");
+      }
+
+      // chunksResult.output should be string[] when generateEmbeddings is false
+      const chunks = chunksResult.output as string[];
+
+      const { embeddings } = await embedMany({
+        model: EMBEDDING_MODEL,
+        values: chunks,
+      });
+
+      const end = Date.now();
+      logger.log("Generated embeddings using ai SDK fallback", {
+        count: embeddings.length,
+        durationMs: end - start,
+      });
+      span.setAttribute("embeddingsCount", embeddings.length);
+      span.setAttribute("durationMs", end - start);
+      span.setAttribute("method", "ai-sdk-fallback");
+
+      return embeddings.map((e: any, i: number) => ({
+        content: chunks[i],
+        embedding: e,
+      }));
+    }
   });
 };
 
@@ -103,55 +196,103 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
       span.setAttribute("workflowId", workflowId);
 
       // GENERATE EMBEDDINGS
-      const embeddings = await generateEmbeddings(resource);
+      const embeddings = await generateEmbeddings(resource, workflowId);
 
-      // SAVE CHUNK TO DB
-      const createdChunks = await db
-        .insert(chunks)
-        .values(
-          embeddings.map((embedding) => ({
-            ...embedding,
-            id: v7(),
-            resourceId,
-            content: embedding.content ?? "",
-            workflowId,
-          }))
-        )
-        .returning();
+      // Check if embeddings were saved directly to Supabase
+      if (typeof embeddings === "object" && "savedToSupabase" in embeddings) {
+        // Embeddings were saved directly from Python
+        await sendUpdate(resource, {
+          status: "PROCESSED",
+          title,
+          chunks: embeddings.chunksSaved,
+          fileSize: 0,
+        });
 
-      await sendUpdate(resource, {
-        status: "PROCESSED",
-        title,
-        chunks: createdChunks.length,
-        fileSize: 0,
-      });
+        logger.log("Chunks saved directly to Supabase from Python", {
+          resourceId: resource.id,
+          chunksCount: embeddings.chunksSaved,
+        });
+        span.setAttribute("chunksCount", embeddings.chunksSaved);
+        span.setAttribute("savedToSupabase", true);
 
-      logger.log("Chunks created successfully", {
-        resourceId: resource.id,
-        chunksCount: createdChunks.length,
-      });
-      span.setAttribute("chunksCount", createdChunks.length);
+        await db
+          .update(resources)
+          .set({ status: "PROCESSED" })
+          .where(eq(resources.id, resource.id));
 
-      await db
-        .update(resources)
-        .set({ status: "PROCESSED" })
-        .where(eq(resources.id, resource.id));
+        const end = Date.now();
+        logger.log("Embedding creation completed (Supabase direct save)", {
+          resourceId: resource.id,
+          durationMs: end - start,
+          endTime: new Date(end).toISOString(),
+        });
+        span.setAttribute("durationMs", end - start);
+        span.setAttribute("endTime", new Date(end).toISOString());
 
-      const end = Date.now();
-      logger.log("Embedding creation completed", {
-        resourceId: resource.id,
-        durationMs: end - start,
-        endTime: new Date(end).toISOString(),
-      });
-      span.setAttribute("durationMs", end - start);
-      span.setAttribute("endTime", new Date(end).toISOString());
+        return {
+          resourceId: resource.id,
+          title,
+          chunksCount: embeddings.chunksSaved,
+          status: "PROCESSED" as const,
+          savedToSupabase: true,
+        };
+      } else {
+        // Traditional flow: save chunks via TypeScript
+        const embeddingArray = embeddings as Array<{
+          embedding: number[];
+          content: string | undefined;
+        }>;
 
-      return {
-        resourceId: resource.id,
-        title,
-        chunksCount: createdChunks.length,
-        status: "PROCESSED" as const,
-      };
+        // SAVE CHUNK TO DB
+        const createdChunks = await db
+          .insert(chunks)
+          .values(
+            embeddingArray.map((embedding) => ({
+              ...embedding,
+              id: v7(),
+              resourceId,
+              content: embedding.content ?? "",
+              workflowId,
+            }))
+          )
+          .returning();
+
+        await sendUpdate(resource, {
+          status: "PROCESSED",
+          title,
+          chunks: createdChunks.length,
+          fileSize: 0,
+        });
+
+        logger.log("Chunks created successfully via TypeScript", {
+          resourceId: resource.id,
+          chunksCount: createdChunks.length,
+        });
+        span.setAttribute("chunksCount", createdChunks.length);
+        span.setAttribute("savedToSupabase", false);
+
+        await db
+          .update(resources)
+          .set({ status: "PROCESSED" })
+          .where(eq(resources.id, resource.id));
+
+        const end = Date.now();
+        logger.log("Embedding creation completed", {
+          resourceId: resource.id,
+          durationMs: end - start,
+          endTime: new Date(end).toISOString(),
+        });
+        span.setAttribute("durationMs", end - start);
+        span.setAttribute("endTime", new Date(end).toISOString());
+
+        return {
+          resourceId: resource.id,
+          title,
+          chunksCount: createdChunks.length,
+          status: "PROCESSED" as const,
+          savedToSupabase: false,
+        };
+      }
     } catch (error) {
       const end = Date.now();
       logger.error("Error creating embeddings", {
