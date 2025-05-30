@@ -57,7 +57,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 12.9%;
     --input: 0 0% 12.9%;
-    --ring: 0 0% 23.1%;
+    --ring: 0 0% 20.1%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -92,9 +92,12 @@
 }
 
 number-flow-react::part(suffix) {
-  margin-left: 4px;
-  font-weight: normal;
-  font-size: 0.5em;
+  margin-left: 2px;
+  color: hsl(var(--muted-foreground));
+}
+
+number-flow-react::part(prefix) {
+  margin-right: 2px;
   color: hsl(var(--muted-foreground));
 }
 

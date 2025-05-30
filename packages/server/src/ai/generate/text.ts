@@ -117,39 +117,49 @@ export async function generateTextStream(
     });
   }
 
-  // Create a readable stream from the partial objects
+  // Create a readable stream from the object events, extracting only text content
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        for await (const chunk of response.textStream) {
-          // Send content as 'text' event
-          controller.enqueue(encoder.encode(`event: text\ndata: ${chunk}\n\n`));
+        for await (const event of response.fullStream) {
+          if (event.type === "object") {
+            // Extract text from the object and send it as plain text
+            const textContent = (event.object as any)?.text || "";
+            if (textContent) {
+              controller.enqueue(encoder.encode(textContent));
+            }
+          } else if (event.type === "finish") {
+            // Calculate final metadata
+            inputTokens = event.usage?.promptTokens || 0;
+            outputTokens = event.usage?.completionTokens || 0;
+            durationInMs = Date.now() - startTime;
+
+            const metadata = {
+              runId: run.id,
+              model: {
+                name: model.name,
+                tag: model.tag,
+              },
+              inputTokens,
+              outputTokens,
+              durationInMs,
+              cost: calculateRunCost(
+                model.inputPerMillionTokenCost ?? "0",
+                model.outputPerMillionTokenCost ?? "0",
+                inputTokens,
+                outputTokens
+              ).toString(),
+            };
+
+            // Send metadata as a special event (optional, for debugging)
+            controller.enqueue(
+              encoder.encode(
+                `\n\n<!-- METADATA: ${JSON.stringify(metadata)} -->`
+              )
+            );
+          }
         }
-
-        // Send metadata as a special 'metadata' event at the end
-        const metadata = {
-          runId: run.id,
-          model: {
-            name: model.name,
-            tag: model.tag,
-          },
-          inputTokens,
-          outputTokens,
-          durationInMs,
-          cost: calculateRunCost(
-            model.inputPerMillionTokenCost ?? "0",
-            model.outputPerMillionTokenCost ?? "0",
-            inputTokens,
-            outputTokens
-          ).toString(),
-        };
-
-        controller.enqueue(
-          encoder.encode(
-            `event: metadata\ndata: ${JSON.stringify(metadata)}\n\n`
-          )
-        );
 
         controller.close();
       } catch (error) {
@@ -161,7 +171,7 @@ export async function generateTextStream(
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/event-stream",
+      "Content-Type": "text/plain",
       "Cache-Control": "no-cache",
       Connection: "keep-alive",
     },

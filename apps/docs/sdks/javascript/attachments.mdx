@@ -15,35 +15,31 @@ Attachments can be sent in the following ways:
 - **Base64 encoded data**: For files you have locally or want to upload directly
 - **Remote URLs**: For files hosted on the web that the AI can access
 
-## Usage with Generate Text
+## Using URLs
 
 ```typescript
-import Itzam from "itzam";
-
-const itzam = new Itzam("YOUR_API_KEY");
-
-// Using base64 encoded data
 const response = await itzam.generateText({
   input: "What do you see in this image?",
   workflowSlug: "vision-workflow",
   attachments: [
     {
-      file: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-      mimeType: "image/png"
-    }
-  ]
+      file: "https://example.com/document.pdf",
+    },
+  ],
 });
+```
 
-// Using remote URLs
-const response2 = await itzam.generateText({
+## Using Base64
+
+```typescript
+const response = await itzam.generateText({
   input: "Analyze this document",
   workflowSlug: "document-analysis",
   attachments: [
     {
-      file: "https://example.com/document.pdf",
-      mimeType: "application/pdf"
-    }
-  ]
+      file: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
+    },
+  ],
 });
 ```
 
@@ -59,7 +55,7 @@ const analysisSchema = z.object({
   objects: z.array(z.string()),
   colors: z.array(z.string()),
   description: z.string(),
-  confidence: z.number().min(0).max(1)
+  confidence: z.number().min(0).max(1),
 });
 
 const response = await itzam.generateObject({
@@ -69,47 +65,8 @@ const response = await itzam.generateObject({
   attachments: [
     {
       file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg"
-    }
-  ]
-});
-```
-
-## Working with File Objects
-
-The SDK automatically handles conversion of File and Blob objects to base64:
-
-```typescript
-// From file input
-const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-const file = fileInput.files?.[0];
-
-if (file) {
-  const response = await itzam.generateText({
-    input: "What's in this file?",
-    workflowSlug: "file-analysis",
-    attachments: [
-      {
-        file: file, // SDK will automatically convert to base64
-        mimeType: file.type
-      }
-    ]
-  });
-}
-
-// From fetch response
-const imageResponse = await fetch('https://example.com/image.png');
-const blob = await imageResponse.blob();
-
-const response = await itzam.generateText({
-  input: "Describe this image",
-  workflowSlug: "image-description",
-  attachments: [
-    {
-      file: blob, // SDK will automatically convert to base64
-      mimeType: blob.type
-    }
-  ]
+    },
+  ],
 });
 ```
 
@@ -124,39 +81,37 @@ const response = await itzam.generateText({
   attachments: [
     {
       file: "https://example.com/document1.pdf",
-      mimeType: "application/pdf"
+      mimeType: "application/pdf",
     },
     {
       file: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...",
-      mimeType: "image/jpeg"
+      mimeType: "image/jpeg",
     },
-    {
-      file: fileBlob, // File or Blob object
-      mimeType: "image/png"
-    }
-  ]
+  ],
 });
 ```
 
 ## Attachment Object Structure
 
-| Property   | Type                    | Required | Description                                                                                    |
-| ---------- | ----------------------- | -------- | ---------------------------------------------------------------------------------------------- |
-| `file`     | `string \| Blob \| File` | Yes      | The file data as base64 string, URL, or File/Blob object                                      |
-| `mimeType` | `string`                | No       | The MIME type of the file (e.g., "image/png", "application/pdf"). Auto-detected for File/Blob |
+| Property   | Type     | Required | Description                                                                     |
+| ---------- | -------- | -------- | ------------------------------------------------------------------------------- |
+| `file`     | `string` | Yes      | The file data as base64 string or URL                                           |
+| `mimeType` | `string` | No       | The MIME type of the file (e.g., "image/png", "application/pdf"). Auto-detected |
 
 ## Supported MIME Types
 
 Common MIME types that work well with AI models:
 
 ### Images
+
 - `image/jpeg` - JPEG images
-- `image/png` - PNG images  
+- `image/png` - PNG images
 - `image/gif` - GIF images
 - `image/webp` - WebP images
 - `image/svg+xml` - SVG images
 
 ### Documents
+
 - `application/pdf` - PDF documents
 - `text/plain` - Plain text files
 - `text/markdown` - Markdown files
@@ -164,33 +119,31 @@ Common MIME types that work well with AI models:
 - `application/vnd.openxmlformats-officedocument.wordprocessingml.document` - Word documents (.docx)
 
 ### Data
+
 - `application/json` - JSON files
 - `text/csv` - CSV files
 - `application/xml` - XML files
 
 ## Best Practices
 
-### File Size Considerations
+### File Size
+
 - Keep file sizes reasonable for better performance
 - Large files may increase processing time and costs
 - Consider compressing images when possible
 
 ### MIME Type Specification
+
 ```typescript
-// Always specify MIME type for better processing
+// Always try to specify MIME type for better processing
 {
   file: base64Data,
   mimeType: "image/jpeg" // Helps the AI understand the file type
 }
-
-// MIME type is optional for File/Blob objects (auto-detected)
-{
-  file: fileObject, // MIME type auto-detected from file.type
-  mimeType: "image/png" // Can override if needed
-}
 ```
 
-### URL Requirements
+### URLs
+
 ```typescript
 // URLs must be publicly accessible
 {
@@ -217,9 +170,9 @@ try {
     attachments: [
       {
         file: "invalid-url",
-        mimeType: "image/jpeg"
-      }
-    ]
+        mimeType: "image/jpeg",
+      },
+    ],
   });
 } catch (error) {
   if (error instanceof ItzamError) {
@@ -227,90 +180,3 @@ try {
   }
 }
 ```
-
-## Stream Methods
-
-Attachments work with streaming methods as well:
-
-```typescript
-const stream = await itzam.streamText({
-  input: "Describe this image as you process it",
-  workflowSlug: "streaming-vision",
-  attachments: [
-    {
-      file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg"
-    }
-  ]
-});
-
-for await (const chunk of stream.stream) {
-  console.log(chunk); // Streaming text response
-}
-
-const metadata = await stream.metadata;
-console.log("Final metadata:", metadata);
-```
-
-## Examples
-
-### Image Analysis
-```typescript
-const analyzeImage = async (imageFile: File) => {
-  const response = await itzam.generateObject({
-    input: "Analyze this image and provide detailed information",
-    workflowSlug: "image-analyzer",
-    schema: z.object({
-      description: z.string(),
-      objects: z.array(z.string()),
-      colors: z.array(z.string()),
-      mood: z.string(),
-      tags: z.array(z.string())
-    }),
-    attachments: [
-      {
-        file: imageFile,
-        mimeType: imageFile.type
-      }
-    ]
-  });
-  
-  return response.object;
-};
-```
-
-### Document Processing
-```typescript
-const processDocument = async (documentUrl: string) => {
-  const response = await itzam.generateText({
-    input: "Summarize the key points from this document",
-    workflowSlug: "document-summarizer",
-    attachments: [
-      {
-        file: documentUrl,
-        mimeType: "application/pdf"
-      }
-    ]
-  });
-  
-  return response.text;
-};
-```
-
-### Multi-Modal Chat
-```typescript
-const chatWithAttachments = async (message: string, files: File[]) => {
-  const attachments = files.map(file => ({
-    file: file,
-    mimeType: file.type
-  }));
-  
-  const response = await itzam.streamText({
-    input: message,
-    workflowSlug: "multi-modal-chat",
-    attachments
-  });
-  
-  return response;
-};
-``` 

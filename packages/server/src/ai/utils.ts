@@ -9,7 +9,8 @@ import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
-import type { CreateAiParamsFn } from "./types";
+import type { AttachmentWithUrl, CreateAiParamsFn } from "./types";
+import type { Attachment } from "./types";
 
 const defaultSchema = z.object({
   text: z.string().describe("The generated output text"),
@@ -24,7 +25,8 @@ export async function getFileFromString(
   filename: string,
   mimeType: string
 ) {
-  if (isBase64File(url)) {
+  // Data URI
+  if (isDataUri(url)) {
     const arr = url.split(",");
     const mime = arr[0]?.match(/:(.*?);/)?.[1];
     const bstr = atob(arr[arr.length - 1] ?? "");
@@ -34,10 +36,41 @@ export async function getFileFromString(
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
-    const file = new File([u8arr], filename, { type: mime || mimeType });
+
+    const finalMimeType = mime || mimeType;
+    if (!finalMimeType) {
+      throw new Error(
+        "Could not determine mime type from data URI or provided mimeType"
+      );
+    }
+
+    const file = new File([u8arr], filename, { type: finalMimeType });
     return Promise.resolve(file);
   }
 
+  // Base64
+  if (isBase64String(url)) {
+    if (!mimeType) {
+      throw new Error("Mime type is required for raw base64 strings");
+    }
+
+    try {
+      const bstr = atob(url);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+
+      const file = new File([u8arr], filename, { type: mimeType });
+      return Promise.resolve(file);
+    } catch (error) {
+      throw new Error("Invalid base64 string provided");
+    }
+  }
+
+  // URL
   if (isUrlFile(url)) {
     const file = await fetch(url);
 
@@ -50,7 +83,9 @@ export async function getFileFromString(
     const type = mimeType || file.headers.get("content-type");
 
     if (!type) {
-      throw new Error("Could not determine mime type");
+      throw new Error(
+        "Could not determine mime type from URL response or provided mimeType"
+      );
     }
 
     return new File([buffer], filename, {
@@ -58,7 +93,7 @@ export async function getFileFromString(
     });
   }
 
-  throw new Error("Invalid file");
+  throw new Error("Invalid file: must be a data URI, base64 string, or URL");
 }
 
 // @ts-expect-error TODO: fix typing
@@ -69,7 +104,6 @@ export const createAiParams: CreateAiParamsFn = async ({
   attachments,
   prompt,
   schema: schemaProp,
-  stream = false,
   run,
   ...rest
 }) => {
@@ -94,8 +128,6 @@ export const createAiParams: CreateAiParamsFn = async ({
     }
   }
 
-  console.log("Schema", schema);
-
   const content: UserContent = input
     ? [
         {
@@ -107,48 +139,11 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   if (attachments) {
     for (const attachment of attachments) {
-      const mimeType =
-        attachment.mimeType ||
-        (attachment.file.startsWith("data:")
-          ? attachment.file.split(";")[0]?.split(":")[1]
-          : attachment.file.split(".").pop());
-
-      const fileExt = extension(
-        attachment.mimeType || "application/octet-stream"
-      );
-      // if (attachment.type === "file") {
-      //   // get extension from mime type
-      //   // Convert to File instance if not already
-      //   const fileData = await getFileFromString(
-      //     attachment.file,
-      //     `file.${fileExt}`,
-      //     attachment.mimeType || "application/octet-stream"
-      //   );
-
-      //   // Upload file to R2
-      //   await uploadFileToBucket(fileData, "attachments");
-      //   content.push({
-      //     type: "file",
-      //     data: attachment.file,
-      //     mimeType: attachment.mimeType || fileData.type,
-      //   });
-      // } else if (attachment.type === "image") {
-      // Convert to File instance if not already
-      const imageData = await getFileFromString(
-        attachment.file,
-        `image.${fileExt}`,
-        attachment.mimeType || "image/png"
-      );
-      // Upload image to R2
-      await uploadFileToBucket(imageData, "attachments");
       content.push({
         type: "image",
         image: attachment.file,
-        mimeType: attachment.mimeType || imageData.type,
+        mimeType: attachment.mimeType,
       });
-      // } else {
-      //   throw new Error("Invalid attachment type");
-      // }
     }
   }
 
@@ -203,7 +198,8 @@ export const createAiParams: CreateAiParamsFn = async ({
     run
   );
 
-  console.log("System prompt with knowledge", systemPromptWithKnowledge);
+  console.log("System prompt with knowledge ⬇️");
+  console.log(systemPromptWithKnowledge);
 
   return {
     model: providerRegistry.languageModel(model.tag as any),
@@ -211,6 +207,7 @@ export const createAiParams: CreateAiParamsFn = async ({
     messages,
     schema,
     output,
+    attachments,
     ...rest,
   };
 };
@@ -243,11 +240,6 @@ export async function handleRunCompletion({
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
 
-  console.log("Run completion", {
-    text,
-    type: typeof text,
-  });
-
   void createRunWithCost({
     ...run,
     model: model,
@@ -262,11 +254,24 @@ export async function handleRunCompletion({
   });
 }
 
-export function isBase64File(file: string) {
+export function isDataUri(file: string): boolean {
   return file.startsWith("data:");
 }
 
-export function isUrlFile(file: string) {
+export function isBase64String(str: string): boolean {
+  // Check if string contains only valid base64 characters
+  const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+
+  // Base64 strings should have length that's a multiple of 4 (when properly padded)
+  // and should be at least a reasonable length for a file
+  if (str.length < 4 || str.length % 4 !== 0) {
+    return false;
+  }
+
+  return base64Regex.test(str);
+}
+
+export function isUrlFile(file: string): boolean {
   return file.startsWith("http");
 }
 
@@ -293,4 +298,36 @@ export async function insertKnowledgeInPrompt(
 Relevant content found in user's provided knowledge base:
 ${similarChunks.map((c) => c.content).join("\n")}
 </context>`;
+}
+
+export async function processAttachments(
+  attachments: Attachment[],
+  userId: string
+) {
+  const processedAttachments: AttachmentWithUrl[] = [];
+
+  for (const attachment of attachments) {
+    // Get file extension from mime type
+    const fileExt = extension(
+      attachment.mimeType || "application/octet-stream"
+    );
+
+    // Convert to File instance if not already
+    const file = await getFileFromString(
+      attachment.file,
+      `image.${fileExt}`,
+      attachment.mimeType || "image/png"
+    );
+
+    // Upload image to R2
+    const { imageUrl } = await uploadFileToBucket(file, userId);
+
+    processedAttachments.push({
+      ...attachment,
+      url: imageUrl,
+      mimeType: attachment.mimeType || file.type,
+    });
+  }
+
+  return processedAttachments;
 }

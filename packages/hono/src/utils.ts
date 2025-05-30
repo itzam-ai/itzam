@@ -1,5 +1,5 @@
-import type { Attachment } from "@itzam/server/ai/types";
-import { createAiParams } from "@itzam/server/ai/utils";
+import type { Attachment, AttachmentWithUrl } from "@itzam/server/ai/types";
+import { createAiParams, processAttachments } from "@itzam/server/ai/utils";
 import {
   updateApiKeyLastUsed,
   validateApiKey,
@@ -22,6 +22,7 @@ export type PreRunDetails = {
   modelId: string;
   workflowId: string;
   resourceIds: string[];
+  attachments: AttachmentWithUrl[];
 };
 
 type ValidationError = {
@@ -66,14 +67,12 @@ export const setupRunGeneration = async ({
   threadId,
   schema,
   input,
-  stream,
   attachments,
 }: {
   userId: string;
   workflowSlug?: string;
   threadId: string | null;
   schema?: NonLiteralJson | null;
-  stream?: boolean;
   input: string;
   attachments?: Attachment[];
 }) => {
@@ -123,12 +122,21 @@ export const setupRunGeneration = async ({
     modelId: workflow.modelId,
     workflowId: workflow.id,
     resourceIds: [],
+    attachments: [],
   };
+
+  let processedAttachments: AttachmentWithUrl[] = [];
 
   if (attachments) {
     if (!workflow.model.hasVision) {
       throw new Error("Model does not support vision");
     }
+
+    // Process attachments (upload to R2)
+    processedAttachments = await processAttachments(attachments, userId);
+
+    // Add attachments to run
+    run.attachments = processedAttachments;
   }
 
   const aiParams = await createAiParams({
@@ -138,12 +146,11 @@ export const setupRunGeneration = async ({
     model: workflow.model,
     // @ts-expect-error TODO: fix typing
     schema,
-    stream,
-    attachments,
+    attachments: processedAttachments,
     run,
   });
 
-  return { workflow, run, aiParams };
+  return { workflow, run, aiParams, processedAttachments };
 };
 
 // Common validation function

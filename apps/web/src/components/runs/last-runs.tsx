@@ -1,8 +1,7 @@
-import { RunWithModelAndResources } from "@itzam/server/db/run/actions";
+import { RunWithModelAndResourcesAndAttachments } from "@itzam/server/db/run/actions";
 import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
-import { HowToIntegrate } from "../empty-state/how-to-integrate";
 import { Button } from "../ui/button";
 import {
   Table,
@@ -16,7 +15,7 @@ export function LastRuns({
   lastRuns,
   workflowId,
 }: {
-  lastRuns: RunWithModelAndResources[] | undefined;
+  lastRuns: RunWithModelAndResourcesAndAttachments[] | undefined;
   workflowId: string;
 }) {
   return (

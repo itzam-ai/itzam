@@ -59,7 +59,7 @@ export default async function RunsTable({
 
   const totalRuns = await getRunsCount(workflowId, paramsFromQuery);
 
-  const totalPages = Math.ceil(totalRuns / 10);
+  const totalPages = Math.ceil(totalRuns / 50);
 
   return (
     <div className="space-y-4">

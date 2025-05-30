@@ -67,16 +67,19 @@ export function WorkflowHeader({
             <DialogTitle>Are you absolutely sure?</DialogTitle>
             <DialogDescription>
               This action cannot be undone. Your workflow{" "}
-              <span className="font-semibold">{name}</span> and all its runs
-              will be permanently deleted.
+              <span className="font-semibold text-foreground">{name}</span> and
+              all its runs will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-4 flex flex-col gap-2">
             <p className="text-muted-foreground text-sm">
-              Please enter the slug (
-              <span className="font-semibold">{slug}</span>) of the workflow to
-              confirm deletion.
+              Please enter the slug
+              <span className="font-semibold text-foreground">
+                {" "}
+                ({slug})
+              </span>{" "}
+              of the workflow to confirm deletion.
             </p>
             <Input
               type="text"
