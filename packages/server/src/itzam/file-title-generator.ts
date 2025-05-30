@@ -1,6 +1,6 @@
 "use server";
-import Itzam from "itzam";
 import { env } from "@itzam/utils";
+import { Itzam } from "itzam";
 
 const itzam = new Itzam(env.ITZAM_API_KEY);
 

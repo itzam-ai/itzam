@@ -2,7 +2,8 @@
   "name": "@itzam/tasks",
   "type": "module",
   "scripts": {
-    "dev": "pnpx trigger.dev@latest dev"
+    "dev": "pnpx trigger.dev@latest dev",
+    "clean": "rm -rf node_modules && rm -rf .trigger"
   },
   "exports": {
     ".": "./src/trigger/index.ts"

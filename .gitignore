@@ -40,3 +40,7 @@ yarn-error.log*
 .env*.local
 
 supabase/.*
+
+bin
+lib
+lib64

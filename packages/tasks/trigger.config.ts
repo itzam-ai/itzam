@@ -26,6 +26,7 @@ export default defineConfig({
     extensions: [
       pythonExtension({
         scripts: ["./src/python/**/*.py"],
+        requirementsFile: "./src/python/requirements.txt",
       }),
       syncVercelEnvVars({
         projectId: "prj_KSiT1md6dVUfD2lwIl4ndxL0rIxX",

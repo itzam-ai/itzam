@@ -4,14 +4,12 @@ import { openai } from "@ai-sdk/openai";
 import { db } from "@itzam/server/db/index";
 import { chunks, resources } from "@itzam/server/db/schema";
 import { supabase } from "@itzam/supabase/server";
-import { env } from "@itzam/utils/env";
-import { TokenTextSplitter } from "@langchain/textsplitters";
 import { logger, task } from "@trigger.dev/sdk/v3";
 import { embedMany } from "ai";
 import { eq } from "drizzle-orm";
-import { Itzam } from "itzam";
 import { v7 } from "uuid";
 import { z } from "zod";
+import { chunkTask } from "./chunk";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 
@@ -38,166 +36,12 @@ const ResourceSchema = z.object({
   userId: z.string(),
 });
 
-type Resource = Omit<typeof resources.$inferSelect, "fileName" | "mimeType"> & {
+export type Resource = Omit<
+  typeof resources.$inferSelect,
+  "fileName" | "mimeType"
+> & {
   fileName: string;
   mimeType: string;
-};
-
-// UTILITY FUNCTIONS
-
-// return a promise that resolves with a File instance
-const fetchFile = async (resource: Resource): Promise<File> => {
-  return logger.trace("fetch-file", async (span) => {
-    span.setAttribute("url", resource.url);
-
-    if (resource.type === "FILE") {
-      span.setAttribute("filename", resource.fileName);
-      span.setAttribute("mimeType", resource.mimeType);
-    } else {
-      span.setAttribute("filename", resource.url);
-      span.setAttribute("mimeType", "application/octet-stream");
-    }
-
-    if (isUrlFile(resource.url)) {
-      const file = await fetch(resource.url);
-
-      if (!file.ok) {
-        throw new Error(`Could not fetch file: ${file.statusText}`);
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      const type =
-        resource.type === "FILE"
-          ? resource.mimeType
-          : file.headers.get("content-type");
-
-      if (!type) {
-        throw new Error("Could not determine mime type");
-      }
-
-      return new File(
-        [buffer],
-        resource.type === "FILE" ? resource.fileName : resource.url,
-        {
-          type,
-        }
-      );
-    }
-
-    throw new Error("Invalid file format");
-  });
-};
-
-const isUrlFile = (file: string): boolean => {
-  return file.startsWith("http://") || file.startsWith("https://");
-};
-
-// TIKA CONVERSION
-const getTextFromResource = async (
-  resource: Resource
-): Promise<{ text: string; fileSize: number }> => {
-  return logger.trace("convert-single-file", async (span) => {
-    const start = Date.now();
-    try {
-      // Convert string to File object
-      const file = await fetchFile(resource);
-
-      // Send to Tika
-      const tikaUrl = env.TIKA_URL || "http://localhost:9998/tika";
-      const res = await fetch(tikaUrl, {
-        method: "PUT",
-        headers: {
-          Accept: "text/plain",
-        },
-        body: file,
-      });
-
-      if (!res.ok) {
-        throw new Error(`Failed to convert file: ${res.statusText}`);
-      }
-
-      const fileName =
-        resource.type === "FILE" ? resource.fileName : resource.url;
-      const text = await res.text();
-      const end = Date.now();
-      logger.log("Tika conversion completed", {
-        fileName,
-        durationMs: end - start,
-        fileSize: file.size,
-        textLength: text.length,
-      });
-      span.setAttribute("fileName", fileName);
-      span.setAttribute("durationMs", end - start);
-      span.setAttribute("fileSize", file.size);
-      span.setAttribute("textLength", text.length);
-      return { text, fileSize: file.size };
-    } catch (err) {
-      const end = Date.now();
-      logger.error("Error processing file:", {
-        error: err,
-        durationMs: end - start,
-      });
-      span.setAttribute("error", String(err));
-      span.setAttribute("durationMs", end - start);
-      return { text: "", fileSize: 0 }; // Return empty string for failed conversions
-    }
-  });
-};
-
-const itzam = new Itzam(env.ITZAM_API_KEY);
-
-const generateFileTitle = async (
-  text: string,
-  originalFileName: string
-): Promise<string> => {
-  // limit text to 1000 characters
-  const limitedText = text.slice(0, 1000);
-  return logger.trace("generate-file-title", async (span) => {
-    const start = Date.now();
-    try {
-      // For now, use a simple approach - in production you'd want to call your AI service
-      // This is a placeholder - you should replace with actual AI call
-      const response = await itzam.generateText({
-        input: `
-          Original file name: ${originalFileName}
-          File content: ${limitedText}
-          `,
-        workflowSlug: "file-title-generator",
-      });
-
-      if (response.text) {
-        const end = Date.now();
-        logger.log("File title generated", {
-          originalFileName,
-          generatedTitle: response.text || originalFileName,
-          durationMs: end - start,
-        });
-        span.setAttribute("originalFileName", originalFileName);
-        span.setAttribute("generatedTitle", response.text || originalFileName);
-        span.setAttribute("durationMs", end - start);
-        return response.text || originalFileName;
-      }
-
-      const end = Date.now();
-      logger.log("File title fallback to original", {
-        originalFileName,
-        durationMs: end - start,
-      });
-      span.setAttribute("originalFileName", originalFileName);
-      span.setAttribute("durationMs", end - start);
-      return originalFileName;
-    } catch (error) {
-      const end = Date.now();
-      logger.error("Error generating file title:", {
-        error,
-        durationMs: end - start,
-      });
-      span.setAttribute("error", String(error));
-      span.setAttribute("durationMs", end - start);
-      return originalFileName;
-    }
-  });
 };
 
 const getChannelId = (resource: Resource) => {
@@ -208,41 +52,22 @@ const getChannelId = (resource: Resource) => {
 
 // MULTIPLE EMBEDDINGS (for files and links)
 const generateEmbeddings = async (
-  value: string
+  resource: Resource
 ): Promise<Array<{ embedding: number[]; content: string | undefined }>> => {
-  const chunks = await logger.trace("chunking", async (span) => {
-    const start = Date.now();
-
-    logger.log("Chunking value", { textLength: value.length });
-    span.setAttribute("textLength", value.length);
-
-    // Maximum tokens for embedding model (conservative limit for text-embedding-3-small)
-    const MAX_TOKENS_PER_CHUNK = 1000;
-
-    const splitter = new TokenTextSplitter({
-      chunkSize: MAX_TOKENS_PER_CHUNK,
-      chunkOverlap: 200,
-    });
-
-    let chunks = await splitter.splitText(value);
-
-    const end = Date.now();
-    logger.log("Chunking completed", {
-      chunksCount: chunks.length,
-      durationMs: end - start,
-    });
-    span.setAttribute("chunksCount", chunks.length);
-    span.setAttribute("durationMs", end - start);
-
-    return chunks;
+  const chunks = await chunkTask.triggerAndWait({
+    resource,
   });
+
+  if (!chunks.ok) {
+    throw new Error("Failed to chunk");
+  }
 
   return await logger.trace("embedding", async (span) => {
     const start = Date.now();
 
     const { embeddings } = await embedMany({
       model: EMBEDDING_MODEL,
-      values: chunks,
+      values: chunks.output,
     });
 
     const end = Date.now();
@@ -254,45 +79,9 @@ const generateEmbeddings = async (
     span.setAttribute("durationMs", end - start);
 
     return embeddings.map((e: any, i: number) => ({
-      content: chunks[i],
+      content: chunks.output[i],
       embedding: e,
     }));
-  });
-};
-
-const generateFileTitleForResource = async (
-  text: string,
-  resource: Resource
-) => {
-  return logger.trace("generate-file-title-for-resource", async (span) => {
-    let title = "";
-    const start = Date.now();
-    try {
-      title = await generateFileTitle(text, resource.fileName ?? "");
-    } catch (error) {
-      title = resource.fileName ?? "";
-      logger.error("Error generating file title", { error });
-      span.setAttribute("error", String(error));
-    }
-
-    await db
-      .update(resources)
-      .set({
-        title: title,
-      })
-      .where(eq(resources.id, resource.id));
-
-    const end = Date.now();
-    logger.log("Resource title updated", {
-      resourceId: resource.id,
-      title,
-      durationMs: end - start,
-    });
-    span.setAttribute("resourceId", resource.id);
-    span.setAttribute("title", title);
-    span.setAttribute("durationMs", end - start);
-
-    return title;
   });
 };
 
@@ -313,31 +102,8 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
       span.setAttribute("resourceId", resourceId);
       span.setAttribute("workflowId", workflowId);
 
-      // SEND TO TIKA
-      const { text: textFromTika, fileSize } =
-        await getTextFromResource(resource);
-
-      // UPDATE RESOURCE WITH FILE SIZE
-      await db
-        .update(resources)
-        .set({ fileSize })
-        .where(eq(resources.id, resourceId));
-
-      title = await generateFileTitleForResource(textFromTika, resource);
-
-      logger.log("File converted and title generated", {
-        resourceId,
-        title,
-        textLength: textFromTika.length,
-      });
-      span.setAttribute("title", title);
-
-      if (!textFromTika) {
-        throw new Error("No text from Tika conversion");
-      }
-
       // GENERATE EMBEDDINGS
-      const embeddings = await generateEmbeddings(textFromTika);
+      const embeddings = await generateEmbeddings(resource);
 
       // SAVE CHUNK TO DB
       const createdChunks = await db
@@ -357,7 +123,7 @@ const createEmbeddings = async (resource: Resource, workflowId: string) => {
         status: "PROCESSED",
         title,
         chunks: createdChunks.length,
-        fileSize,
+        fileSize: 0,
       });
 
       logger.log("Chunks created successfully", {
