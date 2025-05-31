@@ -1,6 +1,6 @@
 "use client";
 
-import { RunWithModelAndResourcesAndAttachments } from "@itzam/server/db/run/actions";
+import { RunWithModelAndResourcesAndAttachmentsAndThreads } from "@itzam/server/db/run/actions";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckIcon,
@@ -18,12 +18,14 @@ import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { RunOriginType } from "~/lib/mappers/run-origin";
 import { formatDate } from "~/lib/utils";
+import { ThreadDrawer } from "../thread/drawer";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
+
 export function ExpandableRunRow({
   run,
 }: {
-  run: RunWithModelAndResourcesAndAttachments | null;
+  run: RunWithModelAndResourcesAndAttachmentsAndThreads | null;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -239,31 +241,6 @@ export function ExpandableRunRow({
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Cost</h4>
-                      <p className="mt-1 text-sm">${run.cost}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">
-                        Started at
-                      </h4>
-                      <p className="mt-1 text-sm">
-                        {run.createdAt.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">
-                        Thread ID
-                      </h4>
-                      <div className="mt-1 flex items-center gap-2">
-                        <p className="text-sm">{run.threadId ?? "N/A"}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex w-1/6 flex-col gap-6">
-                    <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Model</h4>
                       <div className="mt-1 flex items-center gap-2">
                         <ModelIcon tag={run.model?.tag ?? ""} size="xs" />
@@ -279,10 +256,35 @@ export function ExpandableRunRow({
                     </div>
 
                     <div className="flex flex-col gap-1">
+                      <h4 className="text-muted-foreground text-sm">Thread</h4>
+                      <div className="mt-1 flex items-center gap-2">
+                        {run.threadId ? (
+                          <ThreadDrawer run={run} />
+                        ) : (
+                          <p className="text-sm">N/A</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex w-1/6 flex-col gap-6">
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-muted-foreground text-sm">Date</h4>
+                      <p className="mt-1 text-sm">
+                        {run.createdAt.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">
                         Duration
                       </h4>
                       <p className="mt-1 text-sm">{run.durationInMs}ms</p>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <h4 className="text-muted-foreground text-sm">Cost</h4>
+                      <p className="mt-1 text-sm">${run.cost}</p>
                     </div>
 
                     <div className="flex flex-col gap-1">

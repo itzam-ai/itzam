@@ -55,12 +55,6 @@ export type GenerateObjectRequest<T> = WithAttachments<
   }
 >;
 
-type JsonSchemaWithProperties = JsonSchema7Type & {
-  properties?: Record<string, JsonSchema7Type>;
-  type?: string;
-  items?: JsonSchema7Type;
-};
-
 /**
  *
  * @class Itzam
@@ -143,26 +137,6 @@ class Itzam {
       return getRunsByThread(this.client, this.apiKey, threadId);
     },
   };
-
-  // Legacy methods for backward compatibility (deprecated)
-  /** @deprecated Use itzam.threads.create() instead */
-  async createThread(
-    createThreadRequest: InferRequestType<
-      typeof tempClient.api.v1.threads.$post
-    >["json"]
-  ) {
-    return this.threads.create(createThreadRequest);
-  }
-
-  /** @deprecated Use itzam.threads.list() instead */
-  async getThreadsByWorkflow(workflowSlug: string) {
-    return this.threads.list(workflowSlug);
-  }
-
-  /** @deprecated Use itzam.threads.getRuns() instead */
-  async getRunsByThread(threadId: string) {
-    return this.threads.getRuns(threadId);
-  }
 }
 
 export { Itzam, type ResponseMetadata as StreamMetadata, type StreamResponse };

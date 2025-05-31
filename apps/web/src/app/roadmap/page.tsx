@@ -5,6 +5,7 @@ import {
   Code,
   Gift,
   ImageIcon,
+  MessagesSquare,
   Paperclip,
   Ruler,
   Settings,
@@ -57,7 +58,7 @@ function Roadmap() {
       </div>
 
       <div className="mt-12 flex flex-col">
-        <h2 className="text-2xl">2Q 2025</h2>
+        <h2 className="text-2xl font-medium">2Q 2025</h2>
 
         <div className="flex flex-col gap-1">
           <p className="mt-6 flex items-center gap-2.5 text-lg">
@@ -107,29 +108,21 @@ function Roadmap() {
           <p className="mt-6 flex items-center gap-2.5 text-lg">
             <ImageIcon className="size-4 text-orange-600" />
             Image and file input
+            <Badge variant="green">Shipped</Badge>
           </p>
 
           <p className="text-muted-foreground">Allow image and file input.</p>
         </div>
 
-        <div className="mt-6 flex flex-col gap-1">
-          <p className="flex items-center gap-2.5 text-lg">
-            <ShieldCheck className="size-4 text-orange-600" />
-            Guardrails
-          </p>
-          <p className="text-muted-foreground">
-            Ship safe and compliant LLM workflows with custom guardrails.
-          </p>
-        </div>
-
         <div className="flex flex-col gap-1">
           <p className="mt-6 flex items-center gap-2.5 text-lg">
-            <Ruler className="size-4 text-orange-600" />
-            Rules
+            <MessagesSquare className="size-4 text-orange-600" />
+            Threads
+            <Badge variant="green">Shipped</Badge>
           </p>
+
           <p className="text-muted-foreground">
-            Create and enforce rules in your workflows (e.g. change prompt/model
-            based on input, switch current model based on cost).
+            Add threads (chat history) to your workflows.
           </p>
         </div>
 
@@ -143,7 +136,28 @@ function Roadmap() {
           </p>
         </div>
 
-        <h2 className="mt-16 text-2xl">3Q 2025</h2>
+        <div className="mt-6 flex flex-col gap-1">
+          <p className="flex items-center gap-2.5 text-lg">
+            <ShieldCheck className="size-4 text-orange-600" />
+            Guardrails
+          </p>
+          <p className="text-muted-foreground">
+            Ship safe and compliant LLM workflows with custom guardrails.
+          </p>
+        </div>
+
+        <h2 className="mt-16 text-2xl font-medium">3Q 2025</h2>
+
+        <div className="flex flex-col gap-1">
+          <p className="mt-6 flex items-center gap-2.5 text-lg">
+            <Ruler className="size-4 text-orange-600" />
+            Rules
+          </p>
+          <p className="text-muted-foreground">
+            Create and enforce rules in your workflows (e.g. change prompt/model
+            based on input, switch current model based on cost).
+          </p>
+        </div>
 
         <div className="mt-6 flex flex-col gap-1">
           <p className="flex items-center gap-2.5 text-lg">

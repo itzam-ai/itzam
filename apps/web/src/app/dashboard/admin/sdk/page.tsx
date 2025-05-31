@@ -344,7 +344,7 @@ export default function AdminSdkPage() {
           >
             <DialogTrigger asChild>
               <Button variant="outline" onClick={handleViewHistory}>
-                <History className="h-4 w-4 mr-2" />
+                <History className="h-4 w-4" />
                 View History
               </Button>
             </DialogTrigger>

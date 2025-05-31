@@ -1,7 +1,7 @@
 "use client";
 
 import { sendDiscordNotification } from "@itzam/server/discord/actions";
-import { Check, X } from "lucide-react";
+import { Check, Smile, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -75,7 +75,7 @@ export function FeedbackForm({ onClose }: FeedbackFormProps) {
             transition={TRANSITION_CONTENT}
           >
             <div className="rounded-full bg-green-500/10 p-1">
-              <Check className="size-4 text-green-500" />
+              <Smile className="size-4 text-green-500" />
             </div>
             <p className="text-foreground mt-3 mb-1 text-center text-sm font-medium">
               Thank you for your time!

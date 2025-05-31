@@ -7,14 +7,8 @@ import { sendDiscordNotification } from "../../discord/actions";
 import { customerIsSubscribedToItzamPro } from "../billing/actions";
 import { models, runResources, runs } from "../schema";
 import { calculateRunCost } from "./utils";
-<<<<<<< HEAD
-=======
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
-import { addDays, endOfDay, subDays } from "date-fns";
-import { v4 as uuidv4 } from "uuid";
 import { AttachmentWithUrl } from "../../ai/types";
 import { attachments as attachmentsTable } from "../schema";
->>>>>>> main
 export type Run = typeof runs.$inferSelect;
 
 export type RunWithModel = NonNullable<Awaited<ReturnType<typeof getRunById>>>;
@@ -33,7 +27,7 @@ export async function getRunById(runId: string) {
   });
 }
 
-export type RunWithModelAndResourcesAndAttachments = NonNullable<
+export type RunWithModelAndResourcesAndAttachmentsAndThreads = NonNullable<
   Awaited<ReturnType<typeof getLast30RunsInTheLast30Days>>[number]
 >;
 export async function getRunByIdAndUserId(runId: string, userId: string) {
@@ -66,6 +60,7 @@ export async function getLast30RunsInTheLast30Days(workflowId: string) {
           resource: true,
         },
       },
+      thread: true,
       attachments: true,
     },
     limit: 30,
@@ -155,6 +150,7 @@ export async function getRunsByWorkflowId(
           resource: true,
         },
       },
+      thread: true,
       attachments: true,
     },
     orderBy: (runs, { desc, asc }) => [
@@ -331,7 +327,6 @@ export async function addResourcesToRun(runId: string, resourceIds: string[]) {
   );
 }
 
-<<<<<<< HEAD
 export async function getRunsByThreadId(threadId: string) {
   return await db.query.runs.findMany({
     where: and(
@@ -341,9 +336,11 @@ export async function getRunsByThreadId(threadId: string) {
     orderBy: (runs, { asc }) => [asc(runs.createdAt)],
     with: {
       model: true,
+      attachments: true,
     },
   });
-=======
+}
+
 export async function addAttachmentsToRun(
   runId: string,
   attachments: AttachmentWithUrl[]
@@ -356,5 +353,4 @@ export async function addAttachmentsToRun(
       mimeType: attachment.mimeType || "application/octet-stream",
     }))
   );
->>>>>>> main
 }

@@ -410,6 +410,30 @@ export const apiKeys = createTable(
   })
 );
 
+// -------- THREADS --------
+export const threads = createTable(
+  "thread",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    name: varchar("name", { length: 256 }).notNull(),
+    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
+    workflowId: varchar("workflow_id", { length: 256 })
+      .notNull()
+      .references(() => workflows.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
+    createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
+    workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
+  })
+);
+
 // ----------------- CHAT --------------------------
 export const chats = createTable(
   "chat",
@@ -647,30 +671,6 @@ export const runResourceRelations = relations(runResources, ({ one }) => ({
     references: [resources.id],
   }),
 }));
-
-// -------- THREADS --------
-export const threads = createTable(
-  "thread",
-  {
-    id: varchar("id", { length: 256 }).primaryKey().notNull(),
-    name: varchar("name", { length: 256 }).notNull(),
-    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
-    workflowId: varchar("workflow_id", { length: 256 })
-      .notNull()
-      .references(() => workflows.id),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .$onUpdate(() => new Date())
-      .notNull(),
-  },
-  (table) => ({
-    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
-    createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
-    workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
-  })
-);
 
 // -------- Thread --------
 export const threadRelations = relations(threads, ({ many, one }) => ({

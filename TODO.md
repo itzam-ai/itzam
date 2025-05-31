@@ -4,7 +4,7 @@
 
   - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
 
-- [ ] Threads
+- [x] Threads
 
 - [x] Attachments
 

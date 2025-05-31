@@ -1,7 +1,10 @@
-import { and, eq } from "drizzle-orm";
+"use server";
+
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "../index";
 import { getRunsByThreadId } from "../run/actions";
 import { threads, workflows } from "../schema";
+import { getUser } from "../auth/actions";
 
 export async function getThreadsByWorkflowSlug(
   workflowSlug: string,
@@ -53,7 +56,17 @@ export async function getThreadById(threadId: string, userId: string) {
   };
 }
 
-export async function getThreadRunsHistory(threadId: string, userId: string) {
+export type ThreadRunsHistory = Awaited<
+  ReturnType<typeof getThreadRunsHistory>
+>;
+
+export async function getThreadRunsHistory(threadId: string) {
+  const { data, error } = await getUser();
+
+  if (error) {
+    return [];
+  }
+
   // First verify the thread belongs to the user
   const thread = await db.query.threads.findFirst({
     where: eq(threads.id, threadId),
@@ -62,7 +75,11 @@ export async function getThreadRunsHistory(threadId: string, userId: string) {
     },
   });
 
-  if (!thread || !thread.workflow || thread.workflow.userId !== userId) {
+  if (
+    !thread ||
+    !thread.workflow ||
+    thread.workflow.userId !== data?.user?.id
+  ) {
     return [];
   }
 

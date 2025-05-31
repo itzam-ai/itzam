@@ -239,7 +239,7 @@ export default function PlaygroundClient({
                     style={{
                       fontSize: "10px",
                     }}
-                    className="text-muted font-mono bg-muted/30 rounded-sm px-1"
+                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20"
                   >
                     ⌘
                   </span>
@@ -247,7 +247,7 @@ export default function PlaygroundClient({
                     style={{
                       fontSize: "8px",
                     }}
-                    className="text-muted font-mono bg-muted/30 rounded-sm px-1"
+                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20"
                   >
                     Enter
                   </span>

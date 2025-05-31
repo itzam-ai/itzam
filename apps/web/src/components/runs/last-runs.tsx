@@ -1,4 +1,4 @@
-import { RunWithModelAndResourcesAndAttachments } from "@itzam/server/db/run/actions";
+import { RunWithModelAndResourcesAndAttachmentsAndThreads } from "@itzam/server/db/run/actions";
 import { ArrowRight, Play } from "lucide-react";
 import Link from "next/link";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
@@ -15,7 +15,7 @@ export function LastRuns({
   lastRuns,
   workflowId,
 }: {
-  lastRuns: RunWithModelAndResourcesAndAttachments[] | undefined;
+  lastRuns: RunWithModelAndResourcesAndAttachmentsAndThreads[] | undefined;
   workflowId: string;
 }) {
   return (
