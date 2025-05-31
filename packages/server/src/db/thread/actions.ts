@@ -60,7 +60,7 @@ export type ThreadRunsHistory = Awaited<
   ReturnType<typeof getThreadRunsHistory>
 >;
 
-export async function getThreadRunsHistory(threadId: string, userId: string) {
+export async function getThreadRunsHistory(threadId: string, userId?: string) {
   let currentUserId = userId;
 
   if (!userId) {
