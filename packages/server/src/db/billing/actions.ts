@@ -56,7 +56,6 @@ export const customerIsSubscribedToItzamPro = cache(async () => {
   const stripeData = await getStripeData();
 
   if ("error" in stripeData) {
-    console.error(stripeData.error);
     return {
       isSubscribed: false,
       priceId: null,

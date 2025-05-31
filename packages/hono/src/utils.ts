@@ -1,11 +1,14 @@
-import type { Attachment } from "@itzam/server/ai/types";
-import { createAiParams } from "@itzam/server/ai/utils";
+import type { Attachment, AttachmentWithUrl } from "@itzam/server/ai/types";
+import { createAiParams, processAttachments } from "@itzam/server/ai/utils";
 import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
+import { db } from "@itzam/server/db/index";
+import { threads } from "@itzam/server/db/schema";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
 import { tryCatch } from "@itzam/utils/try-catch";
+import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -15,10 +18,11 @@ export type PreRunDetails = {
   origin: "SDK" | "WEB";
   input: string;
   prompt: string;
-  groupId: string | null;
+  threadId: string | null;
   modelId: string;
   workflowId: string;
   resourceIds: string[];
+  attachments: AttachmentWithUrl[];
 };
 
 type ValidationError = {
@@ -60,24 +64,50 @@ export const createErrorResponse = (error: unknown) => {
 export const setupRunGeneration = async ({
   userId,
   workflowSlug,
-  groupId,
+  threadId,
   schema,
   input,
-  stream,
   attachments,
 }: {
   userId: string;
-  workflowSlug: string;
-  groupId: string | null;
+  workflowSlug?: string;
+  threadId: string | null;
   schema?: NonLiteralJson | null;
-  stream?: boolean;
   input: string;
   attachments?: Attachment[];
 }) => {
-  const workflow = await getWorkflowBySlugAndUserIdWithModelAndModelSettings(
-    userId,
-    workflowSlug
-  );
+  let workflow;
+
+  if (workflowSlug) {
+    // Get workflow by slug
+    workflow = await getWorkflowBySlugAndUserIdWithModelAndModelSettings(
+      userId,
+      workflowSlug
+    );
+  } else if (threadId) {
+    const thread = await db.query.threads.findFirst({
+      where: eq(threads.id, threadId),
+      with: {
+        workflow: {
+          with: {
+            model: true,
+            modelSettings: true,
+          },
+        },
+      },
+    });
+
+    if (!thread) {
+      return { error: "Thread not found", status: 404 as StatusCode };
+    }
+
+    workflow = thread.workflow;
+  } else {
+    return {
+      error: "Either workflowSlug or threadId is required",
+      status: 400 as StatusCode,
+    };
+  }
 
   if (!workflow || "error" in workflow) {
     return { error: "Workflow not found", status: 404 as StatusCode };
@@ -88,16 +118,25 @@ export const setupRunGeneration = async ({
     origin: "SDK" as const,
     input,
     prompt: workflow.prompt,
-    groupId: groupId || null,
+    threadId: threadId || null,
     modelId: workflow.modelId,
     workflowId: workflow.id,
     resourceIds: [],
+    attachments: [],
   };
+
+  let processedAttachments: AttachmentWithUrl[] = [];
 
   if (attachments) {
     if (!workflow.model.hasVision) {
       throw new Error("Model does not support vision");
     }
+
+    // Process attachments (upload to R2)
+    processedAttachments = await processAttachments(attachments, userId);
+
+    // Add attachments to run
+    run.attachments = processedAttachments;
   }
 
   const aiParams = await createAiParams({
@@ -107,12 +146,11 @@ export const setupRunGeneration = async ({
     model: workflow.model,
     // @ts-expect-error TODO: fix typing
     schema,
-    stream,
-    attachments,
+    attachments: processedAttachments,
     run,
   });
 
-  return { workflow, run, aiParams };
+  return { workflow, run, aiParams, processedAttachments };
 };
 
 // Common validation function

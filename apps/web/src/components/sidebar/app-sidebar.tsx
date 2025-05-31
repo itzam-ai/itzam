@@ -6,6 +6,7 @@ import {
   ChartSpline,
   ExternalLink,
   FileText,
+  Github,
   Key,
   Lock,
   Terminal,
@@ -17,7 +18,6 @@ import { LastFiveWorkflows } from "@itzam/server/db/workflow/actions";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import GitHubLogo from "public/github-logo";
 import { NavUser } from "~/components/sidebar/nav-user";
 import {
   Sidebar,
@@ -198,10 +198,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <Link href={"https://github.com/itzam-ai/itzam"} target="_blank">
               <SidebarMenuButton tooltip={"Github"}>
-                {/* 😂 */}
-                <div className="opacity-30">
-                  <GitHubLogo />
-                </div>
+                <Github className="text-muted-foreground" />
                 <p>Github</p>
                 <SidebarMenuBadge>
                   <ExternalLink className="size-3 text-muted-foreground" />

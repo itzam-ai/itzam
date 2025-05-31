@@ -8,13 +8,15 @@ import { generateRoute } from "./routes/generate";
 import { modelsRoute } from "./routes/models";
 import { runsRoute } from "./routes/runs";
 import { streamRoute } from "./routes/stream";
+import { threadsRoute } from "./routes/threads";
 
 const app = new Hono()
   .basePath("/api/v1")
   .route("/generate", generateRoute)
   .route("/stream", streamRoute)
   .route("/runs", runsRoute)
-  .route("/models", modelsRoute);
+  .route("/models", modelsRoute)
+  .route("/threads", threadsRoute);
 
 app.get(
   "/doc",

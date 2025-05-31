@@ -52,27 +52,32 @@ const BaseInput = z.object({
       ],
       description: "Optional attachments to include in the generation",
     }),
-  workflowSlug: z.string().min(1).openapi({
+  workflowSlug: z.string().optional().openapi({
     example: "my_great_workflow",
     description:
-      "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)",
+      "The slug of the Workflow to use for generation (required if threadId is not provided)",
   }),
-  groupId: z.string().optional().openapi({
-    example: "my-group-id",
+  threadId: z.string().optional().openapi({
+    example: "thread_1234567890",
     description:
-      "Optional identifier for grouping related runs (e.g. user ID, session ID, etc.)",
+      "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
   }),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({
   ref: "TextCompletionInput",
-}).refine(
-  (data) => (data.attachments && data.attachments.length > 0) || data.input,
-  {
-    message: "Attachments or input are required",
-    path: ["attachments", "input"],
-  }
-);
+})
+  .refine(
+    (data) => (data.attachments && data.attachments.length > 0) || data.input,
+    {
+      message: "Attachments or input are required",
+      path: ["attachments", "input"],
+    }
+  )
+  .refine((data) => data.workflowSlug || data.threadId, {
+    message: "Either workflowSlug or threadId is required",
+    path: ["workflowSlug", "threadId"],
+  });
 
 export const ObjectCompletionInputSchema = BaseInput.extend({
   schema: z
@@ -104,6 +109,10 @@ export const ObjectCompletionInputSchema = BaseInput.extend({
     (data) => (data.attachments && data.attachments.length > 0) || data.input,
     "Attachments or input are required"
   )
+  .refine((data) => data.workflowSlug || data.threadId, {
+    message: "Either workflowSlug or threadId is required",
+    path: ["workflowSlug", "threadId"],
+  })
   .openapi({ ref: "ObjectCompletionInput" });
 
 export const StreamEventSchema = z
@@ -378,9 +387,9 @@ export const GetRunByIdResponseSchema = z
       example: 100,
       description: "The duration of the run in milliseconds",
     }),
-    groupId: z.string().openapi({
-      example: "group_1234567890",
-      description: "The group ID of the run",
+    threadId: z.string().nullable().openapi({
+      example: "thread_1234567890",
+      description: "The thread ID of the run",
     }),
     model: z.object({
       name: z.string().openapi({
@@ -413,6 +422,157 @@ export const GetRunByIdParamsSchema = z.object({
     description: "The ID of the run to retrieve",
   }),
 });
+
+// -------- THREADS --------
+export const CreateThreadInputSchema = z
+  .object({
+    name: z.string().optional().openapi({
+      example: "My Thread",
+      description:
+        "The name of the thread (optional, will auto-generate if not provided)",
+    }),
+    lookupKey: z.string().optional().openapi({
+      example: "user-123-session",
+      description: "Optional lookup key for finding the thread later",
+    }),
+    workflowSlug: z.string().min(1).openapi({
+      example: "my_great_workflow",
+      description: "The slug of the workflow this thread belongs to",
+    }),
+  })
+  .openapi({ ref: "CreateThreadInput" });
+
+export const CreateThreadResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "thread_1234567890",
+      description: "The ID of the created thread",
+    }),
+    name: z.string().openapi({
+      example: "My Thread",
+      description: "The name of the thread",
+    }),
+    lookupKey: z.string().nullable().openapi({
+      example: "user-123-session",
+      description: "The lookup key of the thread",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the thread",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the thread",
+    }),
+  })
+  .openapi({ ref: "CreateThreadResponse" });
+
+export const GetThreadByIdParamsSchema = z.object({
+  id: z.string().openapi({
+    example: "thread_1234567890",
+    description: "The ID of the thread to retrieve",
+  }),
+});
+
+export const GetThreadByLookupKeyParamsSchema = z.object({
+  lookupKey: z.string().openapi({
+    example: "user-123-session",
+    description: "The lookup key of the thread to retrieve",
+  }),
+});
+
+export const GetThreadResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "thread_1234567890",
+      description: "The ID of the thread",
+    }),
+    name: z.string().openapi({
+      example: "My Thread",
+      description: "The name of the thread",
+    }),
+    lookupKey: z.string().nullable().openapi({
+      example: "user-123-session",
+      description: "The lookup key of the thread",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the thread",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the thread",
+    }),
+  })
+  .openapi({ ref: "GetThreadResponse" });
+
+export const GetThreadsByWorkflowParamsSchema = z.object({
+  workflowSlug: z.string().openapi({
+    example: "my_great_workflow",
+    description: "The slug of the workflow to get threads for",
+  }),
+});
+
+export const GetThreadsByWorkflowQuerySchema = z.object({
+  lookupKey: z.string().optional().openapi({
+    example: "user-123-session",
+    description: "Optional lookup key to filter threads",
+  }),
+});
+
+export const GetThreadsByWorkflowResponseSchema = z
+  .object({
+    threads: z.array(GetThreadResponseSchema).openapi({
+      description: "Array of threads for the workflow",
+    }),
+  })
+  .openapi({ ref: "GetThreadsByWorkflowResponse" });
+
+export const GetRunsByThreadParamsSchema = z.object({
+  threadId: z.string().openapi({
+    example: "thread_1234567890",
+    description: "The ID of the thread to get runs for",
+  }),
+});
+
+export const ThreadRunSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "run_1234567890",
+      description: "The ID of the run",
+    }),
+    input: z.string().openapi({
+      example: "What is React?",
+      description: "The input of the run",
+    }),
+    output: z.string().openapi({
+      example: "React is a JavaScript library...",
+      description: "The output of the run",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the run",
+    }),
+    model: z.object({
+      name: z.string().openapi({
+        example: "gpt-4o",
+        description: "The name of the model",
+      }),
+      tag: z.string().openapi({
+        example: "openai:gpt-4o",
+        description: "The tag of the model",
+      }),
+    }),
+  })
+  .openapi({ ref: "ThreadRun" });
+
+export const GetRunsByThreadResponseSchema = z
+  .object({
+    runs: z.array(ThreadRunSchema).openapi({
+      description: "Array of runs in the thread",
+    }),
+  })
+  .openapi({ ref: "GetRunsByThreadResponse" });
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;

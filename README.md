@@ -1,4 +1,4 @@
-![itzam-without-bg.png](https://cdn.discordapp.com/attachments/1333533060213244017/1375229265418784768/itzam-readme.png?ex=6830ed8f&is=682f9c0f&hm=f27a237f4408e1eedab123b9eb8e30c022c5b87b34cf727e0bf06753a85aec80&)
+![itzam-without-bg.png](./assets/itzam-readme.png)
 
 # Itzam
 

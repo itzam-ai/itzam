@@ -202,6 +202,10 @@ export function CreateWorkflowDialog({
       for await (const chunk of response.stream) {
         form.setValue("prompt", chunk);
       }
+
+      console.log("Metadata ⬇️");
+      const metadata = await response.metadata;
+      console.log(metadata);
     } catch (error) {
       toast.error("Error generating prompt");
       console.error(error);

@@ -3,10 +3,14 @@ import { type JsonSchema7Type } from "zod-to-json-schema";
 
 import type { AppType } from "@itzam/hono/client/index.d";
 import { hc, type InferRequestType } from "hono/client";
+import { createThread } from "./methods/createThread";
 import { generateObject } from "./methods/generateObject";
 import { generateText } from "./methods/generateText";
 import { getModels } from "./methods/getModels";
 import { getRunById } from "./methods/getRunById";
+import { getRunsByThread } from "./methods/getRunsByThread";
+import { getThreadById } from "./methods/getThreadById";
+import { getThreadsByWorkflow } from "./methods/getThreadsByWorkflow";
 import { streamObject } from "./methods/streamObject";
 import { streamText } from "./methods/streamText";
 export type { InferRequestType, InferResponseType } from "hono/client";
@@ -50,12 +54,6 @@ export type GenerateObjectRequest<T> = WithAttachments<
     schema: ZodType<T, ZodTypeDef, unknown> | JsonSchema7Type;
   }
 >;
-
-type JsonSchemaWithProperties = JsonSchema7Type & {
-  properties?: Record<string, JsonSchema7Type>;
-  type?: string;
-  items?: JsonSchema7Type;
-};
 
 /**
  *
@@ -111,6 +109,34 @@ class Itzam {
   async getModels() {
     return getModels(this.client, this.apiKey);
   }
+
+  // Threads namespace
+  threads = {
+    create: async (
+      createThreadRequest: InferRequestType<
+        typeof tempClient.api.v1.threads.$post
+      >["json"]
+    ) => {
+      return createThread(this.client, this.apiKey, createThreadRequest);
+    },
+
+    list: async (workflowSlug: string, options?: { lookupKey?: string }) => {
+      return getThreadsByWorkflow(
+        this.client,
+        this.apiKey,
+        workflowSlug,
+        options
+      );
+    },
+
+    get: async (threadId: string) => {
+      return getThreadById(this.client, this.apiKey, threadId);
+    },
+
+    getRuns: async (threadId: string) => {
+      return getRunsByThread(this.client, this.apiKey, threadId);
+    },
+  };
 }
 
 export { Itzam, type ResponseMetadata as StreamMetadata, type StreamResponse };

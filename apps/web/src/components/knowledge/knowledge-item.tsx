@@ -109,9 +109,9 @@ export const KnowledgeItem = ({
             >
               chunk{resource.chunks?.length === 1 ? "" : "s"}
             </p>
+          </div>
 
-            <span className="text-muted-foreground/40">•</span>
-
+          <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <p
               className="text-muted-foreground whitespace-nowrap"
               style={{
@@ -131,9 +131,9 @@ export const KnowledgeItem = ({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             asChild
             disabled={!resource.url || isDeleting}
@@ -152,7 +152,7 @@ export const KnowledgeItem = ({
             </Link>
           </Button>
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             onClick={handleDelete}
             disabled={isDeleting}

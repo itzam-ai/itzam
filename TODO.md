@@ -1,45 +1,63 @@
-## Now (22w 2025)
-- [ ] Knowledge
-  - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
-- [ ] Threads
-- [ ] Attachments
-  - [ ] UI (be able to see attachments used in a run)
+## Now (22w · 2025)
 
-## Next
-### 23w 2025
+- [ ] Knowledge
+
+  - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
+
+- [x] Threads
+
+- [x] Attachments
+
+  - [x] UI (be able to see attachments used in a run)
+  - [x] Test SDK
+    - [x] URLs
+    - [x] Base64
+  - [x] Check docs
+
+### 23w · 2025
+
 - [ ] Context (segmented knowledge)
-  - [ ] Docs 
+
+  - [ ] Docs
     - [ ] Excalidraw illustrations
     - [ ] Glossary
   - [ ] CRUD (UI)
   - [ ] SDK (Integration with threads API)
-- [ ] Link rescrape (knowledge/context) 
-```ts 
+
+- [ ] Link rescrape (knowledge/context)
+
+```ts
+// Context usage example
+
 itzam.thread.create({
   workflowSlug: "my-workflow",
-  context: [ // context id
-    "context-1", 
+  context: [
+    // context id
+    "context-1",
     "context-2",
-    "context-3"
-  ]
-})
+    "context-3",
+  ],
+});
 ```
-### 24w 2025
+
+### 24w · 2025
+
 - [ ] Context (segmented knowledge)
+
+  - [ ] Docs
+    - [ ] API
+    - [ ] SDK
   - [ ] CRUD (SDK)
     - [ ] How the user can sync a context programmatically?
-- [ ] SDK/API error treatment 
+
+- [ ] SDK/API error treatment
 
 ## Future
 
-- [ ] Attachments | _Send attachments - docs, images - via API & SDKs_
-  - [ ] - UI
-  - [x] - SDK
-  - [ ] - Docs
-- [ ] Rules | _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
-- [ ] Model Recommendation | _Get recommendations on the best model (balancing cost, latency, and intelligence)_
-- [ ] Guardrails | _Create limits for the AI’s response._
-- [ ] Tools | _Integrate tools to your workflow._
+- [ ] Rules · _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
+- [ ] Model Recommendation · _Get recommendations on the best model (balancing cost, latency, and intelligence)_
+- [ ] Guardrails · _Create limits for the AI’s response._
+- [ ] Tools · _Integrate tools to your workflow._
 
 ### Other improvements
 
@@ -60,9 +78,9 @@ itzam.thread.create({
 
 - [ ] Playground tab
 
-  - [ ] Improve UI (less boxes)
   - [ ] Improve error treatment
-  - [ ] Fix streamed response
+  - [ ] Attachments
+  - [ ] Check knowledge in production
 
 - [ ] Prompt tab
 
@@ -86,19 +104,25 @@ itzam.thread.create({
 - [ ] Support other models (Groq, Perplexity, Lamma, Azure)
 - [ ] Status page
 
-### Others
-
-- [ ] Demos
-  - [ ] Add file/link to knowledge and now models knows who you are
-
 ### Past (Done)
+
 #### 22w 2025
-- [x] Usage workflow selector 
-##### Knowledge 
+
+Playground
+
+- [x] Improve UI (less boxes)
+- [x] Fix streamed response
+
+Usage
+
+- [x] Usage workflow selector
+
+Knowledge
+
 - [x] Improve UI [G]
   - [x] TextLoop when status changes (add number of chunks)
   - [x] Animations
   - [x] Show usage
 - [x] Validate plan limit [G]
-  - [x] 50MB free tier?
+  - [x] 50MB free tier
 - [x] Fix big files upload [A]

@@ -31,8 +31,10 @@ export default async function RunsTable({
   const paramsFromQuery = {
     modelId:
       typeof queryParams.modelId === "string" ? queryParams.modelId : undefined,
-    groupId:
-      typeof queryParams.groupId === "string" ? queryParams.groupId : undefined,
+    threadId:
+      typeof queryParams.threadId === "string"
+        ? queryParams.threadId
+        : undefined,
     status:
       typeof queryParams.status === "string"
         ? (queryParams.status as "RUNNING" | "COMPLETED" | "FAILED")
@@ -57,7 +59,7 @@ export default async function RunsTable({
 
   const totalRuns = await getRunsCount(workflowId, paramsFromQuery);
 
-  const totalPages = Math.ceil(totalRuns / 10);
+  const totalPages = Math.ceil(totalRuns / 50);
 
   return (
     <div className="space-y-4">

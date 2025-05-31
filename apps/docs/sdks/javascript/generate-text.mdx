@@ -16,27 +16,22 @@ import Itzam from "itzam";
 const itzam = new Itzam("YOUR_API_KEY");
 
 const response = await itzam.generateText({
-  input: "Hello, world!",
-  workflowSlug: "my_great_workflow",
-  // Optional parameters
-  groupId: "my-group-id",
-  attachments: [
-    {
-      file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg"
-    }
-  ]
+  workflowSlug: "my-workflow",
+  input: "What is the capital of France?",
+  threadId: "my-thread-id",
 });
+
+console.log(response.text);
 ```
 
-### Parameters
+## Parameters
 
-| Parameter      | Type           | Description                                                                                    |
-| -------------- | -------------- | ---------------------------------------------------------------------------------------------- |
+| Parameter      | Type           | Description                                                                                     |
+| -------------- | -------------- | ----------------------------------------------------------------------------------------------- |
+| `workflowSlug` | `string`       | The slug of the workflow to use for generation.                                                |
 | `input`        | `string`       | The input text to generate a response for.                                                     |
-| `workflowSlug` | `string`       | The slug of the Workflow to use for generation.                                                |
-| `groupId`      | `string`       | Optional. Identifier for grouping related runs.                                                |
-| `attachments`  | `Attachment[]` | Optional. Array of files to include. See [Attachments](/sdks/javascript/attachments) for details. |
+| `attachments`  | `Attachment[]` | Optional. Array of attachments to include in the generation.                                   |
+| `threadId`     | `string`       | Optional. Identifier for associating runs with a conversation thread.                          |
 
 ### Return Value
 

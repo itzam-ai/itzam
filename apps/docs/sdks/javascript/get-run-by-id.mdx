@@ -39,7 +39,7 @@ type GetRunByIdResponse = {
   outputTokens: number; // The number of output tokens used for this run
   cost: string; // The cost in USD
   durationInMs: number; // The duration of the run in milliseconds
-  groupId: string | null; // The group ID of the run
+  threadId: string | null; // The thread ID of the run
   model: {
     name: string; // The name of the model
     tag: string; // The tag of the model

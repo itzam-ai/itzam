@@ -4,11 +4,11 @@ import { tryCatch } from "@itzam/utils";
 import { v7 as uuidv7 } from "uuid";
 import { generateTextResponse, generateTextStream } from "../ai/generate/text";
 import { createAiParams } from "../ai/utils";
+import { getUser } from "../db/auth/actions";
 import { getModelById } from "../db/model/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "../db/workflow/actions";
 import { sendDiscordNotification } from "../discord/actions";
 import type { PreRunDetails } from "../types";
-import { getUser } from "../db/auth/actions";
 
 export type GenerateTextResponse = {
   output: string;
@@ -49,7 +49,7 @@ export async function generateText(
     origin: "WEB" as const,
     input,
     prompt,
-    groupId: null,
+    threadId: null,
     modelId: model.id,
     workflowId: workflow.id,
     resourceIds: [],
@@ -117,7 +117,7 @@ export async function generateStreamedText(
     origin: "WEB" as const,
     input,
     prompt,
-    groupId: null,
+    threadId: null,
     modelId: model.id,
     workflowId: workflow.id,
     resourceIds: [],
@@ -137,7 +137,7 @@ export async function generateStreamedText(
     model,
     startTime,
     undefined,
-    "object"
+    "text"
   );
 
   if (!response.body) {

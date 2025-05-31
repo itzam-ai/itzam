@@ -6,6 +6,7 @@ import type { Run } from "./run/actions";
 import {
   contextItems,
   contexts,
+  knowledge,
   modelSettings,
   models,
   providers,
@@ -274,6 +275,14 @@ async function createSampleData() {
     maxTokensPreset: "LONG",
   });
 
+  // Create knowledge
+  console.log("📚 Creating knowledge...");
+
+  const knowledgeId = v4();
+  await db.insert(knowledge).values({
+    id: knowledgeId,
+  });
+
   // Create workflows
   console.log("🎯 Creating sample workflows...");
 
@@ -293,6 +302,7 @@ async function createSampleData() {
     contextId: customerSupportContextId,
     modelId: gtp4o?.id ?? "",
     modelSettingsId: modelSettingsId,
+    knowledgeId: knowledgeId,
     userId: userId,
   });
 
@@ -310,6 +320,7 @@ async function createSampleData() {
     contextId: contentCreationContextId,
     modelId: claude37Sonnet?.id ?? "",
     modelSettingsId: modelSettingsId,
+    knowledgeId: knowledgeId,
     userId: userId,
   });
 
@@ -327,6 +338,7 @@ async function createSampleData() {
     contextId: codeAssistantContextId,
     modelId: gtp4o?.id ?? "",
     modelSettingsId: modelSettingsId,
+    knowledgeId: knowledgeId,
     userId: userId,
   });
 
@@ -388,7 +400,7 @@ export function generateSampleRuns(
       inputTokens: Math.floor(Math.random() * 1000),
       outputTokens: Math.floor(Math.random() * 1000),
       cost: String((Math.random() * 10).toFixed(6)),
-      groupId: Math.random() > 0.8 ? v4() : null,
+      threadId: Math.random() > 0.8 ? v4() : null,
       durationInMs: Math.floor(Math.random() * 1000),
       modelId: modelIds[Math.floor(Math.random() * modelIds.length)] as string,
       workflowId: workflowId,

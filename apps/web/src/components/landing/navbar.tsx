@@ -34,9 +34,9 @@ const features = [
   },
   {
     icon: Wallet,
-    href: "/#unified-billing",
-    label: "Unified Billing",
-    description: "Manage all your AI spending in one place.",
+    href: "/#costs-usage",
+    label: "Costs & Usage",
+    description: "Manage AI spending and usage in one place.",
   },
   {
     icon: Blocks,

@@ -1,19 +1,14 @@
 import { generateTextStream } from "@itzam/server/ai/generate/text";
 import { createAiParams } from "@itzam/server/ai/utils";
 import { getUser } from "@itzam/server/db/auth/actions";
-import { db } from "@itzam/server/db/index";
 import { type Model, getModelById } from "@itzam/server/db/model/actions";
-import { workflows } from "@itzam/server/db/schema";
-import { generateText } from "@itzam/server/playground/actions";
 import type { PreRunDetails } from "@itzam/server/types";
-import { eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { v7 as uuidv7 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, prompt, modelId, streaming, workflowId, userId } =
-      await request.json();
+    const { input, prompt, modelId, workflowId, userId } = await request.json();
 
     if (!input || !prompt || !userId || !workflowId) {
       return Response.json(
@@ -39,44 +34,32 @@ export async function POST(request: NextRequest) {
       origin: "WEB" as const,
       input,
       prompt,
-      groupId: null,
+      threadId: null,
       modelId: modelId,
       workflowId: workflowId,
       resourceIds: [],
+      attachments: [],
     };
 
     const aiParams = await createAiParams({
       input,
       prompt,
       model: model as Model,
-      stream: streaming,
       userId,
       run,
     });
 
-    if (streaming) {
-      const response = await generateTextStream(
-        aiParams,
-        run,
-        model,
-        new Date().getTime(),
-        undefined,
-        "object"
-      );
+    const response = await generateTextStream(
+      aiParams,
+      run,
+      model,
+      new Date().getTime(),
+      undefined,
+      "text"
+    );
 
-      return response;
-    }
-
-    const workflow = await db.query.workflows.findFirst({
-      where: eq(workflows.id, workflowId),
-    });
-
-    if (!workflow) {
-      return Response.json({ error: "Workflow not found" }, { status: 404 });
-    }
-
-    const result = await generateText(input, prompt, modelId, workflow.slug);
-    return Response.json(result);
+    // Return the response directly since it's now a proper text stream
+    return response;
   } catch (error) {
     console.error("Error in text generation:", error);
     return Response.json(

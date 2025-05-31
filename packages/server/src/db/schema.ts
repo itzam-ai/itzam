@@ -231,7 +231,9 @@ export const runs = createTable(
     durationInMs: integer("duration_in_ms").notNull(),
     fullResponse: jsonb("full_response"),
     metadata: jsonb("metadata").default({}),
-    groupId: varchar("group_id", { length: 256 }),
+    threadId: varchar("thread_id", { length: 256 }).references(
+      () => threads.id
+    ),
     modelId: varchar("model_id", { length: 256 }).references(() => models.id),
     workflowId: varchar("workflow_id", { length: 256 }).references(
       () => workflows.id
@@ -247,8 +249,27 @@ export const runs = createTable(
     workflowIdIndex: index("run_workflow_id_idx").on(table.workflowId),
     statusIndex: index("run_status_idx").on(table.status),
     createdAtIndex: index("run_created_at_idx").on(table.createdAt),
+    threadIdIndex: index("run_thread_id_idx").on(table.threadId),
   })
 );
+
+// Attachment table
+export const attachments = createTable("attachment", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  url: varchar("url", { length: 1024 }).notNull(),
+  mimeType: varchar("mime_type", { length: 256 }).notNull(),
+
+  runId: varchar("run_id", { length: 256 })
+    .notNull()
+    .references(() => runs.id),
+
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
 
 // RunResource table
 export const runResources = createTable(
@@ -389,6 +410,30 @@ export const apiKeys = createTable(
   })
 );
 
+// -------- THREADS --------
+export const threads = createTable(
+  "thread",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    name: varchar("name", { length: 256 }).notNull(),
+    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
+    workflowId: varchar("workflow_id", { length: 256 })
+      .notNull()
+      .references(() => workflows.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
+    createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
+    workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
+  })
+);
+
 // ----------------- CHAT --------------------------
 export const chats = createTable(
   "chat",
@@ -475,6 +520,7 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
     references: [contexts.id],
   }),
   runs: many(runs),
+  threads: many(threads),
   knowledge: one(knowledge, {
     fields: [workflows.knowledgeId],
     references: [knowledge.id],
@@ -525,6 +571,11 @@ export const runRelations = relations(runs, ({ one, many }) => ({
     references: [models.id],
   }),
   runResources: many(runResources),
+  attachments: many(attachments),
+  thread: one(threads, {
+    fields: [runs.threadId],
+    references: [threads.id],
+  }),
 }));
 
 // -------- ApiKey --------
@@ -532,6 +583,14 @@ export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   user: one(users, {
     fields: [apiKeys.userId],
     references: [users.id],
+  }),
+}));
+
+// -------- Attachment --------
+export const attachmentRelations = relations(attachments, ({ one }) => ({
+  run: one(runs, {
+    fields: [attachments.runId],
+    references: [runs.id],
   }),
 }));
 
@@ -610,5 +669,14 @@ export const runResourceRelations = relations(runResources, ({ one }) => ({
   resource: one(resources, {
     fields: [runResources.resourceId],
     references: [resources.id],
+  }),
+}));
+
+// -------- Thread --------
+export const threadRelations = relations(threads, ({ many, one }) => ({
+  runs: many(runs),
+  workflow: one(workflows, {
+    fields: [threads.workflowId],
+    references: [workflows.id],
   }),
 }));

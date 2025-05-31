@@ -10,6 +10,7 @@ import { Maximize2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
@@ -79,7 +80,7 @@ export function ResponseTextArea({
         style={{ height: "450px" }}
       >
         <div
-          className="pr-6 pb-8 prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2"
+          className="pr-6 pb-8 prose prose-sm dark:prose-invert prose-neutral max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2"
           ref={contentRef}
         >
           {markdownContent ? (
@@ -100,16 +101,18 @@ export function ResponseTextArea({
             <DialogTrigger asChild>
               <Button
                 size="icon"
-                variant="secondary"
-                className="-top-9 absolute right-5 shadow-md"
+                variant="ghost"
+                className="-top-7 absolute right-3.5"
               >
                 <Maximize2 className="size-3" />
               </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[80vh] max-w-4xl">
-              <DialogTitle>Response</DialogTitle>
+              <DialogHeader>
+                <DialogTitle>Response</DialogTitle>
+              </DialogHeader>
               <ScrollArea className="max-h-[calc(80vh-4rem)]">
-                <div className="p-4 prose prose-sm dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+                <div className="p-0 prose prose-sm prose-neutral dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
                   {markdownContent ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {markdownContent}
