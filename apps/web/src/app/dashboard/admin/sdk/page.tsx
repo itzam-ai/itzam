@@ -211,7 +211,7 @@ export default function AdminSdkPage() {
       setStreamStatus("streaming");
 
       for await (const chunk of response.stream) {
-        setResponse(chunk);
+        setResponse((prev) => prev + chunk);
       }
 
       const metadata = await response.metadata;

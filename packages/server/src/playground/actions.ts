@@ -2,7 +2,10 @@
 
 import { tryCatch } from "@itzam/utils";
 import { v7 as uuidv7 } from "uuid";
-import { generateTextResponse, generateTextStream } from "../ai/generate/text";
+import {
+  generateTextResponse,
+  generateTextOrObjectStream,
+} from "../ai/generate/text";
 import { createAiParams } from "../ai/utils";
 import { getUser } from "../db/auth/actions";
 import { getModelById } from "../db/model/actions";
@@ -53,6 +56,7 @@ export async function generateText(
     modelId: model.id,
     workflowId: workflow.id,
     resourceIds: [],
+    attachments: [],
   };
 
   const aiParams = await createAiParams({
@@ -121,6 +125,7 @@ export async function generateStreamedText(
     modelId: model.id,
     workflowId: workflow.id,
     resourceIds: [],
+    attachments: [],
   };
 
   const aiParams = await createAiParams({
@@ -131,7 +136,7 @@ export async function generateStreamedText(
     run,
   });
 
-  const response = await generateTextStream(
+  const response = await generateTextOrObjectStream(
     aiParams,
     run,
     model,

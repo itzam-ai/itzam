@@ -8,7 +8,7 @@ import { PreRunDetails } from "../../types";
 import type { AiParams } from "../types";
 import { type GenerationResponse, handleRunCompletion } from "../utils";
 
-export async function generateTextStream(
+export async function generateTextOrObjectStream(
   aiParams: AiParams,
   run: PreRunDetails,
   model: Model,
@@ -21,59 +21,109 @@ export async function generateTextStream(
   let durationInMs = 0;
   let metadata = {};
 
-  const response = streamObject({
-    ...aiParams,
-    output: aiParams.output ?? "no-schema",
-    onFinish: async ({ object, usage }) => {
-      if (!object) {
-        await handleRunCompletion({
-          run,
-          model,
-          text: "",
-          inputTokens: 0,
-          outputTokens: 0,
-          startTime,
-          status: "FAILED",
-          fullResponse: response,
-          metadata: { error: "No object returned" },
+  const response =
+    type === "object"
+      ? streamObject({
+          ...aiParams,
+          output: aiParams.output ?? "no-schema",
+          onFinish: async ({ object, usage }) => {
+            if (!object) {
+              await handleRunCompletion({
+                run,
+                model,
+                text: "",
+                inputTokens: 0,
+                outputTokens: 0,
+                startTime,
+                status: "FAILED",
+                fullResponse: response,
+                metadata: { error: "No object returned" },
+              });
+              return;
+            }
+
+            inputTokens = usage?.promptTokens || 0;
+            outputTokens = usage?.completionTokens || 0;
+            durationInMs = Date.now() - startTime;
+
+            await handleRunCompletion({
+              run,
+              model,
+              text: JSON.stringify(object),
+              inputTokens: usage?.promptTokens || 0,
+              outputTokens: usage?.completionTokens || 0,
+              startTime,
+              status: "COMPLETED",
+              fullResponse: response,
+              metadata,
+            });
+          },
+          onError: async ({ error }) => {
+            console.error("Error during streaming:", error);
+            await handleRunCompletion({
+              run,
+              model,
+              text: "",
+              inputTokens: 0,
+              outputTokens: 0,
+              startTime,
+              status: "FAILED",
+              fullResponse: response,
+              metadata: { error },
+              error: error as string,
+            });
+          },
+        })
+      : streamText({
+          ...aiParams,
+          onFinish: async ({ text, usage }) => {
+            if (!text) {
+              await handleRunCompletion({
+                run,
+                model,
+                text: "",
+                inputTokens: 0,
+                outputTokens: 0,
+                startTime,
+                status: "FAILED",
+                fullResponse: response,
+                metadata: { error: "No object returned" },
+              });
+              return;
+            }
+
+            inputTokens = usage?.promptTokens || 0;
+            outputTokens = usage?.completionTokens || 0;
+            durationInMs = Date.now() - startTime;
+
+            await handleRunCompletion({
+              run,
+              model,
+              text,
+              inputTokens: usage?.promptTokens || 0,
+              outputTokens: usage?.completionTokens || 0,
+              startTime,
+              status: "COMPLETED",
+              fullResponse: response,
+              metadata,
+            });
+          },
+          onError: async ({ error }) => {
+            console.error("Error during streaming:", error);
+            await handleRunCompletion({
+              run,
+              model,
+              text: "",
+              inputTokens: 0,
+              outputTokens: 0,
+              startTime,
+              status: "FAILED",
+              fullResponse: response,
+              metadata: { error },
+              error: error as string,
+            });
+          },
         });
-        return;
-      }
-
-      inputTokens = usage?.promptTokens || 0;
-      outputTokens = usage?.completionTokens || 0;
-      durationInMs = Date.now() - startTime;
-
-      await handleRunCompletion({
-        run,
-        model,
-        // if output is provided, convert the object to a string
-        // otherwise, use the object directly if it's a string, or try to get its text property
-        text: type === "object" ? JSON.stringify(object) : (object as any).text,
-        inputTokens: usage?.promptTokens || 0,
-        outputTokens: usage?.completionTokens || 0,
-        startTime,
-        status: "COMPLETED",
-        fullResponse: response,
-        metadata,
-      });
-    },
-    onError: async ({ error }) => {
-      console.error("Error during streaming:", error);
-      await handleRunCompletion({
-        run,
-        model,
-        text: "",
-        inputTokens: 0,
-        outputTokens: 0,
-        startTime,
-        status: "FAILED",
-        fullResponse: response,
-        metadata: { error },
-        error: error as string,
-      });
-    },
-  });
 
   if (streamSSE) {
     for await (const event of response.fullStream) {
@@ -98,6 +148,8 @@ export async function generateTextStream(
         (event as unknown as { metadata: unknown }).metadata = metadata;
       }
 
+      console.log("🔥 event", event);
+
       await streamSSE?.writeSSE({
         data: JSON.stringify(event),
         event: event.type,
@@ -117,19 +169,15 @@ export async function generateTextStream(
     });
   }
 
+  // Playground implementation
+  // --------------------------
   // Create a readable stream from the object events, extracting only text content
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       try {
         for await (const event of response.fullStream) {
-          if (event.type === "object") {
-            // Extract text from the object and send it as plain text
-            const textContent = (event.object as any)?.text || "";
-            if (textContent) {
-              controller.enqueue(encoder.encode(textContent));
-            }
-          } else if (event.type === "finish") {
+          if (event.type === "finish") {
             // Calculate final metadata
             inputTokens = event.usage?.promptTokens || 0;
             outputTokens = event.usage?.completionTokens || 0;
@@ -158,6 +206,8 @@ export async function generateTextStream(
                 `\n\n<!-- METADATA: ${JSON.stringify(metadata)} -->`
               )
             );
+          } else if (event.type === "text-delta") {
+            controller.enqueue(encoder.encode(event.textDelta));
           }
         }
 

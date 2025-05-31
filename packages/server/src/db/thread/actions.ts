@@ -60,11 +60,17 @@ export type ThreadRunsHistory = Awaited<
   ReturnType<typeof getThreadRunsHistory>
 >;
 
-export async function getThreadRunsHistory(threadId: string) {
-  const { data, error } = await getUser();
+export async function getThreadRunsHistory(threadId: string, userId: string) {
+  let currentUserId = userId;
 
-  if (error) {
-    return [];
+  if (!userId) {
+    const { data, error } = await getUser();
+
+    if (error) {
+      return [];
+    }
+
+    currentUserId = data?.user?.id || "";
   }
 
   // First verify the thread belongs to the user
@@ -75,11 +81,7 @@ export async function getThreadRunsHistory(threadId: string) {
     },
   });
 
-  if (
-    !thread ||
-    !thread.workflow ||
-    thread.workflow.userId !== data?.user?.id
-  ) {
+  if (!thread || !thread.workflow || thread.workflow.userId !== currentUserId) {
     return [];
   }
 

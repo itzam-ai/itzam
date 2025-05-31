@@ -1,4 +1,4 @@
-import { generateTextStream } from "@itzam/server/ai/generate/text";
+import { generateTextOrObjectStream } from "@itzam/server/ai/generate/text";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -55,7 +55,7 @@ export const streamRoute = new Hono()
       return streamSSE(c, async (stream) => {
         const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
-        await generateTextStream(
+        await generateTextOrObjectStream(
           aiParams,
           run,
           workflow.model,
@@ -108,7 +108,7 @@ export const streamRoute = new Hono()
       return streamSSE(c, async (stream) => {
         const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
-        await generateTextStream(
+        await generateTextOrObjectStream(
           aiParams,
           run,
           workflow.model,

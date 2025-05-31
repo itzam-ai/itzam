@@ -6,6 +6,8 @@
 
 - [x] Threads
 
+  - [ ] Docs
+
 - [x] Attachments
 
   - [x] UI (be able to see attachments used in a run)
