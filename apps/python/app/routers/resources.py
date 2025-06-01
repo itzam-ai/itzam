@@ -42,7 +42,7 @@ async def create_resource_task(request: CreateResourceRequest, user = Depends(ve
             db_resource = create_resource_in_db(resource_dict)
             created_resources.append(db_resource)
         
-        logger.info(f"Created {len(created_resources)} resources in database {[resource.id for resource in created_resources]}")
+        logger.info(f"Created {len(created_resources)} resources in database")
 
         # Process each resource for embeddings
         results = []
