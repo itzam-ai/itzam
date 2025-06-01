@@ -105,10 +105,11 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         if title:
             update_data["title"] = title
         if file_size is not None:
-            update_data["fileSize"] = file_size
+            update_data["file_size"] = file_size
             
-        supabase.table("resources").update(update_data).eq("id", resource_id).execute()
-        
+        supabase.table("resource").update(update_data).eq("id", resource_id).execute()
+        print(f"Updated resource {resource_id} status to {status}")
+
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")
 
