@@ -1,4 +1,4 @@
-import { generateTextStream } from "@itzam/server/ai/generate/text";
+import { generateTextOrObjectStream } from "@itzam/server/ai/generate/text";
 import { createAiParams } from "@itzam/server/ai/utils";
 import { getUser } from "@itzam/server/db/auth/actions";
 import { type Model, getModelById } from "@itzam/server/db/model/actions";
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       run,
     });
 
-    const response = await generateTextStream(
+    const response = await generateTextOrObjectStream(
       aiParams,
       run,
       model,

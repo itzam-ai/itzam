@@ -122,7 +122,7 @@ export default function PlaygroundClient({
         // Filter out metadata comments and only append actual text content
         const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
         if (cleanText) {
-          setOutput(cleanText);
+          setOutput((prev) => prev + cleanText);
         }
       }
 
@@ -239,7 +239,7 @@ export default function PlaygroundClient({
                     style={{
                       fontSize: "10px",
                     }}
-                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20"
+                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
                   >
                     ⌘
                   </span>
@@ -247,7 +247,7 @@ export default function PlaygroundClient({
                     style={{
                       fontSize: "8px",
                     }}
-                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20"
+                    className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
                   >
                     Enter
                   </span>

@@ -77,14 +77,11 @@ async function streamText(
       return;
     };
 
-    const eventHandlers: EventHandler<"object">[] = [
+    const eventHandlers: EventHandler<"text-delta">[] = [
       {
-        type: "object",
+        type: "text-delta",
         handler: (data) => {
-          if (data.object && typeof (data.object as any).text === "string") {
-            return (data.object as any).text;
-          }
-          return undefined;
+          return data.textDelta;
         },
       },
     ];

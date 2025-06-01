@@ -200,7 +200,7 @@ export function CreateWorkflowDialog({
       form.setValue("prompt", "");
 
       for await (const chunk of response.stream) {
-        form.setValue("prompt", chunk);
+        form.setValue("prompt", (form.getValues("prompt") ?? "") + chunk);
       }
 
       console.log("Metadata ⬇️");

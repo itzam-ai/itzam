@@ -69,7 +69,7 @@ export function PromptCard({
     setPrompt("");
 
     for await (const chunk of response.stream) {
-      setPrompt(chunk);
+      setPrompt((prev) => prev + chunk);
     }
 
     setIsGeneratingPrompt(false);

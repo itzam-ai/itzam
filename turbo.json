@@ -59,7 +59,9 @@
         "^lint"
       ]
     },
-    "clean": {},
+    "clean": {
+      "cache": false
+    },
     "db:drop": {
       "cache": false
     },
