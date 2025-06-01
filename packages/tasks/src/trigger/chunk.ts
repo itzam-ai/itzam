@@ -9,6 +9,8 @@ import { generateFileTitleForResource, getTextFromResource } from "./utils";
 
 export const chunkTask = task({
   id: "chunk",
+  maxDuration: 900,
+  machine: "small-2x",
   run: async ({
     resource,
     generateEmbeddings = false,
