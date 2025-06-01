@@ -1,0 +1,39 @@
+import os
+from typing import Optional
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+class Settings(BaseSettings):
+    """Application settings and configuration."""
+    
+    # Supabase Configuration
+    NEXT_PUBLIC_SUPABASE_URL: str 
+    SUPABASE_ANON_KEY: str 
+    
+    # OpenAI Configuration
+    OPENAI_API_KEY: Optional[str] 
+    
+    # Tika Configuration
+    TIKA_URL: str = os.getenv("TIKA_URL", "https://tika.yllw.software/tika")
+    
+    # API Configuration
+    API_TITLE: str = "Itzam Processing API"
+    API_DESCRIPTION: str = "API for document processing, chunking, embedding generation, and storage with Supabase integration"
+    API_VERSION: str = "2.0.0"
+    model_config = SettingsConfigDict(env_file=".env", extra="allow")
+    
+    @property
+    def required_vars_missing(self) -> list[str]:
+        """Return list of missing required environment variables."""
+        missing = []
+        if not self.SUPABASE_URL:
+            missing.append("NEXT_PUBLIC_SUPABASE_URL")
+        if not self.SUPABASE_ANON_KEY:
+            missing.append("SUPABASE_ANON_KEY")
+        return missing
+    
+    @property
+    def is_healthy(self) -> bool:
+        """Check if all required configuration is present."""
+        return len(self.required_vars_missing) == 0
+
+settings = Settings() 

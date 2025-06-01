@@ -62,7 +62,8 @@ export const chunkTask = task({
 
         const result = await python.runScript(
           "./src/python/chunk.py",
-          scriptArgs
+          scriptArgs,
+          {}
         );
 
         const parsed: {

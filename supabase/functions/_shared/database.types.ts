@@ -558,7 +558,6 @@ export type Database = {
           duration_in_ms: number
           error: string | null
           full_response: Json | null
-          group_id: string | null
           id: string
           input: string
           input_tokens: number
@@ -569,6 +568,7 @@ export type Database = {
           output_tokens: number
           prompt: string
           status: Database["public"]["Enums"]["run_status"]
+          thread_id: string | null
           updated_at: string
           workflow_id: string | null
         }
@@ -578,7 +578,6 @@ export type Database = {
           duration_in_ms: number
           error?: string | null
           full_response?: Json | null
-          group_id?: string | null
           id: string
           input: string
           input_tokens: number
@@ -589,6 +588,7 @@ export type Database = {
           output_tokens: number
           prompt: string
           status: Database["public"]["Enums"]["run_status"]
+          thread_id?: string | null
           updated_at: string
           workflow_id?: string | null
         }
@@ -598,7 +598,6 @@ export type Database = {
           duration_in_ms?: number
           error?: string | null
           full_response?: Json | null
-          group_id?: string | null
           id?: string
           input?: string
           input_tokens?: number
@@ -609,6 +608,7 @@ export type Database = {
           output_tokens?: number
           prompt?: string
           status?: Database["public"]["Enums"]["run_status"]
+          thread_id?: string | null
           updated_at?: string
           workflow_id?: string | null
         }
@@ -618,6 +618,13 @@ export type Database = {
             columns: ["model_id"]
             isOneToOne: false
             referencedRelation: "model"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "run_thread_id_thread_id_fk"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "thread"
             referencedColumns: ["id"]
           },
           {
@@ -661,6 +668,41 @@ export type Database = {
             columns: ["run_id"]
             isOneToOne: false
             referencedRelation: "run"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread: {
+        Row: {
+          created_at: string
+          id: string
+          lookup_key: string | null
+          name: string
+          updated_at: string
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          lookup_key?: string | null
+          name: string
+          updated_at: string
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lookup_key?: string | null
+          name?: string
+          updated_at?: string
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_workflow_id_workflow_id_fk"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflow"
             referencedColumns: ["id"]
           },
         ]

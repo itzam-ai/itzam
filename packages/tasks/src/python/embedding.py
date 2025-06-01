@@ -90,20 +90,6 @@ def main():
     workflow_id = sys.argv[6] if len(sys.argv) > 6 else None
     save_to_db = len(sys.argv) > 7 and sys.argv[7].lower() == "true"
 
-    # Get text content from Tika
-    content = get_text_from_tika(url, tika_url)
-
-    tokenizer = tiktoken.get_encoding("cl100k_base")
-
-    # Initialize the chunker
-    chunker = TokenChunker(tokenizer)
-
-    # Chunk the text
-    chunks = chunker(content)
-    chunk_texts = [chunk.text for chunk in chunks]
-
-    result = {"chunks": chunk_texts, "count": len(chunk_texts)}
-
     # Generate embeddings if requested and OpenAI API key is available
     if generate_embeddings and os.getenv("OPENAI_API_KEY"):
         try:

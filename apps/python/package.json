@@ -1,0 +1,6 @@
+{
+    "name": "@itzam/python",
+    "scripts": {
+        "dev": "fastapi dev main.py"
+    }
+}
