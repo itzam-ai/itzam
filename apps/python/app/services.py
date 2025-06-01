@@ -90,6 +90,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
                 # Generate embeddings for all chunks
                 embeddings = client.embed_batch(chunk_texts)
                 
+                logger.info(f"Generated embeddings for {len(embeddings)} chunks")
                 embeddings_data = [
                     {
                         "content": chunk_texts[i],
@@ -98,7 +99,6 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
                     for i in range(len(chunk_texts))
                 ]
                 
-                logger.info(f"Generated embeddings for {len(embeddings_data)} chunks")
                 
             except Exception as e:
                 logger.error(f"Failed to generate embeddings: {str(e)}")
