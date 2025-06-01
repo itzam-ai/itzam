@@ -4,7 +4,7 @@ from typing import Dict, Any
 import requests
 import tiktoken
 from openai import OpenAI
-from chonkie import TokenChunker
+from chonkie import TokenChunker, OpenAIEmbeddings
 from fastapi import HTTPException, status
 
 from .config import settings
@@ -85,18 +85,15 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         embeddings_data = None
         if settings.OPENAI_API_KEY:
             try:
-                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                client = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY, model="text-embedding-3-small")
                 
                 # Generate embeddings for all chunks
-                embeddings = client.embeddings.create(
-                    input=chunk_texts,
-                    model="text-embedding-3-small"
-                )
+                embeddings = client.embed_batch(chunk_texts)
                 
                 embeddings_data = [
                     {
                         "content": chunk_texts[i],
-                        "embedding": [float(x) for x in embeddings.data[i].embedding]
+                        "embedding": embeddings[i].tolist()
                     }
                     for i in range(len(chunk_texts))
                 ]

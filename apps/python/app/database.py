@@ -65,16 +65,16 @@ def create_resource_in_db(resource_data: Dict[str, Any]) -> Dict[str, Any]:
             "id": resource_id,
             "type": resource_data["type"],
             "url": str(resource_data["url"]),
-            "fileName": resource_data.get("fileName", resource_data.get("file_name", str(resource_data["url"]))),
-            "mimeType": resource_data.get("mimeType", resource_data.get("mime_type", "application/octet-stream")),
-            "fileSize": resource_data.get("fileSize", resource_data.get("file_size", 0)),
-            "status": "PROCESSING",
+            "file_name": resource_data.get("fileName", resource_data.get("file_name", str(resource_data["url"]))),
+            "mime_type": resource_data.get("mimeType", resource_data.get("mime_type", "application/octet-stream")),
+            "file_size": resource_data.get("fileSize", resource_data.get("file_size", 0)),
+            "status": "PENDING",
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         }
         
         # Insert resource
-        result = supabase.table("resources").insert(record).execute()
+        result = supabase.table("resource").insert(record).execute()
         
         if result.data:
             return result.data[0]
