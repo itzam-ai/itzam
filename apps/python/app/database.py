@@ -2,7 +2,7 @@ import uuid
 import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
-from supabase import create_client, Client
+from supabase import create_client, Client, acreate_client, AsyncClient
 
 from .config import settings
 
@@ -14,6 +14,13 @@ def get_supabase_client() -> Client:
         raise ValueError("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
     
     return create_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+
+def get_supabase_async_client() -> AsyncClient:
+    """Initialize Supabase client with environment variables."""
+    if not settings.NEXT_PUBLIC_SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
+        raise ValueError("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
+    
+    return acreate_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 def save_chunks_to_supabase(chunks_data: list, resource_id: str, workflow_id: str) -> dict:
     """Save chunks and embeddings directly to Supabase."""
@@ -115,9 +122,9 @@ def get_channel_id(resource: Dict[str, Any]) -> str:
 async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
     """Send real-time update via Supabase channel."""
     try:
-        supabase = get_supabase_client()
+        supabase = get_supabase_async_client()
         channel_id = get_channel_id(resource)
-        
+
         # Send broadcast message to the channel
         supabase.channel(channel_id).send({
             "type": "broadcast",
