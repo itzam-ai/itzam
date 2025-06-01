@@ -69,7 +69,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         title = generate_file_title(text_content, original_filename=original_filename)
         
         # Update resource with title and file size
-        update_resource_status(resource["id"], "PROCESSING", title, file_size)
+        update_resource_status(resource["id"], "PENDING", title, file_size)
         
         # Initialize tokenizer and chunker
         tokenizer = tiktoken.get_encoding("cl100k_base")
