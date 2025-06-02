@@ -1,7 +1,8 @@
 {
     "name": "@itzam/python",
     "scripts": {
-        "predev": "dotenv -- bash -c 'sqlacodegen $POSTGRES_URL > ./app/models.py'",
+        "dev:gen-models": "dotenv -- bash -c 'sqlacodegen $POSTGRES_URL | sed \"1s/^/# /\" > ./app/models.py'",
+        "predev": "pnpm run dev:gen-models",
         "dev": "fastapi run --workers 4 main.py"
     },
     "devDependencies": {

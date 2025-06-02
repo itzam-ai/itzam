@@ -1,9 +1,10 @@
+# Using pgvector 0.4.1
 from typing import Any, List, Optional
 
+from pgvector.sqlalchemy.vector import VECTOR
 from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Computed, DateTime, Double, Enum, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, SmallInteger, String, Table, Text, UniqueConstraint, Uuid, text
 from sqlalchemy.dialects.postgresql import JSONB, OID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.sql.sqltypes import NullType
 import datetime
 import decimal
 import uuid
@@ -440,7 +441,7 @@ class Chunks(Base):
 
     id: Mapped[str] = mapped_column(String(256), primary_key=True)
     content: Mapped[str] = mapped_column(Text)
-    embedding: Mapped[Any] = mapped_column(NullType)
+    embedding: Mapped[Any] = mapped_column(VECTOR(1536))
     active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
