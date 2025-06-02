@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     # Supabase Configuration
     NEXT_PUBLIC_SUPABASE_URL: str 
     SUPABASE_ANON_KEY: str 
+    POSTGRES_URL: str
     
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] 

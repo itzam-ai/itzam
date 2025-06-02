@@ -1,6 +1,10 @@
 {
     "name": "@itzam/python",
     "scripts": {
+        "predev": "dotenv -- bash -c 'sqlacodegen $POSTGRES_URL > ./app/models.py'",
         "dev": "fastapi run --workers 4 main.py"
+    },
+    "devDependencies": {
+        "dotenv-cli": "^8.0.0"
     }
 }
