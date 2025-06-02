@@ -127,7 +127,7 @@ async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
         channel_id = get_channel_id(resource)
 
         # Send broadcast message to the channel
-        supabase.channel(channel_id).send({
+        supabase.channel(channel_id).push({
             "type": "broadcast",
             "event": "update",
             "payload": payload
