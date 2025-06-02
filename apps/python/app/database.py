@@ -28,6 +28,7 @@ def save_chunks_to_supabase(chunks_data: list, resource_id: str, workflow_id: st
         supabase = get_supabase_client()
         
         # Prepare chunk records for insertion
+
         chunk_records = []
         for chunk_data in chunks_data:
             chunk_id = str(uuid.uuid4())
@@ -126,14 +127,10 @@ async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
     try:
         supabase = await get_supabase_async_client()
         channel_id = get_channel_id(resource)
-
         # Send broadcast message to the channel
-        supabase.channel(channel_id).push({
-            "type": "broadcast",
-            "event": "update",
-            "payload": payload
-        })
-        
+        channel = await supabase.channel(topic=channel_id).subscribe()
+        await channel.send_broadcast("update", payload)
         logger.info(f"Sent update to channel {channel_id}: {payload.get('status', 'unknown')}")
+        await channel.unsubscribe()
     except Exception as e:
         logger.error(f"Failed to send update: {str(e)}") 

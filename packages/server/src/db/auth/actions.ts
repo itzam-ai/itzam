@@ -1,17 +1,19 @@
 "use server";
 
+import { env } from "@itzam/utils/env";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createAdminAuthClient, createClient } from "../supabase/server";
-import { env } from "@itzam/utils/env";
-import { createStripeCustomer } from "../billing/actions";
 import { z } from "zod";
+import { createStripeCustomer } from "../billing/actions";
+import { createAdminAuthClient, createClient } from "../supabase/server";
 
 export async function getUser() {
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getUser();
-  return { data, error };
+  const { data: session } = await supabase.auth.getSession();
+
+  return { data, error, session };
 }
 
 export async function getUserById(id: string) {

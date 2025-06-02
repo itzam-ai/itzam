@@ -1,6 +1,5 @@
 "use client";
 
-import { Chunk } from "@itzam/server/ai/embeddings";
 import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
 import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
@@ -198,7 +197,7 @@ export const FileInput = ({
         status: "FAILED" | "PENDING" | "PROCESSED";
         resourceId: string;
         title: string;
-        chunks: Chunk[];
+        chunksLength: number;
         fileSize: number;
       }) => {
         setWorkflowFiles((files) => {
@@ -208,7 +207,7 @@ export const FileInput = ({
                 ...file,
                 status: payload.status,
                 title: payload.title,
-                chunks: payload.chunks,
+                chunksLength: payload.chunksLength,
                 fileSize: payload.fileSize,
               };
             }

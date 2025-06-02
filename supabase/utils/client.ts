@@ -25,6 +25,6 @@ export const subscribeToChannel = (
   channel.subscribe();
 
   return () => {
-    supabase.removeChannel(channel);
+    channel.unsubscribe();
   };
 };

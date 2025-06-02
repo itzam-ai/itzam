@@ -83,6 +83,22 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         # Chunk the text
         chunks = chunker(text_content)
         chunk_texts = [chunk.text for chunk in chunks]
+
+        logger.info({
+            "status": "PENDING",
+            "title": title,
+            "chunksLength": len(chunks),
+            "fileSize": file_size,
+            "resourceId": resource["id"]
+        })
+
+        await send_update(resource, {
+            "status": "PENDING",
+            "title": resource.get("fileName", resource.get("file_name", str(resource["url"]))), 
+            "fileSize": file_size,
+            "chunksLength": len(chunks),
+            "resourceId": resource["id"]
+        })
         
         logger.info(f"Generated {len(chunk_texts)} chunks for resource {resource['id']}")
         
@@ -93,7 +109,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
                 client = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY, model="text-embedding-3-small")
                 
                 # Generate embeddings for all chunks asynchronously
-                embeddings = await client.embed_batch(chunk_texts)
+                embeddings = client.embed_batch(chunk_texts)
                 
                 logger.info(f"Generated embeddings for {len(embeddings)} chunks")
                 embeddings_data = [
@@ -144,9 +160,9 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         await send_update(resource, {
             "status": status_to_set,
             "title": title,
-            "chunks": len(chunk_texts),
-            "file_size": file_size,
-            "resource_id": resource["id"]
+            "chunksLength": len(chunk_texts),
+            "fileSize": file_size,
+            "resourceId": resource["id"]
         })
         
         logger.info(f"Completed embedding generation for resource {resource['id']}")
@@ -162,9 +178,9 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         await send_update(resource, {
             "status": "FAILED",
             "title": resource.get("fileName", resource.get("file_name", str(resource["url"]))),
-            "chunks": 0,
-            "file_size": 0,
-            "resource_id": resource["id"]
+            "chunksLength": 0,
+            "fileSize": 0,
+            "resourceId": resource["id"]
         })
         
         raise 

@@ -2,6 +2,7 @@
 
 import { deleteResource, Knowledge } from "@itzam/server/db/knowledge/actions";
 import NumberFlow from "@number-flow/react";
+import { formatBytes } from "bytes-formatter";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -17,13 +18,12 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { formatBytes } from "bytes-formatter";
 
 export const KnowledgeItem = ({
   resource,
   onDelete,
 }: {
-  resource: Knowledge["resources"][number];
+  resource: Knowledge["resources"][number] & { chunksLength?: number };
   onDelete?: (resourceId: string) => void;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -95,7 +95,7 @@ export const KnowledgeItem = ({
 
           <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <NumberFlow
-              value={resource.chunks?.length ?? 0}
+              value={resource.chunksLength ?? 0}
               style={{
                 fontSize: "10px",
                 fontWeight: "700",
@@ -107,7 +107,7 @@ export const KnowledgeItem = ({
                 fontSize: "10px",
               }}
             >
-              chunk{resource.chunks?.length === 1 ? "" : "s"}
+              chunk{resource.chunksLength === 1 ? "" : "s"}
             </p>
           </div>
 

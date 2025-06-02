@@ -19,20 +19,27 @@ export async function createResourceTask({
   resources: ResourceInput;
 }) {
   const user = await getUser();
-
   if (user.error || !user.data.user) {
     throw new Error("User not found");
   }
 
-  const handle = await tasks.trigger<typeof createResourceTaskTrigger>(
-    "create-resource",
-    {
+  const handle = await fetch("http://127.0.0.1:8000/api/v1/create-resource", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${user.session.session?.access_token}`,
+    },
+    body: JSON.stringify({
       knowledgeId,
-      resources,
+      resources: resources.map((resource) => ({
+        type: resource.type,
+        id: resource.id,
+        url: resource.url,
+      })),
       userId: user.data.user.id,
       workflowId,
-    }
-  );
+    }),
+  });
 
-  return handle;
+  return await handle.json();
 }

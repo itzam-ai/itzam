@@ -449,8 +449,6 @@ class Chunks(Base):
 
     resource: Mapped['Resource'] = relationship('Resource', back_populates='chunks')
     workflow: Mapped['Workflow'] = relationship('Workflow', back_populates='chunks')
-
-
 class Thread(Base):
     __tablename__ = 'thread'
     __table_args__ = (

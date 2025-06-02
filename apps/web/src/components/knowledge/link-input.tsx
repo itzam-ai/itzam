@@ -1,6 +1,5 @@
 "use client";
 
-import { Chunk } from "@itzam/server/ai/embeddings";
 import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
 import { subscribeToChannel } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
@@ -45,9 +44,9 @@ export const LinkInput = ({
   workflowId: string;
   knowledge: Knowledge;
 }) => {
-  const [workflowLinks, setWorkflowLinks] = useState<Knowledge["resources"]>(
-    knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []
-  );
+  const [workflowLinks, setWorkflowLinks] = useState<
+    (Knowledge["resources"][number] & { chunksLength?: number })[]
+  >(knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []);
 
   const [link, setLink] = useState<string>("");
   const [linkError, setLinkError] = useState<string>("");
@@ -157,7 +156,7 @@ export const LinkInput = ({
         status: "FAILED" | "PENDING" | "PROCESSED";
         resourceId: string;
         title: string;
-        chunks: Chunk[];
+        chunksLength: number;
         fileSize: number;
       }) => {
         setWorkflowLinks((links) => {
@@ -167,7 +166,7 @@ export const LinkInput = ({
                 ...link,
                 status: payload.status,
                 title: payload.title,
-                chunks: payload.chunks,
+                chunksLength: payload.chunksLength,
                 fileSize: payload.fileSize,
               };
             }
