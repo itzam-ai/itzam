@@ -379,6 +379,8 @@ importers:
         specifier: ^4.0.510
         version: 4.0.552(@types/node@22.15.21)(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
 
+  apps/python: {}
+
   apps/web:
     dependencies:
       '@aws-sdk/client-s3':

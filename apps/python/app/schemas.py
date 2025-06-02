@@ -39,8 +39,6 @@ class ProcessingResult(BaseModel):
 class CreateResourceResponse(BaseModel):
     success: bool
     resources: List[Dict[str, Any]]
-    results: List[ProcessingResult]
-    summary: Dict[str, int]
 
 class HealthResponse(BaseModel):
     status: str

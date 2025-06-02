@@ -1,10 +1,11 @@
 import uuid
 import logging
 from typing import Dict, Any
-import requests
+import asyncio
+import aiohttp
 import tiktoken
-from openai import OpenAI
-from chonkie import TokenChunker, OpenAIEmbeddings
+from openai import OpenAIEmbeddings
+from chonkie import TokenChunker
 from fastapi import HTTPException, status
 
 from .config import settings
@@ -13,27 +14,29 @@ from .schemas import UpdatePayload
 
 logger = logging.getLogger(__name__)
 
-def get_text_from_tika(url: str, tika_url: str = None) -> tuple[str, int]:
-    """Extract text from a file URL using Tika."""
+async def get_text_from_tika(url: str, tika_url: str = None) -> tuple[str, int]:
+    """Extract text from a file URL using Tika asynchronously."""
     if tika_url is None:
         tika_url = settings.TIKA_URL
         
     try:
-        # Download the file from the URL
-        file_response = requests.get(str(url))
-        file_response.raise_for_status()
-        file_content = file_response.content
-        file_size = len(file_content)
+        async with aiohttp.ClientSession() as session:
+            # Download the file from the URL
+            async with session.get(str(url)) as file_response:
+                file_response.raise_for_status()
+                file_content = await file_response.read()
+                file_size = len(file_content)
 
-        # Send the file to Tika for text extraction
-        tika_response = requests.put(
-            tika_url,
-            headers={"Accept": "text/plain"},
-            data=file_content,
-        )
-        tika_response.raise_for_status()
-        return tika_response.text, file_size
-    except requests.RequestException as e:
+            # Send the file to Tika for text extraction
+            async with session.put(
+                tika_url,
+                headers={"Accept": "text/plain"},
+                data=file_content,
+            ) as tika_response:
+                tika_response.raise_for_status()
+                text_content = await tika_response.text()
+                return text_content, file_size
+    except aiohttp.ClientError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to extract text from URL: {str(e)}"
@@ -52,11 +55,13 @@ def generate_file_title(text: str, original_filename: str) -> str:
         return first_line if first_line else original_filename
     return original_filename
 
-async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_to_db: bool = False) -> Dict[str, Any]:
+async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_to_db: bool = False):
     """Generate embeddings for a resource and optionally save to database."""
     try:
+        logger.info(f"Starting embedding generation for resource {resource['id']}")
+        
         # Extract text content
-        text_content, file_size = get_text_from_tika(str(resource["url"]))
+        text_content, file_size = await get_text_from_tika(str(resource["url"]))
         
         if not text_content.strip():
             raise HTTPException(
@@ -69,7 +74,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         title = generate_file_title(text_content, original_filename=original_filename)
         
         # Update resource with title and file size
-        update_resource_status(resource["id"], "PROCESSING", title, file_size)
+        update_resource_status(resource["id"], "PENDING", title, file_size)
         
         # Initialize tokenizer and chunker
         tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -87,8 +92,8 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             try:
                 client = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY, model="text-embedding-3-small")
                 
-                # Generate embeddings for all chunks
-                embeddings = client.embed_batch(chunk_texts)
+                # Generate embeddings for all chunks asynchronously
+                embeddings = await client.embed_bacth(chunk_texts)
                 
                 embeddings_data = [
                     {
@@ -144,6 +149,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             "resource_id": resource["id"]
         })
         
+        logger.info(f"Completed embedding generation for resource {resource['id']}")
         return result
         
     except Exception as e:
