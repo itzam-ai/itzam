@@ -15,12 +15,12 @@ def get_supabase_client() -> Client:
     
     return create_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
-def get_supabase_async_client() -> AsyncClient:
+async def get_supabase_async_client() -> AsyncClient:
     """Initialize Supabase client with environment variables."""
     if not settings.NEXT_PUBLIC_SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
         raise ValueError("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
     
-    return acreate_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+    return await acreate_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
 def save_chunks_to_supabase(chunks_data: list, resource_id: str, workflow_id: str) -> dict:
     """Save chunks and embeddings directly to Supabase."""
@@ -76,6 +76,7 @@ def create_resource_in_db(resource_data: Dict[str, Any]) -> Dict[str, Any]:
             "mime_type": resource_data.get("mimeType", resource_data.get("mime_type", "application/octet-stream")),
             "file_size": resource_data.get("fileSize", resource_data.get("file_size", 0)),
             "status": "PENDING",
+            "knowledge_id": resource_data.get("knowledgeId", resource_data.get("knowledge_id")),
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         }
@@ -105,10 +106,11 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         if title:
             update_data["title"] = title
         if file_size is not None:
-            update_data["fileSize"] = file_size
+            update_data["file_size"] = file_size
             
-        supabase.table("resources").update(update_data).eq("id", resource_id).execute()
-        
+        supabase.table("resource").update(update_data).eq("id", resource_id).execute()
+        print(f"Updated resource {resource_id} status to {status}")
+
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")
 
@@ -122,11 +124,11 @@ def get_channel_id(resource: Dict[str, Any]) -> str:
 async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
     """Send real-time update via Supabase channel."""
     try:
-        supabase = get_supabase_async_client()
+        supabase = await get_supabase_async_client()
         channel_id = get_channel_id(resource)
 
         # Send broadcast message to the channel
-        supabase.channel(channel_id).send({
+        supabase.channel(channel_id).push({
             "type": "broadcast",
             "event": "update",
             "payload": payload
