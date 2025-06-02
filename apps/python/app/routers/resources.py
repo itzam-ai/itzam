@@ -11,7 +11,7 @@ from ..schemas import (
     ProcessingResult
 )
 from ..database import create_resource_in_db
-from ..services import generate_embeddings, get_text_from_tika, generate_file_title
+from ..services import process_resource_embeddings
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ async def create_resource_task(request: CreateResourceRequest, background_tasks:
         # Queue background tasks for embedding generation
         for resource in created_resources:
             logger.info(f"Queuing embedding generation for resource {resource['id']}")
-            background_tasks.add_task(generate_embeddings, resource, request.workflow_id, save_to_db=True)
+            background_tasks.add_task(process_resource_embeddings, background_tasks=background_tasks, resource=resource, workflow_id=request.workflow_id, save_to_db=True)
         
         logger.info(f"Queued {len(created_resources)} embedding tasks for background processing")
 

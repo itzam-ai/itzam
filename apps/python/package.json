@@ -1,6 +1,6 @@
 {
     "name": "@itzam/python",
     "scripts": {
-        "dev": "fastapi dev main.py"
+        "dev": "fastapi run --workers 4 main.py"
     }
 }
