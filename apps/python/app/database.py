@@ -76,6 +76,7 @@ def create_resource_in_db(resource_data: Dict[str, Any]) -> Dict[str, Any]:
             "mime_type": resource_data.get("mimeType", resource_data.get("mime_type", "application/octet-stream")),
             "file_size": resource_data.get("fileSize", resource_data.get("file_size", 0)),
             "status": "PENDING",
+            "knowledge_id": resource_data.get("knowledgeId", resource_data.get("knowledge_id")),
             "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat(),
         }
