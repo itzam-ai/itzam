@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Tuple, Union
 import asyncio
 import aiohttp
 import tiktoken
+import json
 from openai import OpenAI
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
@@ -43,12 +44,43 @@ async def get_text_from_tika(url: str, tika_url: str = None) -> tuple[str, int]:
             detail=f"Failed to extract text from URL: {str(e)}"
         )
 
-def generate_file_title(text: str, original_filename: str) -> str:
-    """Generate a title from text content or fallback to filename."""
+async def generate_file_title(text: str, original_filename: str) -> str:
+    """Generate a title using Itzam API or fallback to simple generation."""
     if not text.strip():
         return original_filename
     
-    # Simple title generation - take first line or first 100 characters
+    # Try to generate title using Itzam API if available
+    if settings.ITZAM_API_KEY:
+        try:
+            # Limit text to 1000 characters for API efficiency
+            limited_text = text[:1000]
+            
+            payload = {
+                "input": f"Original file name: {original_filename}\nFile content: {limited_text}",
+                "workflowSlug": "file-title-generator"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{settings.ITZAM_API_URL}/generate/text",
+                    headers={
+                        "Api-Key": settings.ITZAM_API_KEY,
+                        "Content-Type": "application/json"
+                    },
+                    data=json.dumps(payload)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        generated_title = result.get("text", "").strip()
+                        if generated_title:
+                            logger.info(f"Generated title using Itzam API: {generated_title}")
+                            return generated_title
+                    else:
+                        logger.warning(f"Itzam API returned status {response.status}")
+        except Exception as e:
+            logger.error(f"Error calling Itzam API for title generation: {str(e)}")
+    
+    # Fallback to simple title generation
     lines = text.strip().split('\n')
     first_line = lines[0].strip() if lines else ""
     
@@ -73,8 +105,9 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
                 detail="No text content extracted from the provided URL"
             )
         
-        # Generate title
-        title = "Placeholder Title (NEED TO FIX)"
+        # Generate title using Itzam API or fallback
+        original_filename = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+        title = await generate_file_title(text_content, original_filename)
         
         # Update resource with title and file size
         update_resource_status(resource.id, "PENDING", title, file_size)
@@ -120,9 +153,10 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         update_resource_status(resource.id, "FAILED")
         
         # Send failure update
+        fallback_title = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
         await send_update(resource, {
             "status": "FAILED",
-            "title": "Placeholder Title (NEED TO FIX)",
+            "title": fallback_title,
             "chunksLength": 0,
             "fileSize": 0,
             "resourceId": resource.id,
@@ -131,10 +165,13 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource, FileResource], workflow_id: str, knowledge_id: str, file_size: int, save_to_db: bool = False) -> Dict[str, Any]:
+async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource, FileResource], workflow_id: str, knowledge_id: str, file_size: int, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
     """Generate embeddings for chunks and optionally save to database."""
     try:
-        title = "Placeholder Title (NEED TO FIX)"
+        # Use provided title or generate a fallback
+        if not title:
+            original_filename = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+            title = original_filename
         
         # Generate embeddings if OpenAI API key is available
         embeddings_data = None
@@ -215,7 +252,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource,
         # Send failure update
         await send_update(resource, {
             "status": "FAILED",
-            "title": "Placeholder Title (NEED TO FIX)",
+            "title": fallback_title,
             "chunksLength": 0,
             "fileSize": 0,
             "resourceId": resource.id,
@@ -287,6 +324,7 @@ async def process_resource_embeddings(
                 workflow_id=workflow_id,
                 knowledge_id=knowledge_id,
                 file_size=file_size,
+                title=chunks_data["title"],
                 save_to_db=save_to_db
             )
 

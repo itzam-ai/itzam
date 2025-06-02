@@ -97,7 +97,7 @@ export const KnowledgeItem = ({
 
           <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <NumberFlow
-              value={resource.chunksLength ?? 0}
+              value={resource.chunks?.length ?? resource.chunksLength ?? 0}
               style={{
                 fontSize: "10px",
                 fontWeight: "700",
@@ -109,12 +109,12 @@ export const KnowledgeItem = ({
                 fontSize: "10px",
               }}
             >
-              chunk{resource.chunksLength === 1 ? "" : "s"}
+              chunk{(resource.chunks?.length ?? resource.chunksLength ?? 0) === 1 ? "" : "s"}
             </p>
           </div>
 
           {/* Progress indicator during processing */}
-          {resource.status === "PENDING" && processedChunks !== undefined && resource.chunksLength && (
+          {resource.status === "PENDING" && processedChunks !== undefined && (resource.chunks?.length ?? resource.chunksLength) && (
             <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
               <NumberFlow
                 value={processedChunks}
@@ -125,7 +125,7 @@ export const KnowledgeItem = ({
               />
               <span className="text-muted-foreground" style={{ fontSize: "10px" }}>/</span>
               <NumberFlow
-                value={resource.chunksLength}
+                value={resource.chunks?.length ?? resource.chunksLength ?? 0}
                 style={{
                   fontSize: "10px",
                   fontWeight: "700",

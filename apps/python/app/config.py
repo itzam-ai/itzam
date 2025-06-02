@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] 
     
+    # Itzam API Configuration
+    ITZAM_API_KEY: Optional[str]
+    ITZAM_API_URL: str = os.getenv("ITZAM_API_URL", "https://itz.am/api/v1")
+    
     # Tika Configuration
     TIKA_URL: str = os.getenv("TIKA_URL", "https://tika.yllw.software/tika")
     
