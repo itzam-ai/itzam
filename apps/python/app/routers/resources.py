@@ -1,13 +1,13 @@
 import logging
 import asyncio
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 
 from ..dependencies import verify_auth_token
 from ..schemas import (
     CreateResourceRequest, 
     CreateResourceResponse, 
 )
-from ..services import generate_embeddings
+from ..services import process_resource_embeddings
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 @router.post("/create-resource", response_model=CreateResourceResponse)
-async def create_resource_task(request: CreateResourceRequest):
+async def create_resource_task(request: CreateResourceRequest, background_tasks: BackgroundTasks):
     """
     Create and process multiple resources with chunking, embeddings, and database storage.
     Equivalent to the TypeScript createResourceTask.
@@ -27,11 +27,10 @@ async def create_resource_task(request: CreateResourceRequest):
     try:
         logger.info(f"Processing create-resource request for {len(request.resources)} resources")
 
-        logger.info(f"Request: {request}")
-        
+        # Queue background tasks for embedding generation
         for resource in request.resources:
             logger.info(f"Queuing embedding generation for resource {resource.id}")
-            asyncio.create_task(generate_embeddings(resource, request.workflow_id, request.knowledge_id, True))
+            background_tasks.add_task(process_resource_embeddings, background_tasks=background_tasks, resource=resource, knowledge_id=request.knowledge_id, workflow_id=request.workflow_id, save_to_db=True)
         
         logger.info(f"Queued {len(request.resources)} embedding tasks for background processing")
 

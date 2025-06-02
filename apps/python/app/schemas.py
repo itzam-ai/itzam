@@ -15,6 +15,7 @@ class FileResource(ResourceBase):
 
 class LinkResource(ResourceBase):
     type: str = Field("LINK", pattern="^LINK$")
+    file_size: int = Field(0, alias="fileSize")
 
 class CreateResourceRequest(BaseModel):
     resources: List[Union[FileResource, LinkResource]]

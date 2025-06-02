@@ -1,16 +1,16 @@
 import uuid
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple, Union
 import asyncio
 import aiohttp
 import tiktoken
 from openai import OpenAI
-from chonkie import TokenChunker, OpenAIEmbeddings
-from fastapi import HTTPException, status
+from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
+from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
 from .database import save_chunks_to_supabase, update_resource_status, send_update
-from .schemas import UpdatePayload
+from .schemas import UpdatePayload, LinkResource, FileResource
 
 logger = logging.getLogger(__name__)
 
@@ -43,22 +43,25 @@ async def get_text_from_tika(url: str, tika_url: str = None) -> tuple[str, int]:
         )
 
 def generate_file_title(text: str, original_filename: str) -> str:
-    """Generate a title for the file based on its content."""
-    # Simple title generation - in production, you'd want to use an AI service
-    # For now, we'll use the first 100 characters as a simple title
-    if text.strip():
-        # Take first sentence or first 100 characters
-        lines = text.strip().split('\n')
-        first_line = lines[0].strip() if lines else ""
-        if len(first_line) > 100:
-            first_line = first_line[:100] + "..."
-        return first_line if first_line else original_filename
-    return original_filename
+    """Generate a title from text content or fallback to filename."""
+    if not text.strip():
+        return original_filename
+    
+    # Simple title generation - take first line or first 100 characters
+    lines = text.strip().split('\n')
+    first_line = lines[0].strip() if lines else ""
+    
+    if first_line and len(first_line) <= 100:
+        return first_line
+    elif len(text) > 100:
+        return text[:100].strip() + "..."
+    else:
+        return text.strip() or original_filename
 
-async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowledge_id: str, save_to_db: bool = False):
-    """Generate embeddings for a resource and optionally save to database."""
+async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str):
+    """Extract text from resource and generate chunks."""
     try:
-        logger.info(f"Starting embedding generation for resource {resource.id}")
+        logger.info(f"Starting chunk generation for resource {resource.id}")
         
         # Extract text content
         text_content, file_size = await get_text_from_tika(str(resource.url))
@@ -76,17 +79,16 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
         update_resource_status(resource.id, "PENDING", title, file_size)
         
         # Initialize tokenizer and chunker
-        tokenizer = tiktoken.get_encoding("cl100k_base")
-        chunker = TokenChunker(tokenizer)
+        chunker = TokenChunker(tokenizer, chunk_size=chunk_size)
         
         # Chunk the text
         chunks = chunker(text_content)
-        chunk_texts = [chunk.text for chunk in chunks]
 
+        chunk_length = len(chunks)
         logger.info({
             "status": "PENDING",
             "title": title,
-            "chunksLength": len(chunks),
+            "chunksLength": chunk_length,
             "fileSize": file_size,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
@@ -96,12 +98,42 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
             "status": "PENDING",
             "title": title,
             "fileSize": file_size,
-            "chunksLength": len(chunks),
+            "chunksLength": chunk_length,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
         })
         
-        logger.info(f"Generated {len(chunk_texts)} chunks for resource {resource.id}")
+        logger.info(f"Generated {chunk_length} chunks for resource {resource.id}")
+
+        return {
+            "chunks": chunks,
+            "title": title,
+            "file_size": file_size,
+            "text_content": text_content
+        }
+        
+    except Exception as e:
+        logger.error(f"Error generating chunks for resource {resource.id}: {str(e)}")
+        
+        # Update resource status to failed
+        update_resource_status(resource.id, "FAILED")
+        
+        # Send failure update
+        await send_update(resource, {
+            "status": "FAILED",
+            "title": "Placeholder Title (NEED TO FIX)",
+            "chunksLength": 0,
+            "fileSize": 0,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
+        })
+        
+        raise
+
+async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource, FileResource], workflow_id: str, knowledge_id: str, file_size: int, save_to_db: bool = False) -> Dict[str, Any]:
+    """Generate embeddings for chunks and optionally save to database."""
+    try:
+        title = "Placeholder Title (NEED TO FIX)"
         
         # Generate embeddings if OpenAI API key is available
         embeddings_data = None
@@ -110,20 +142,17 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
                 client = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY, model="text-embedding-3-small")
                 
                 # Generate embeddings for all chunks asynchronously
-                embeddings = client.embed_batch(chunk_texts)
+                embeddings = client.embed_batch([chunk.text for chunk in chunks])
                 
-                logger.info(f"Generated embeddings for {len(embeddings)} chunks")
                 embeddings_data = [
                     {
-                        "content": chunk_texts[i],
-                        "embedding": embeddings[i].tolist()
+                        "content": chunk.text,
+                        "embedding": embeddings[idx].tolist()
                     }
-                    for i in range(len(chunk_texts))
+                    for idx, chunk in enumerate(chunks)
                 ]
                 
-                
             except Exception as e:
-                logger.error(f"Failed to generate embeddings: {str(e)}")
                 raise
         else:
             raise HTTPException(
@@ -132,7 +161,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
             )
         
         result = {
-            "chunks": chunk_texts,
+            "chunks": chunks,
             "title": title,
             "file_size": file_size,
             "embeddings_count": len(embeddings_data) if embeddings_data else 0
@@ -161,17 +190,16 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
         await send_update(resource, {
             "status": status_to_set,
             "title": title,
-            "chunksLength": len(chunk_texts),
+            "chunksLength": len(chunks),
             "fileSize": file_size,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
         })
         
-        logger.info(f"Completed embedding generation for resource {resource.id}")
         return result
         
     except Exception as e:
-        logger.error(f"Error generating embeddings for resource {resource.id}: {str(e)}")
+        logger.error('Error generating embeddings for resource %s: %s', resource.id, str(e))
         
         # Update resource status to failed
         update_resource_status(resource.id, "FAILED")
@@ -186,4 +214,76 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowle
             "knowledgeId": knowledge_id
         })
         
-        raise 
+        raise
+
+async def process_resource_embeddings(
+    background_tasks: BackgroundTasks,
+    resource: Union[LinkResource, FileResource],
+    workflow_id: str,
+    knowledge_id: str,
+    save_to_db: bool = False
+) -> Dict[str, Any]:
+    """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
+    try:
+        chunk_size = 512
+        embeddings_limit_per_request = 300000
+
+        tokenizer = tiktoken.get_encoding("cl100k_base")
+        # First generate chunks
+        chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id)
+
+        await send_update(resource, {
+            "processedChunks": 0,
+            "totalChunks": len(chunks_data["chunks"]),
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
+        })
+
+        chunks: List[Chunk] = chunks_data["chunks"]
+        file_size = chunks_data["file_size"]
+
+        # Batch chunks so that each batch does not exceed embeddings_limit_per_request
+        batches = []
+        current_batch = []
+        current_tokens = 0
+
+        for chunk in chunks:
+            if chunk.token_count > embeddings_limit_per_request:
+                # If a single chunk exceeds the limit, process it alone
+                if current_batch:
+                    batches.append(current_batch)
+                    current_batch = []
+                    current_tokens = 0
+                batches.append([chunk])
+                continue
+
+            if current_tokens + chunk.token_count > embeddings_limit_per_request:
+                if current_batch:
+                    batches.append(current_batch)
+                current_batch = [chunk]
+                current_tokens = chunk.token_count
+            else:
+                current_batch.append(chunk)
+                current_tokens += chunk.token_count
+
+        if current_batch:
+            batches.append(current_batch)
+
+        # Add a background task for each batch
+        for batch in batches:
+            logger.info('Generating embeddings for %s chunk batches', len(batch))
+            background_tasks.add_task(
+                generate_embeddings,
+                chunks=batch,
+                resource=resource,
+                workflow_id=workflow_id,
+                knowledge_id=knowledge_id,
+                file_size=file_size,
+                save_to_db=save_to_db
+            )
+
+        return True
+
+    except Exception as e:
+        logger.error(f"Error processing resource embeddings for {resource.id}: {str(e)}")
+        raise
