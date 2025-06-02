@@ -9,7 +9,8 @@ from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
-from .database import save_chunks_to_supabase, update_resource_status, send_update
+from .database import save_chunks_to_db, update_resource_status
+from .supabase import send_update
 from .schemas import UpdatePayload, LinkResource, FileResource
 
 logger = logging.getLogger(__name__)
@@ -169,7 +170,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource,
         
         # Save to database if requested
         if save_to_db and embeddings_data:
-            save_result = save_chunks_to_supabase(embeddings_data, resource.id, workflow_id)
+            save_result = save_chunks_to_db(embeddings_data, resource.id, workflow_id)
             result["save_result"] = save_result
             
             if save_result["success"]:

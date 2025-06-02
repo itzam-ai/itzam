@@ -41,6 +41,7 @@ multidict==6.4.4
 numpy==2.2.6
 openai==1.82.1
 packaging==25.0
+pgvector==0.4.1
 pluggy==1.6.0
 postgrest==1.0.2
 propcache==0.3.1

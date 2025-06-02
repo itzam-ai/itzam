@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     def required_vars_missing(self) -> list[str]:
         """Return list of missing required environment variables."""
         missing = []
-        if not self.SUPABASE_URL:
+        if not self.NEXT_PUBLIC_SUPABASE_URL:
             missing.append("NEXT_PUBLIC_SUPABASE_URL")
         if not self.SUPABASE_ANON_KEY:
             missing.append("SUPABASE_ANON_KEY")

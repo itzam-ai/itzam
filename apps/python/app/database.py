@@ -1,104 +1,113 @@
 import uuid
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional
-from supabase import create_client, Client, acreate_client, AsyncClient
+from typing import List, Dict, Any, Optional
+from sqlalchemy import create_engine, select, update
+from sqlalchemy.orm import sessionmaker, Session
 
 from .config import settings
+from .models import Chunks, Resource
 
 logger = logging.getLogger(__name__)
 
-def get_supabase_client() -> Client:
-    """Initialize Supabase client with environment variables."""
-    if not settings.NEXT_PUBLIC_SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
-        raise ValueError("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
-    
-    return create_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+# Create SQLAlchemy engine and session
+engine = create_engine(settings.POSTGRES_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-async def get_supabase_async_client() -> AsyncClient:
-    """Initialize Supabase client with environment variables."""
-    if not settings.NEXT_PUBLIC_SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
-        raise ValueError("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required")
-    
-    return await acreate_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
+def get_db_session() -> Session:
+    """Get database session."""
+    return SessionLocal()
 
-def save_chunks_to_supabase(chunks_data: list, resource_id: str, workflow_id: str) -> dict:
-    """Save chunks and embeddings directly to Supabase."""
+def save_chunks_to_db(chunks_data: List[Dict[str, Any]], resource_id: str, workflow_id: str) -> Dict[str, Any]:
+    """Save chunks and embeddings to database using SQLAlchemy."""
     try:
-        supabase = get_supabase_client()
+        session = get_db_session()
         
         # Prepare chunk records for insertion
-
         chunk_records = []
+        chunk_ids = []
+        
         for chunk_data in chunks_data:
             chunk_id = str(uuid.uuid4())
-            record = {
-                "id": chunk_id,
-                "content": chunk_data["content"],
-                "embedding": chunk_data["embedding"],
-                "resource_id": resource_id,
-                "workflow_id": workflow_id,
-                "active": True,
-                "created_at": datetime.utcnow().isoformat(),
-                "updated_at": datetime.utcnow().isoformat(),
-            }
-            chunk_records.append(record)
+            chunk_ids.append(chunk_id)
+            
+            chunk_record = Chunks(
+                id=chunk_id,
+                content=chunk_data["content"],
+                embedding=chunk_data["embedding"],
+                resource_id=resource_id,
+                workflow_id=workflow_id,
+                active=True,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            chunk_records.append(chunk_record)
         
         # Insert chunks in batch
-        result = supabase.table("chunks").insert(chunk_records).execute()
+        session.add_all(chunk_records)
+        session.commit()
+        session.close()
         
         return {
             "success": True,
             "chunks_saved": len(chunk_records),
-            "chunk_ids": [record["id"] for record in chunk_records]
+            "chunk_ids": chunk_ids
         }
         
     except Exception as e:
-        logger.error(f"Failed to save chunks to Supabase: {str(e)}")
+        logger.error(f"Failed to save chunks to database: {str(e)}")
+        if 'session' in locals():
+            session.rollback()
+            session.close()
         return {
             "success": False,
             "error": str(e),
             "chunks_saved": 0
         }
 
-
 def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None):
-    """Update resource status in the database."""
+    """Update resource status in the database using SQLAlchemy."""
     try:
-        supabase = get_supabase_client()
+        session = get_db_session()
         
+        # Prepare update data
         update_data = {
             "status": status,
-            "updated_at": datetime.utcnow().isoformat()
+            "updated_at": datetime.utcnow()
         }
         
         if title:
             update_data["title"] = title
         if file_size is not None:
             update_data["file_size"] = file_size
-            
-        supabase.table("resource").update(update_data).eq("id", resource_id).execute()
-        print(f"Updated resource {resource_id} status to {status}")
-
+        
+        # Update resource
+        stmt = update(Resource).where(Resource.id == resource_id).values(**update_data)
+        session.execute(stmt)
+        session.commit()
+        session.close()
+        
+        logger.info(f"Updated resource {resource_id} status to {status}")
+        
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")
+        if 'session' in locals():
+            session.rollback()
+            session.close()
 
-def get_channel_id(resource: Dict[str, Any], knowledge_id: str) -> str:
-    """Generate channel ID for Supabase realtime updates."""
-    resource_type = resource.type
-    knowledge_id = knowledge_id
-    channel_type = "files" if resource_type == "FILE" else "links"
-    return f"knowledge-{knowledge_id}-{channel_type}"
-
-async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
-    """Send real-time update via Supabase channel."""
+def get_resource_by_id(resource_id: str) -> Optional[Resource]:
+    """Get resource by ID using SQLAlchemy."""
     try:
-        supabase = await get_supabase_async_client()
-        channel_id = get_channel_id(resource, payload["knowledgeId"])
-        # Send broadcast message to the channel
-        channel = await supabase.channel(topic=channel_id).subscribe()
-        await channel.send_broadcast("update", payload)
-        logger.info(f"Sent update to channel {channel_id}: {payload.get('status', 'unknown')}")
-        await channel.unsubscribe()
+        session = get_db_session()
+        
+        stmt = select(Resource).where(Resource.id == resource_id)
+        result = session.execute(stmt).scalar_one_or_none()
+        session.close()
+        
+        return result
+        
     except Exception as e:
-        logger.error(f"Failed to send update: {str(e)}") 
+        logger.error(f"Failed to get resource {resource_id}: {str(e)}")
+        if 'session' in locals():
+            session.close()
+        return None
