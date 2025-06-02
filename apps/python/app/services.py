@@ -4,8 +4,8 @@ from typing import Dict, Any
 import asyncio
 import aiohttp
 import tiktoken
-from openai import OpenAIEmbeddings
-from chonkie import TokenChunker
+from openai import OpenAI
+from chonkie import TokenChunker, OpenAIEmbeddings
 from fastapi import HTTPException, status
 
 from .config import settings
@@ -93,7 +93,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
                 client = OpenAIEmbeddings(api_key=settings.OPENAI_API_KEY, model="text-embedding-3-small")
                 
                 # Generate embeddings for all chunks asynchronously
-                embeddings = await client.embed_bacth(chunk_texts)
+                embeddings = await client.embed_batch(chunk_texts)
                 
                 logger.info(f"Generated embeddings for {len(embeddings)} chunks")
                 embeddings_data = [
