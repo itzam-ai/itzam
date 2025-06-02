@@ -1,27 +1,40 @@
 "use server";
 
 import { getUser } from "@itzam/server/db/auth/actions";
-import {
-  createResourceTask as createResourceTaskTrigger,
-  tasks,
-} from "@itzam/tasks";
+import { db } from "@itzam/server/db/index";
+import { checkPlanLimits } from "@itzam/server/db/knowledge/actions";
+import { resources as resourcesTable } from "@itzam/server/db/schema";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
 
-type ResourceInput = Parameters<
-  typeof tasks.trigger<typeof createResourceTaskTrigger>
->[1]["resources"];
-export async function createResourceTask({
+export async function createResourceAndSendoToAPI({
   knowledgeId,
   workflowId,
   resources,
 }: {
   knowledgeId: string;
   workflowId: string;
-  resources: ResourceInput;
+  resources: Knowledge["resources"];
 }) {
   const user = await getUser();
+
   if (user.error || !user.data.user) {
     throw new Error("User not found");
   }
+
+  // check plan limits
+  await checkPlanLimits(knowledgeId);
+
+  // create resources in the database
+  const createdResources = await db
+    .insert(resourcesTable)
+    .values(resources)
+    .returning();
+
+  const resourcesToSend = createdResources.map((resource) => ({
+    type: resource.type,
+    id: resource.id,
+    url: resource.url,
+  }));
 
   const handle = await fetch("http://127.0.0.1:8000/api/v1/create-resource", {
     method: "POST",
@@ -31,11 +44,7 @@ export async function createResourceTask({
     },
     body: JSON.stringify({
       knowledgeId,
-      resources: resources.map((resource) => ({
-        type: resource.type,
-        id: resource.id,
-        url: resource.url,
-      })),
+      resources: resourcesToSend,
       userId: user.data.user.id,
       workflowId,
     }),

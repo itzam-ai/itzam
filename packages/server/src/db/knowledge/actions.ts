@@ -46,16 +46,7 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   return knowledgeFromWorkflow;
 }
 
-type ResourceInput = {
-  fileName: string;
-  url: string;
-  mimeType: string;
-};
-
-export async function checkPlanLimits(
-  resourcesInput: ResourceInput[],
-  knowledgeId: string
-) {
+export async function checkPlanLimits(knowledgeId: string) {
   const user = await getUser();
 
   if (user.error || !user.data.user) {

@@ -1,13 +1,13 @@
 "use client";
 
-import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import { subscribeToChannel } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
-import { createResourceTask } from "~/components/knowledge/actions";
+import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -90,46 +90,30 @@ export const LinkInput = ({
     setIsSubmitting(true);
     setLinksToAdd([]);
 
+    const resourcesToAdd = linksToAdd.map((link) => ({
+      id: link.id,
+      status: "PENDING" as const,
+      title: link.url,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      url: link.url,
+      fileName: link.url,
+      mimeType: "text/html",
+      type: "LINK" as const,
+      fileSize: 0,
+      knowledgeId: knowledge?.id ?? "",
+      workflowId,
+      active: true,
+      chunks: [],
+    }));
+
     setWorkflowLinks((prevLinks) => {
-      return prevLinks.concat(
-        linksToAdd.map((link) => ({
-          id: link.id,
-          status: "PENDING",
-          title: link.url,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          url: link.url,
-          fileName: link.url,
-          mimeType: "text/html",
-          type: "LINK",
-          fileSize: 0,
-          knowledgeId: knowledge?.id ?? "",
-          workflowId,
-          active: true,
-          chunks: [],
-        }))
-      );
+      return prevLinks.concat(resourcesToAdd);
     });
 
     try {
-      await checkPlanLimits(
-        linksToAdd.map((link) => ({
-          fileName: link.url,
-          url: link.url,
-          mimeType: "text/html",
-        })),
-        knowledge?.id ?? ""
-      );
-
-      await createResourceTask({
-        resources: linksToAdd.map((link) => ({
-          fileName: link.url,
-          url: link.url,
-          mimeType: "text/html",
-          type: "LINK",
-          fileSize: 0,
-          id: link.id,
-        })),
+      await createResourceAndSendoToAPI({
+        resources: resourcesToAdd,
         knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
       });

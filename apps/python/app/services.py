@@ -55,13 +55,13 @@ def generate_file_title(text: str, original_filename: str) -> str:
         return first_line if first_line else original_filename
     return original_filename
 
-async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_to_db: bool = False):
+async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, knowledge_id: str, save_to_db: bool = False):
     """Generate embeddings for a resource and optionally save to database."""
     try:
-        logger.info(f"Starting embedding generation for resource {resource['id']}")
+        logger.info(f"Starting embedding generation for resource {resource.id}")
         
         # Extract text content
-        text_content, file_size = await get_text_from_tika(str(resource["url"]))
+        text_content, file_size = await get_text_from_tika(str(resource.url))
         
         if not text_content.strip():
             raise HTTPException(
@@ -70,11 +70,10 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             )
         
         # Generate title
-        original_filename = resource.get("fileName", resource.get("file_name", str(resource["url"])))
-        title = generate_file_title(text_content, original_filename=original_filename)
+        title = "Placeholder Title (NEED TO FIX)"
         
         # Update resource with title and file size
-        update_resource_status(resource["id"], "PENDING", title, file_size)
+        update_resource_status(resource.id, "PENDING", title, file_size)
         
         # Initialize tokenizer and chunker
         tokenizer = tiktoken.get_encoding("cl100k_base")
@@ -89,18 +88,20 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             "title": title,
             "chunksLength": len(chunks),
             "fileSize": file_size,
-            "resourceId": resource["id"]
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
         })
 
         await send_update(resource, {
             "status": "PENDING",
-            "title": resource.get("fileName", resource.get("file_name", str(resource["url"]))), 
+            "title": title,
             "fileSize": file_size,
             "chunksLength": len(chunks),
-            "resourceId": resource["id"]
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
         })
         
-        logger.info(f"Generated {len(chunk_texts)} chunks for resource {resource['id']}")
+        logger.info(f"Generated {len(chunk_texts)} chunks for resource {resource.id}")
         
         # Generate embeddings if OpenAI API key is available
         embeddings_data = None
@@ -139,7 +140,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
         
         # Save to database if requested
         if save_to_db and embeddings_data:
-            save_result = save_chunks_to_supabase(embeddings_data, resource["id"], workflow_id)
+            save_result = save_chunks_to_supabase(embeddings_data, resource.id, workflow_id)
             result["save_result"] = save_result
             
             if save_result["success"]:
@@ -154,7 +155,7 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             status_to_set = "PROCESSED"
         
         # Update resource status
-        update_resource_status(resource["id"], status_to_set)
+        update_resource_status(resource.id, status_to_set)
         
         # Send real-time update
         await send_update(resource, {
@@ -162,25 +163,27 @@ async def generate_embeddings(resource: Dict[str, Any], workflow_id: str, save_t
             "title": title,
             "chunksLength": len(chunk_texts),
             "fileSize": file_size,
-            "resourceId": resource["id"]
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
         })
         
-        logger.info(f"Completed embedding generation for resource {resource['id']}")
+        logger.info(f"Completed embedding generation for resource {resource.id}")
         return result
         
     except Exception as e:
-        logger.error(f"Error generating embeddings for resource {resource['id']}: {str(e)}")
+        logger.error(f"Error generating embeddings for resource {resource.id}: {str(e)}")
         
         # Update resource status to failed
-        update_resource_status(resource["id"], "FAILED")
+        update_resource_status(resource.id, "FAILED")
         
         # Send failure update
         await send_update(resource, {
             "status": "FAILED",
-            "title": resource.get("fileName", resource.get("file_name", str(resource["url"]))),
+            "title": "Placeholder Title (NEED TO FIX)",
             "chunksLength": 0,
             "fileSize": 0,
-            "resourceId": resource["id"]
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
         })
         
         raise 

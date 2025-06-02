@@ -1,6 +1,6 @@
 "use client";
 
-import { checkPlanLimits, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import { subscribeToChannel, supabase } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
-import { createResourceTask } from "~/components/knowledge/actions";
+import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -129,47 +129,30 @@ export const FileInput = ({
     setIsSubmitting(true);
     setFiles([]);
 
+    const resourcesToAdd = files.map((file) => ({
+      id: file.id,
+      status: "PENDING" as const,
+      title: file.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      url: file.url ?? "",
+      fileName: file.name,
+      mimeType: file.type,
+      type: "FILE" as const,
+      fileSize: file.size,
+      knowledgeId: knowledge?.id ?? "",
+      workflowId,
+      active: true,
+      chunks: [],
+    }));
+
     setWorkflowFiles((prevFiles) => {
-      return prevFiles.concat(
-        files.map((file) => ({
-          id: file.id,
-          status: "PENDING",
-          title: file.name,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          url: file.url ?? "",
-          fileName: file.name,
-          mimeType: file.type,
-          type: "FILE",
-          fileSize: file.size,
-          knowledgeId: knowledge?.id ?? "",
-          workflowId,
-          active: true,
-          chunks: [],
-        }))
-      );
+      return prevFiles.concat(resourcesToAdd);
     });
 
-    // server action to check plan's limits
     try {
-      await checkPlanLimits(
-        files.map((file) => ({
-          fileName: file.name,
-          url: file.url ?? "",
-          mimeType: file.type,
-        })),
-        knowledge?.id ?? ""
-      );
-
-      await createResourceTask({
-        resources: files.map((file) => ({
-          fileName: file.name,
-          url: file.url ?? "",
-          mimeType: file.type,
-          type: "FILE",
-          fileSize: file.size,
-          id: file.id,
-        })),
+      await createResourceAndSendoToAPI({
+        resources: resourcesToAdd,
         knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
       });

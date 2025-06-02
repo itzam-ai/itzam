@@ -61,38 +61,6 @@ def save_chunks_to_supabase(chunks_data: list, resource_id: str, workflow_id: st
             "chunks_saved": 0
         }
 
-def create_resource_in_db(resource_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Create a resource record in the database."""
-    try:
-        supabase = get_supabase_client()
-        
-        resource_id = resource_data.get("id") or str(uuid.uuid4())
-        
-        # Prepare resource record
-        record = {
-            "id": resource_id,
-            "type": resource_data["type"],
-            "url": str(resource_data["url"]),
-            "file_name": resource_data.get("fileName", resource_data.get("file_name", str(resource_data["url"]))),
-            "mime_type": resource_data.get("mimeType", resource_data.get("mime_type", "application/octet-stream")),
-            "file_size": resource_data.get("fileSize", resource_data.get("file_size", 0)),
-            "status": "PENDING",
-            "knowledge_id": resource_data.get("knowledgeId", resource_data.get("knowledge_id")),
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
-        }
-        
-        # Insert resource
-        result = supabase.table("resource").insert(record).execute()
-        
-        if result.data:
-            return result.data[0]
-        else:
-            raise Exception("Failed to create resource")
-            
-    except Exception as e:
-        logger.error(f"Failed to create resource in database: {str(e)}")
-        raise
 
 def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None):
     """Update resource status in the database."""
@@ -115,10 +83,10 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")
 
-def get_channel_id(resource: Dict[str, Any]) -> str:
+def get_channel_id(resource: Dict[str, Any], knowledge_id: str) -> str:
     """Generate channel ID for Supabase realtime updates."""
-    resource_type = resource.get("type", "LINK")
-    knowledge_id = resource.get("knowledgeId") or resource.get("knowledge_id")
+    resource_type = resource.type
+    knowledge_id = knowledge_id
     channel_type = "files" if resource_type == "FILE" else "links"
     return f"knowledge-{knowledge_id}-{channel_type}"
 
@@ -126,7 +94,7 @@ async def send_update(resource: Dict[str, Any], payload: Dict[str, Any]):
     """Send real-time update via Supabase channel."""
     try:
         supabase = await get_supabase_async_client()
-        channel_id = get_channel_id(resource)
+        channel_id = get_channel_id(resource, payload["knowledgeId"])
         # Send broadcast message to the channel
         channel = await supabase.channel(topic=channel_id).subscribe()
         await channel.send_broadcast("update", payload)
