@@ -1,7 +1,7 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToChannel } from "@itzam/supabase/client";
+import { subscribeToResourceUpdates, ResourceUpdatePayload } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -45,8 +45,15 @@ export const LinkInput = ({
   knowledge: Knowledge;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
-    (Knowledge["resources"][number] & { chunksLength?: number })[]
+    (Knowledge["resources"][number] & { 
+      chunksLength?: number;
+      processedChunks?: number;
+      totalChunks?: number;
+    })[]
   >(knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []);
+
+  // Track total processed chunks for progress calculation
+  const [processedChunksMap, setProcessedChunksMap] = useState<Record<string, number>>({});
 
   const [link, setLink] = useState<string>("");
   const [linkError, setLinkError] = useState<string>("");
@@ -134,29 +141,38 @@ export const LinkInput = ({
   const channelId = `knowledge-${knowledge?.id}-links`;
 
   useEffect(() => {
-    const unsubscribe = subscribeToChannel(
+    const unsubscribe = subscribeToResourceUpdates(
       channelId,
-      (payload: {
-        status: "FAILED" | "PENDING" | "PROCESSED";
-        resourceId: string;
-        title: string;
-        chunksLength: number;
-        fileSize: number;
-      }) => {
+      (payload: ResourceUpdatePayload) => {
         setWorkflowLinks((links) => {
           return links.map((link) => {
             if (link.id === payload.resourceId) {
-              return {
-                ...link,
-                status: payload.status,
-                title: payload.title,
-                chunksLength: payload.chunksLength,
-                fileSize: payload.fileSize,
-              };
+              // Only update fields that are present in the payload (partial updates)
+              const updatedLink = { ...link };
+              
+              if (payload.status !== undefined) updatedLink.status = payload.status;
+              if (payload.title !== undefined) updatedLink.title = payload.title;
+              if (payload.chunksLength !== undefined) updatedLink.chunksLength = payload.chunksLength;
+              if (payload.fileSize !== undefined) updatedLink.fileSize = payload.fileSize;
+              
+              // Handle progress updates for processing
+              if (payload.processedChunks !== undefined && payload.totalChunks !== undefined) {
+                updatedLink.processedChunks = payload.processedChunks;
+                updatedLink.totalChunks = payload.totalChunks;
+              }
+
+              return updatedLink;
             }
             return link;
           });
         });
+      },
+      (progressPayload) => {
+        // Handle processed-chunks events to accumulate progress
+        setProcessedChunksMap((prev) => ({
+          ...prev,
+          [progressPayload.resourceId]: (prev[progressPayload.resourceId] || 0) + progressPayload.processedChunks
+        }));
       }
     );
 
@@ -386,6 +402,7 @@ export const LinkInput = ({
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}
+              processedChunks={processedChunksMap[resource.id]}
             />
           ))}
         </motion.div>

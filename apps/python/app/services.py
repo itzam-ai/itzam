@@ -153,6 +153,13 @@ async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource,
                     for idx, chunk in enumerate(chunks)
                 ]
                 
+                # Send processed-chunks event to update progress
+                await send_update(resource, {
+                    "resourceId": resource.id,
+                    "knowledgeId": knowledge_id,
+                    "processedChunks": len(chunks)
+                }, event_type="processed-chunks")
+                
             except Exception as e:
                 raise
         else:

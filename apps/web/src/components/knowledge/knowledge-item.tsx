@@ -22,9 +22,11 @@ import { Button } from "../ui/button";
 export const KnowledgeItem = ({
   resource,
   onDelete,
+  processedChunks,
 }: {
   resource: Knowledge["resources"][number] & { chunksLength?: number };
   onDelete?: (resourceId: string) => void;
+  processedChunks?: number;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
@@ -110,6 +112,35 @@ export const KnowledgeItem = ({
               chunk{resource.chunksLength === 1 ? "" : "s"}
             </p>
           </div>
+
+          {/* Progress indicator during processing */}
+          {resource.status === "PENDING" && processedChunks !== undefined && resource.chunksLength && (
+            <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
+              <NumberFlow
+                value={processedChunks}
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "700",
+                }}
+              />
+              <span className="text-muted-foreground" style={{ fontSize: "10px" }}>/</span>
+              <NumberFlow
+                value={resource.chunksLength}
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "700",
+                }}
+              />
+              <p
+                className="text-muted-foreground"
+                style={{
+                  fontSize: "10px",
+                }}
+              >
+                processed
+              </p>
+            </div>
+          )}
 
           <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-1 text-xs">
             <p
