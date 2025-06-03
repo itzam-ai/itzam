@@ -5,6 +5,7 @@ import { db } from "@itzam/server/db/index";
 import { checkPlanLimits } from "@itzam/server/db/knowledge/actions";
 import { resources as resourcesTable } from "@itzam/server/db/schema";
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { env } from "@itzam/utils/env";
 
 export async function createResourceAndSendoToAPI({
   knowledgeId,
@@ -36,19 +37,22 @@ export async function createResourceAndSendoToAPI({
     url: resource.url,
   }));
 
-  const handle = await fetch("http://127.0.0.1:8000/api/v1/create-resource", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${user.session.session?.access_token}`,
-    },
-    body: JSON.stringify({
-      knowledgeId,
-      resources: resourcesToSend,
-      userId: user.data.user.id,
-      workflowId,
-    }),
-  });
+  const handle = await fetch(
+    `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/create-resource`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.session.session?.access_token}`,
+      },
+      body: JSON.stringify({
+        knowledgeId,
+        resources: resourcesToSend,
+        userId: user.data.user.id,
+        workflowId,
+      }),
+    }
+  );
 
   return await handle.json();
 }

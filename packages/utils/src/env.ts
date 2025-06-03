@@ -29,6 +29,7 @@ export const env = createEnv({
     VERCEL_WEBHOOK_SECRET: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     TRIGGER_SECRET_KEY: z.string().min(1),
+    PYTHON_KNOWLEDGE_API_URL: z.string().url(),
   },
 
   /**
@@ -74,6 +75,7 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
+    PYTHON_KNOWLEDGE_API_URL: process.env.PYTHON_KNOWLEDGE_API_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
