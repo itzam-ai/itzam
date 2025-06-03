@@ -6,7 +6,7 @@ import { chunks } from "../db/schema";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
-const SIMILARITY_THRESHOLD = 0.5;
+const SIMILARITY_THRESHOLD = 0.4;
 
 export type Chunk = typeof chunks.$inferSelect;
 
@@ -25,14 +25,20 @@ export const findRelevantContent = async (
   userQuery: string,
   workflowId: string
 ) => {
+  console.log("🔍 Finding relevant content for user query:", userQuery);
+
   // Generating embedding for user query
   const userQueryEmbedded = await generateEmbedding(userQuery);
+
+  console.log("🔍 User query embedded:", userQueryEmbedded);
 
   // Calculating similarity between user query and chunks
   const similarity = sql<number>`1 - (${cosineDistance(
     chunks.embedding,
     userQueryEmbedded
   )})`;
+
+  console.log("🔍 Similarity:", similarity);
 
   // Retrieving chunks with similarity greater than SIMILARITY_THRESHOLD
   const similarChunks = await db
@@ -51,6 +57,8 @@ export const findRelevantContent = async (
     )
     .orderBy((t) => desc(t.similarity))
     .limit(CHUNKS_RETRIEVE_LIMIT);
+
+  console.log("🔍 Similar chunks:", similarChunks);
 
   // Getting resource ids from similar chunks to add to run (removing duplicates)
   const resourceIds = [

@@ -32,7 +32,7 @@ export async function sendDiscordNotification({
   embeds,
 }: SendDiscordMessageParams): Promise<boolean> {
   if (env.NODE_ENV === "development") {
-    console.log("[DEV] Discord notification:", content);
+    console.log("[DEV] 👾 Discord notification:", content);
     return true;
   }
 

@@ -99,22 +99,15 @@ export async function getMaxLimit() {
 }
 
 export async function deleteResource(resourceId: string) {
+  // delete the resource
   await db
     .update(resources)
     .set({ active: false })
     .where(eq(resources.id, resourceId));
 
-  const chunksToDelete = await db.query.chunks.findMany({
-    where: eq(chunks.resourceId, resourceId),
-  });
-
+  // delete the chunks
   await db
     .update(chunks)
     .set({ active: false })
-    .where(
-      inArray(
-        chunks.id,
-        chunksToDelete.map((chunk) => chunk.id)
-      )
-    );
+    .where(eq(chunks.resourceId, resourceId));
 }
