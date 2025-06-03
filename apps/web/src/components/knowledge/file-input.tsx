@@ -7,7 +7,14 @@ import {
   ResourceUpdatePayload,
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
+import {
+  ArrowDown,
+  FileIcon,
+  FileUpIcon,
+  Loader2,
+  PlusIcon,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
@@ -106,6 +113,7 @@ export const FileInput = ({
         filesWithIds.map(async (file) => {
           try {
             const result = await uploadFileToSupabase(file, user?.id ?? "");
+
             return {
               ...result,
               id: file.id, // Keep the original file ID
@@ -301,30 +309,61 @@ export const FileInput = ({
             >
               <div className="flex gap-2 items-center p-2 justify-between">
                 <div className="flex gap-2 items-center flex-wrap">
-                  {files.map((file) => (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                      key={file.id}
-                      className={`flex gap-2 items-center bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10 ${
-                        file.url ? "opacity-100" : "opacity-50"
-                      }`}
-                    >
-                      <FileUpIcon className="size-3" />
-                      <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32">
-                        {file.name}
-                      </p>
-                      <X
-                        className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-red-500"
-                        onClick={() =>
-                          setFiles((prevFiles) =>
-                            prevFiles.filter((f) => f.id !== file.id)
-                          )
-                        }
-                      />
-                    </motion.div>
-                  ))}
+                  {files.map((file) => {
+                    const isUploaded = file.url !== null;
+
+                    console.log("file:", file);
+                    console.log("isUploaded:", isUploaded);
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        key={file.id}
+                        className={`flex gap-2 items-center bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10`}
+                      >
+                        <FileUpIcon
+                          className={`size-3 ${isUploaded ? "text-muted-foreground" : "text-muted-foreground/50"}`}
+                        />
+                        <p
+                          className={`text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32 ${isUploaded ? "text-primary" : "text-muted-foreground"}`}
+                        >
+                          {file.name}
+                        </p>
+                        <AnimatePresence mode="wait" initial={false}>
+                          {isUploaded ? (
+                            <motion.div
+                              key="remove-file"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              <X
+                                className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
+                                onClick={() =>
+                                  setFiles((prevFiles) =>
+                                    prevFiles.filter((f) => f.id !== file.id)
+                                  )
+                                }
+                              />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="uploading-file"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              <Loader2 className="size-3 text-yellow-500 animate-spin" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
                 <Button
