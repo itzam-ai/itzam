@@ -40,9 +40,20 @@ const isValidUrl = (url: string) => {
 export const LinkInput = ({
   workflowId,
   knowledge,
+  contextId,
+  contexts,
 }: {
   workflowId: string;
   knowledge: Knowledge;
+  contextId?: string;
+  contexts?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    resourceContexts?: Array<{
+      resourceId: string;
+    }>;
+  }>;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & { 
@@ -108,7 +119,7 @@ export const LinkInput = ({
       mimeType: "text/html",
       type: "LINK" as const,
       fileSize: 0,
-      knowledgeId: knowledge?.id ?? "",
+      knowledgeId: contextId ? null : (knowledge?.id ?? null),
       workflowId,
       active: true,
       chunks: [],
@@ -121,7 +132,8 @@ export const LinkInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
+        knowledgeId: contextId ? undefined : knowledge?.id,
+        contextId: contextId,
         workflowId: workflowId,
       });
     } catch (error) {
@@ -138,7 +150,9 @@ export const LinkInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = `knowledge-${knowledge?.id}-links`;
+  const channelId = contextId 
+    ? `context-${contextId}-links`
+    : `knowledge-${knowledge?.id}-links`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -403,6 +417,9 @@ export const LinkInput = ({
               resource={resource}
               onDelete={handleResourceDelete}
               processedChunks={processedChunksMap[resource.id]}
+              workflowId={workflowId}
+              contextId={contextId}
+              contexts={contexts}
             />
           ))}
         </motion.div>

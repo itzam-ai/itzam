@@ -112,56 +112,57 @@ def get_resource_by_id(resource_id: str) -> Optional[Resource]:
         return None
 
 
-def create_resource_context_associations(resource_id: str, context_ids: List[str]):
-    """Create associations between a resource and contexts, ensuring mutual exclusivity with knowledge."""
+def sync_resource(resource_id: str, source_type: str, knowledge_id: Optional[str] = None, context_ids: Optional[List[str]] = None):
+    """Unified function to sync resource associations based on source type."""
     try:
         session = get_db_session()
         
-        # Remove any existing knowledge association (context and knowledge are mutually exclusive)
-        stmt = update(Resource).where(Resource.id == resource_id).values(knowledge_id=None)
-        session.execute(stmt)
-        
-        # Create context associations
-        for context_id in context_ids:
-            association = ResourceContexts(
-                id=str(uuid.uuid4()),
-                resource_id=resource_id,
-                context_id=context_id,
-                created_at=datetime.utcnow()
-            )
-            session.add(association)
-        
-        session.commit()
-        session.close()
-        
-        logger.info(f"Created {len(context_ids)} context associations for resource {resource_id} (removed knowledge association)")
-        
+        if source_type == "KNOWLEDGE":
+            if not knowledge_id:
+                raise ValueError("knowledge_id is required for KNOWLEDGE source type")
+            
+            # Remove any existing context associations (context and knowledge are mutually exclusive)
+            stmt = delete(ResourceContexts).where(ResourceContexts.resource_id == resource_id)
+            session.execute(stmt)
+            
+            # Set knowledge association
+            stmt = update(Resource).where(Resource.id == resource_id).values(knowledge_id=knowledge_id)
+            session.execute(stmt)
+            
+            session.commit()
+            session.close()
+            
+            logger.info(f"Set knowledge association for resource {resource_id} to {knowledge_id} (removed context associations)")
+            
+        elif source_type == "CONTEXT":
+            if not context_ids:
+                raise ValueError("context_ids is required for CONTEXT source type")
+            
+            # Remove any existing knowledge association (context and knowledge are mutually exclusive)
+            stmt = update(Resource).where(Resource.id == resource_id).values(knowledge_id=None)
+            session.execute(stmt)
+            
+            # Create context associations
+            for context_id in context_ids:
+                association = ResourceContexts(
+                    id=str(uuid.uuid4()),
+                    resource_id=resource_id,
+                    context_id=context_id,
+                    created_at=datetime.utcnow()
+                )
+                session.add(association)
+            
+            session.commit()
+            session.close()
+            
+            logger.info(f"Created {len(context_ids)} context associations for resource {resource_id} (removed knowledge association)")
+            
+        else:
+            raise ValueError(f"Invalid source_type: {source_type}")
+            
     except Exception as e:
-        logger.error(f"Failed to create resource-context associations: {str(e)}")
+        logger.error(f"Failed to sync resource {resource_id}: {str(e)}")
         if 'session' in locals():
             session.rollback()
             session.close()
-
-def set_resource_knowledge_association(resource_id: str, knowledge_id: str):
-    """Set knowledge association for a resource, ensuring mutual exclusivity with contexts."""
-    try:
-        session = get_db_session()
-        
-        # Remove any existing context associations (context and knowledge are mutually exclusive)
-        stmt = delete(ResourceContexts).where(ResourceContexts.resource_id == resource_id)
-        session.execute(stmt)
-        
-        # Set knowledge association
-        stmt = update(Resource).where(Resource.id == resource_id).values(knowledge_id=knowledge_id)
-        session.execute(stmt)
-        
-        session.commit()
-        session.close()
-        
-        logger.info(f"Set knowledge association for resource {resource_id} to {knowledge_id} (removed context associations)")
-        
-    except Exception as e:
-        logger.error(f"Failed to set resource-knowledge association: {str(e)}")
-        if 'session' in locals():
-            session.rollback()
-            session.close()
+        raise

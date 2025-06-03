@@ -18,22 +18,48 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import { ContextPopover } from "../contexts/context-popover";
+import { LayersIcon } from "lucide-react";
 
 export const KnowledgeItem = ({
   resource,
   onDelete,
   processedChunks,
+  workflowId,
+  contextId,
+  contexts,
 }: {
   resource: Knowledge["resources"][number] & { chunksLength?: number };
   onDelete?: (resourceId: string) => void;
   processedChunks?: number;
+  workflowId?: string;
+  contextId?: string;
+  contexts?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    resourceContexts?: Array<{
+      resourceId: string;
+    }>;
+  }>;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    await deleteResource(resource.id);
+    if (contextId && workflowId) {
+      // If we're in a context, remove the resource from the context
+      const { updateContext } = await import("@itzam/server/actions/contexts");
+      await updateContext(contextId, {
+        resources: {
+          remove: [resource.id],
+        },
+      });
+    } else {
+      // Otherwise, delete the resource from knowledge
+      await deleteResource(resource.id);
+    }
     onDelete?.(resource.id);
     setIsDeleting(false);
   };
@@ -163,6 +189,18 @@ export const KnowledgeItem = ({
           </div>
         </div>
         <div className="flex items-center">
+          {workflowId && contexts && !contextId && (
+            <ContextPopover
+              resourceId={resource.id}
+              workflowId={workflowId}
+              contexts={contexts}
+              trigger={
+                <Button variant="ghost" size="icon">
+                  <LayersIcon className="size-3" />
+                </Button>
+              }
+            />
+          )}
           <Button
             variant="ghost"
             size="icon"

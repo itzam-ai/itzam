@@ -509,6 +509,7 @@ export type Database = {
           mime_type: string
           status: Database["public"]["Enums"]["resource_status"]
           title: string | null
+          total_chunks: number
           type: Database["public"]["Enums"]["resource_type"]
           updated_at: string
           url: string
@@ -523,6 +524,7 @@ export type Database = {
           mime_type: string
           status?: Database["public"]["Enums"]["resource_status"]
           title?: string | null
+          total_chunks?: number
           type: Database["public"]["Enums"]["resource_type"]
           updated_at: string
           url: string
@@ -537,6 +539,7 @@ export type Database = {
           mime_type?: string
           status?: Database["public"]["Enums"]["resource_status"]
           title?: string | null
+          total_chunks?: number
           type?: Database["public"]["Enums"]["resource_type"]
           updated_at?: string
           url?: string

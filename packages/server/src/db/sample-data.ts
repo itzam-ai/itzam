@@ -4,7 +4,6 @@ import { v7 as v4 } from "uuid";
 import { db } from "./index";
 import type { Run } from "./run/actions";
 import {
-  contextItems,
   contexts,
   knowledge,
   modelSettings,
@@ -104,6 +103,8 @@ async function createSampleData() {
 
   const contextIds: string[] = [];
 
+  // Context functionality has been updated - sample data needs to be rewritten
+  /*
   // Context 1: Customer Support
   const customerSupportContextId = v4();
   contextIds.push(customerSupportContextId);
@@ -167,7 +168,9 @@ async function createSampleData() {
       contextId: customerSupportContextId,
     },
   ]);
+  */
 
+  /*
   // Context 2: Content Creation
   const contentCreationContextId = v4();
   contextIds.push(contentCreationContextId);

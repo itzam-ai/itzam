@@ -23,7 +23,8 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
 // FIND RELEVANT CONTENT FOR USER QUERY
 export const findRelevantContent = async (
   userQuery: string,
-  workflowId: string
+  workflowId: string,
+  contextIds?: string[]
 ) => {
   // Generating embedding for user query
   const userQueryEmbedded = await generateEmbedding(userQuery);
@@ -34,6 +35,35 @@ export const findRelevantContent = async (
     userQueryEmbedded
   )})`;
 
+  // Build where conditions
+  const whereConditions = [
+    gt(similarity, SIMILARITY_THRESHOLD),
+    eq(chunks.active, true),
+  ];
+
+  if (contextIds && contextIds.length > 0) {
+    // If contexts are provided, find chunks from resources in those contexts
+    const { contexts, resourceContexts } = await import("../db/schema");
+    const contextResources = await db
+      .select({ resourceId: resourceContexts.resourceId })
+      .from(resourceContexts)
+      .innerJoin(contexts, eq(contexts.id, resourceContexts.contextId))
+      .where(
+        and(
+          eq(contexts.workflowId, workflowId),
+          sql`${contexts.id} IN ${contextIds} OR ${contexts.slug} IN ${contextIds}`
+        )
+      );
+
+    const resourceIds = contextResources.map((r) => r.resourceId);
+    if (resourceIds.length > 0) {
+      whereConditions.push(sql`${chunks.resourceId} IN ${resourceIds}`);
+    }
+  } else {
+    // If no contexts, use workflow-level chunks
+    whereConditions.push(eq(chunks.workflowId, workflowId));
+  }
+
   // Retrieving chunks with similarity greater than SIMILARITY_THRESHOLD
   const similarChunks = await db
     .select({
@@ -42,13 +72,7 @@ export const findRelevantContent = async (
       resourceId: chunks.resourceId,
     })
     .from(chunks)
-    .where(
-      and(
-        gt(similarity, SIMILARITY_THRESHOLD),
-        eq(chunks.workflowId, workflowId),
-        eq(chunks.active, true)
-      )
-    )
+    .where(and(...whereConditions))
     .orderBy((t) => desc(t.similarity))
     .limit(CHUNKS_RETRIEVE_LIMIT);
 

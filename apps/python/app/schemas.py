@@ -1,4 +1,4 @@
-from typing import Optional, List, Union, Dict, Any
+from typing import Optional, List, Union, Dict, Any, Literal
 from pydantic import BaseModel, HttpUrl, Field
 
 # Request/Response Models
@@ -19,6 +19,7 @@ class LinkResource(ResourceBase):
 
 class CreateResourceRequest(BaseModel):
     resources: List[ResourceBase]
+    source_type: Literal["KNOWLEDGE", "CONTEXT"] = Field(..., alias="sourceType")
     knowledge_id: Optional[str] = Field(None, alias="knowledgeId")
     context_ids: Optional[List[str]] = Field(None, alias="contextIds")
     workflow_id: str = Field(..., alias="workflowId")

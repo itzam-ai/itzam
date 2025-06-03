@@ -22,6 +22,7 @@ export type PreRunDetails = {
   modelId: string;
   workflowId: string;
   resourceIds: string[];
+  contextIds?: string[];
   attachments: AttachmentWithUrl[];
 };
 
@@ -68,6 +69,7 @@ export const setupRunGeneration = async ({
   schema,
   input,
   attachments,
+  contexts,
 }: {
   userId: string;
   workflowSlug?: string;
@@ -75,6 +77,7 @@ export const setupRunGeneration = async ({
   schema?: NonLiteralJson | null;
   input: string;
   attachments?: Attachment[];
+  contexts?: string[];
 }) => {
   let workflow;
 
@@ -122,6 +125,7 @@ export const setupRunGeneration = async ({
     modelId: workflow.modelId,
     workflowId: workflow.id,
     resourceIds: [],
+    contextIds: contexts || [],
     attachments: [],
   };
 

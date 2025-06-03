@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "..";
 import { sendDiscordNotification } from "../../discord/actions";
 import { customerIsSubscribedToItzamPro } from "../billing/actions";
-import { models, runResources, runs } from "../schema";
+import { models, runResources, runs, threads } from "../schema";
 import { calculateRunCost } from "./utils";
 import { AttachmentWithUrl } from "../../ai/types";
 import { attachments as attachmentsTable } from "../schema";
@@ -58,6 +58,11 @@ export async function getLast30RunsInTheLast30Days(workflowId: string) {
       runResources: {
         with: {
           resource: true,
+        },
+      },
+      runContexts: {
+        with: {
+          context: true,
         },
       },
       thread: true,
@@ -148,6 +153,11 @@ export async function getRunsByWorkflowId(
       runResources: {
         with: {
           resource: true,
+        },
+      },
+      runContexts: {
+        with: {
+          context: true,
         },
       },
       thread: true,
@@ -284,6 +294,7 @@ export type CreateRunInput = Omit<
 > & {
   error?: string | null;
   resourceIds?: string[];
+  contextIds?: string[];
   attachments?: AttachmentWithUrl[];
 };
 
@@ -309,6 +320,11 @@ export async function createRunWithCost(
   // Add resources to run
   if (run.resourceIds && run.resourceIds.length > 0) {
     await addResourcesToRun(run.id, run.resourceIds);
+  }
+
+  // Add contexts to run
+  if (run.contextIds && run.contextIds.length > 0) {
+    await addContextsToRun(run.id, run.contextIds, run.workflowId);
   }
 
   // Add attachments to run
@@ -339,6 +355,35 @@ export async function getRunsByThreadId(threadId: string) {
       attachments: true,
     },
   });
+}
+
+export async function addContextsToRun(
+  runId: string,
+  contextIds: string[],
+  workflowId: string | null
+) {
+  if (!workflowId) {
+    return;
+  }
+  const { runContexts, contexts } = await import("../schema");
+  
+  // Find contexts by ID or slug for this workflow
+  const validContexts = await db.query.contexts.findMany({
+    where: and(
+      eq(contexts.workflowId, workflowId),
+      sql`${contexts.id} IN ${contextIds} OR ${contexts.slug} IN ${contextIds}`
+    ),
+  });
+
+  if (validContexts.length > 0) {
+    await db.insert(runContexts).values(
+      validContexts.map((context) => ({
+        id: uuidv4(),
+        runId,
+        contextId: context.id,
+      }))
+    );
+  }
 }
 
 export async function addAttachmentsToRun(

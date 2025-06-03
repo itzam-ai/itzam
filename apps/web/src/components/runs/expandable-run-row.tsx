@@ -156,6 +156,24 @@ export function ExpandableRunRow({
                         </div>
                       </div>
                     )}
+                    {run.runContexts && run.runContexts.length > 0 && (
+                      <div className="flex flex-col gap-2">
+                        <h4 className="text-muted-foreground text-sm">
+                          Contexts
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {run.runContexts.map((runContext) => (
+                            <Badge
+                              key={runContext.context.id}
+                              variant="outline"
+                              className="text-xs"
+                            >
+                              {runContext.context.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Input</h4>
                       <p className="mt-1 whitespace-pre-wrap text-sm">

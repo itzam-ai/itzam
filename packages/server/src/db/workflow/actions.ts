@@ -44,6 +44,19 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
       throw new Error("Workflow not found");
     }
 
+    // Fetch contexts for this workflow
+    const workflowContexts = await db.query.contexts.findMany({
+      where: eq(contexts.workflowId, workflowId),
+      with: {
+        resourceContexts: {
+          with: {
+            resource: true,
+          },
+        },
+      },
+      orderBy: (contexts, { desc }) => [desc(contexts.createdAt)],
+    });
+
     const modelWithCost = {
       ...workflow.model,
       inputPerMillionTokenCost: workflow?.model?.inputPerMillionTokenCost,
@@ -53,6 +66,7 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
     return {
       ...workflow,
       model: modelWithCost,
+      contexts: workflowContexts,
     };
   }
 );

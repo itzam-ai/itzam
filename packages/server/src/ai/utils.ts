@@ -282,7 +282,8 @@ export async function insertKnowledgeInPrompt(
 ) {
   const { similarChunks, resourceIds } = await findRelevantContent(
     input,
-    run.workflowId
+    run.workflowId,
+    run.contextIds
   );
 
   // Add resources used in context to run

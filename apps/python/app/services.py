@@ -163,8 +163,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str = None, file_size: int = 0, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
-    """Generate embeddings for chunks and optionally save to database."""
+async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str = None, file_size: int = 0, title: str = None) -> Dict[str, Any]:
+    """Generate embeddings for chunks and save to database."""
     try:
         # Use provided title or generate a fallback
         if not title:
@@ -210,8 +210,8 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "embeddings_count": len(embeddings_data) if embeddings_data else 0
         }
         
-        # Save to database if requested
-        if save_to_db and embeddings_data:
+        # Save to database
+        if embeddings_data:
             save_result = save_chunks_to_db(embeddings_data, resource.id, workflow_id)
             result["save_result"] = save_result
             
@@ -223,8 +223,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
                 result["save_error"] = save_result["error"]
                 status_to_set = "FAILED"
         else:
-            result["embeddings"] = embeddings_data
-            status_to_set = "PROCESSED"
+            status_to_set = "FAILED"
         
         # Update resource status
         update_resource_status(resource.id, status_to_set)
@@ -265,8 +264,7 @@ async def process_resource_embeddings(
     resource: ResourceBase,
     workflow_id: str,
     knowledge_id: str = None,
-    save_to_db: bool = False,
-    is_context_flow: bool = False
+    context_ids: List[str] = None
 ) -> Dict[str, Any]:
     """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
     try:
@@ -325,7 +323,6 @@ async def process_resource_embeddings(
                 knowledge_id=knowledge_id,
                 file_size=file_size,
                 title=chunks_data["title"],
-                save_to_db=save_to_db
             )
 
         return True

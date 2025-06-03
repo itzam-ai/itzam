@@ -49,9 +49,20 @@ const uploadFileToSupabase = async (
 export const FileInput = ({
   workflowId,
   knowledge,
+  contextId,
+  contexts,
 }: {
   workflowId: string;
   knowledge: Knowledge;
+  contextId?: string;
+  contexts?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    resourceContexts?: Array<{
+      resourceId: string;
+    }>;
+  }>;
 }) => {
   const [workflowFiles, setWorkflowFiles] = useState<(Knowledge["resources"][number] & { 
     chunksLength?: number;
@@ -147,7 +158,7 @@ export const FileInput = ({
       mimeType: file.type,
       type: "FILE" as const,
       fileSize: file.size,
-      knowledgeId: knowledge?.id ?? "",
+      knowledgeId: contextId ? null : (knowledge?.id ?? null),
       workflowId,
       active: true,
       chunks: [],
@@ -160,7 +171,8 @@ export const FileInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
+        knowledgeId: contextId ? undefined : knowledge?.id,
+        contextId: contextId,
         workflowId: workflowId,
       });
     } catch (error) {
@@ -178,7 +190,9 @@ export const FileInput = ({
     );
   };
 
-  const channelId = `knowledge-${knowledge?.id}-files`;
+  const channelId = contextId 
+    ? `context-${contextId}-files`
+    : `knowledge-${knowledge?.id}-files`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -334,6 +348,9 @@ export const FileInput = ({
                 resource={resource}
                 onDelete={handleDelete}
                 processedChunks={processedChunksMap[resource.id]}
+                workflowId={workflowId}
+                contextId={contextId}
+                contexts={contexts}
               />
             ))}
           </motion.div>

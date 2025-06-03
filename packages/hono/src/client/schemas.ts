@@ -62,6 +62,14 @@ const BaseInput = z.object({
     description:
       "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
   }),
+  contexts: z
+    .array(z.string())
+    .optional()
+    .openapi({
+      example: ["production-data", "user-feedback"],
+      description:
+        "Optional array of context identifiers (IDs or slugs) to include in the generation",
+    }),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({

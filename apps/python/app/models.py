@@ -484,16 +484,16 @@ class ResourceContexts(Base):
     __table_args__ = (
         ForeignKeyConstraint(['context_id'], ['context.id'], ondelete='CASCADE', name='resource_contexts_context_id_context_id_fk'),
         ForeignKeyConstraint(['resource_id'], ['resource.id'], ondelete='CASCADE', name='resource_contexts_resource_id_resource_id_fk'),
-        PrimaryKeyConstraint('id', name='resource_contexts_pkey'),
+        PrimaryKeyConstraint('id', name='context_item_pkey'),
         Index('resource_contexts_context_id_idx', 'context_id'),
         Index('resource_contexts_resource_id_context_id_unique', 'resource_id', 'context_id'),
         Index('resource_contexts_resource_id_idx', 'resource_id')
     )
 
     id: Mapped[str] = mapped_column(String(256), primary_key=True)
-    resource_id: Mapped[str] = mapped_column(String(256))
     context_id: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    resource_id: Mapped[str] = mapped_column(String(256))
 
     context: Mapped['Context'] = relationship('Context', back_populates='resource_contexts')
     resource: Mapped['Resource'] = relationship('Resource', back_populates='resource_contexts')

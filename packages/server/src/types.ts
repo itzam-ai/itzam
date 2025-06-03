@@ -9,5 +9,6 @@ export type PreRunDetails = {
   modelId: string;
   workflowId: string;
   resourceIds: string[];
+  contextIds?: string[];
   attachments: AttachmentWithUrl[];
 };

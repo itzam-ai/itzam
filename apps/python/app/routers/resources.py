@@ -8,7 +8,7 @@ from ..schemas import (
     CreateResourceResponse, 
 )
 from ..services import process_resource_embeddings
-from ..database import create_resource_context_associations, set_resource_knowledge_association
+from ..database import sync_resource
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -26,41 +26,47 @@ async def create_resource_task(request: CreateResourceRequest, background_tasks:
     Equivalent to the TypeScript createResourceTask.
     """
     try:
-        logger.info(f"Processing create-resource request for {len(request.resources)} resources")
+        logger.info(f"Processing create-resource request for {len(request.resources)} resources with sourceType: {request.source_type}")
 
-        # Determine if this is a knowledge or context resource flow
-        is_context_flow = bool(request.context_ids)
-        effective_knowledge_id = None if is_context_flow else request.knowledge_id
+        # Validate sourceType requirements
+        if request.source_type == "KNOWLEDGE":
+            if not request.knowledge_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="knowledge_id is required when sourceType is KNOWLEDGE"
+                )
+        elif request.source_type == "CONTEXT":
+            if not request.context_ids:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="context_ids is required when sourceType is CONTEXT"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="sourceType must be either KNOWLEDGE or CONTEXT"
+            )
         
-        # Queue background tasks for embedding generation
+        # Process resources
         for resource in request.resources:
-            logger.info(f"Queuing embedding generation for resource {resource.id} ({'context' if is_context_flow else 'knowledge'} flow)")
+            logger.info(f"Processing resource {resource.id} ({request.source_type.lower()} flow)")
             
-            # Create appropriate associations based on flow type
-            if is_context_flow:
-                # Context flow: create resource-context associations and clear knowledge_id
-                background_tasks.add_task(
-                    create_resource_context_associations, 
-                    resource_id=resource.id, 
-                    context_ids=request.context_ids
-                )
-            elif effective_knowledge_id:
-                # Knowledge flow: set knowledge association and clear any context associations
-                background_tasks.add_task(
-                    set_resource_knowledge_association,
-                    resource_id=resource.id,
-                    knowledge_id=effective_knowledge_id
-                )
+            # Sync resource associations synchronously
+            sync_resource(
+                resource_id=resource.id,
+                source_type=request.source_type,
+                knowledge_id=request.knowledge_id,
+                context_ids=request.context_ids
+            )
             
-            # Process embeddings with the appropriate knowledge_id
+            # Queue background task for embedding processing
             background_tasks.add_task(
                 process_resource_embeddings, 
                 background_tasks=background_tasks, 
                 resource=resource, 
-                knowledge_id=effective_knowledge_id, 
-                workflow_id=request.workflow_id, 
-                save_to_db=True,
-                is_context_flow=is_context_flow
+                knowledge_id=request.knowledge_id if request.source_type == "KNOWLEDGE" else None,
+                context_ids=request.context_ids if request.source_type == "CONTEXT" else None,
+                workflow_id=request.workflow_id
             )
         
         logger.info(f"Queued {len(request.resources)} embedding tasks for background processing")
