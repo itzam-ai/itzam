@@ -27,6 +27,15 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
     
     @property
+    def database_url(self) -> str:
+        """Return database URL with correct format for SQLAlchemy."""
+        url = self.POSTGRES_URL
+        # Convert postgres:// to postgresql:// for SQLAlchemy compatibility
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
+    
+    @property
     def required_vars_missing(self) -> list[str]:
         """Return list of missing required environment variables."""
         missing = []
