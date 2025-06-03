@@ -327,6 +327,7 @@ class Resource(Base):
     mime_type: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
+    total_chunks: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     title: Mapped[Optional[str]] = mapped_column(String(256))
     file_name: Mapped[Optional[str]] = mapped_column(String(256))
     file_size: Mapped[Optional[int]] = mapped_column(Integer)

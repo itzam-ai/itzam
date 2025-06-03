@@ -28,7 +28,6 @@ export const env = createEnv({
     DISCORD_WEBHOOK_URL: z.string().min(1),
     VERCEL_WEBHOOK_SECRET: z.string().min(1),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
-    TRIGGER_SECRET_KEY: z.string().min(1),
     PYTHON_KNOWLEDGE_API_URL: z.string().url(),
   },
 
@@ -74,7 +73,6 @@ export const env = createEnv({
     VERCEL_WEBHOOK_SECRET: process.env.VERCEL_WEBHOOK_SECRET,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
     PYTHON_KNOWLEDGE_API_URL: process.env.PYTHON_KNOWLEDGE_API_URL,
   },
   /**

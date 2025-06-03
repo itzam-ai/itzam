@@ -320,6 +320,7 @@ export const resources = createTable(
     active: boolean("active").notNull().default(true),
     status: resourceStatusEnum("status").notNull().default("PENDING"),
     url: varchar("url", { length: 1024 }).notNull(),
+    totalChunks: integer("total_chunks").notNull().default(0),
     type: resourceTypeEnum("type").notNull(),
     mimeType: varchar("mime_type", { length: 256 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })

@@ -73,7 +73,9 @@ export async function checkPlanLimits(knowledgeId: string) {
     0
   );
 
-  const maxSize = isSubscribedToItzamPro ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+  const maxSize = isSubscribedToItzamPro.isSubscribed
+    ? 500 * 1024 * 1024
+    : 50 * 1024 * 1024;
 
   if (totalSize > maxSize) {
     throw new Error(`Your plan has a limit of ${maxSize / 1024 / 1024}MB.`);

@@ -1,7 +1,11 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToResourceUpdates, supabase, ResourceUpdatePayload } from "@itzam/supabase/client";
+import {
+  subscribeToResourceUpdates,
+  supabase,
+  ResourceUpdatePayload,
+} from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -53,16 +57,20 @@ export const FileInput = ({
   workflowId: string;
   knowledge: Knowledge;
 }) => {
-  const [workflowFiles, setWorkflowFiles] = useState<(Knowledge["resources"][number] & { 
-    chunksLength?: number;
-    processedChunks?: number;
-    totalChunks?: number;
-  })[]>(
-    knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []
+  const [workflowFiles, setWorkflowFiles] = useState<
+    (Knowledge["resources"][number] & {
+      processedChunks?: number;
+      totalChunks?: number;
+    })[]
+  >(
+    knowledge?.resources
+      .filter((resource) => resource.type === "FILE")
+      .map((resource) => ({
+        ...resource,
+        processedChunks: resource.chunks.length ?? 0,
+        totalChunks: resource.totalChunks ?? 0,
+      })) ?? []
   );
-
-  // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<Record<string, number>>({});
 
   const { user } = useCurrentUser();
   const [isUploading, setIsUploading] = useState(false);
@@ -150,6 +158,7 @@ export const FileInput = ({
       knowledgeId: knowledge?.id ?? "",
       workflowId,
       active: true,
+      totalChunks: 0,
       chunks: [],
     }));
 
@@ -189,30 +198,36 @@ export const FileInput = ({
             if (file.id === payload.resourceId) {
               // Only update fields that are present in the payload (partial updates)
               const updatedFile = { ...file };
-              
-              if (payload.status !== undefined) updatedFile.status = payload.status;
-              if (payload.title !== undefined) updatedFile.title = payload.title;
-              if (payload.chunksLength !== undefined) updatedFile.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined) updatedFile.fileSize = payload.fileSize;
-              
-              // Handle progress updates for processing
-              if (payload.processedChunks !== undefined && payload.totalChunks !== undefined) {
-                updatedFile.processedChunks = payload.processedChunks;
-                updatedFile.totalChunks = payload.totalChunks;
+
+              if (
+                payload.status !== undefined &&
+                payload.status !== "PROCESSED"
+              )
+                updatedFile.status = payload.status;
+              if (payload.title !== undefined)
+                updatedFile.title = payload.title;
+              if (payload.fileSize !== undefined)
+                updatedFile.fileSize = payload.fileSize;
+              if (payload.processedChunks !== undefined) {
+                updatedFile.processedChunks =
+                  (updatedFile.processedChunks ?? 0) + payload.processedChunks;
+                if (
+                  (updatedFile.processedChunks ?? 0) >=
+                  (updatedFile.totalChunks ?? 1)
+                )
+                  updatedFile.status = "PROCESSED";
               }
+              if (
+                payload.totalChunks !== undefined &&
+                payload.totalChunks !== 0
+              )
+                updatedFile.totalChunks = payload.totalChunks;
 
               return updatedFile;
             }
             return file;
           });
         });
-      },
-      (progressPayload) => {
-        // Handle processed-chunks events to accumulate progress
-        setProcessedChunksMap((prev) => ({
-          ...prev,
-          [progressPayload.resourceId]: (prev[progressPayload.resourceId] || 0) + progressPayload.processedChunks
-        }));
       }
     );
 
@@ -333,7 +348,6 @@ export const FileInput = ({
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}
-                processedChunks={processedChunksMap[resource.id]}
               />
             ))}
           </motion.div>

@@ -46,6 +46,11 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     if not text.strip():
         return original_filename
     
+    print("--------------------------------");
+    print("original_filename:", original_filename);
+    print("text:", text);
+    print("--------------------------------");
+    
     # Try to generate title using Itzam API if available
     if settings.ITZAM_API_KEY:
         try:
@@ -116,10 +121,13 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         chunks = chunker(text_content)
         chunk_length = len(chunks)
 
+        # Update resource with total chunks
+        update_resource_status(resource.id, "PENDING", title, file_size, chunk_length)
+
         logger.info({
             "status": "PENDING",
             "title": title,
-            "chunksLength": chunk_length,
+            "totalChunks": chunk_length,
             "fileSize": file_size,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
@@ -129,7 +137,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "status": "PENDING",
             "title": title,
             "fileSize": file_size,
-            "chunksLength": chunk_length,
+            "totalChunks": chunk_length,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
         })
@@ -155,7 +163,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         await send_update(resource, {
             "status": "FAILED",
             "title": fallback_title,
-            "chunksLength": 0,
+            "totalChunks": 0,
             "fileSize": 0,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
@@ -187,13 +195,6 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
                     }
                     for idx, chunk in enumerate(chunks)
                 ]
-                
-                # Send processed-chunks event to update progress
-                await send_update(resource, {
-                    "resourceId": resource.id,
-                    "knowledgeId": knowledge_id,
-                    "processedChunks": len(chunks)
-                }, event_type="processed-chunks")
                 
             except Exception as e:
                 raise
@@ -228,12 +229,21 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
         
         # Update resource status
         update_resource_status(resource.id, status_to_set)
+
+        logger.warn({
+            "status": status_to_set,
+            "title": title,
+            "processedChunks": len(chunks),
+            "fileSize": file_size,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
+        })
         
         # Send real-time update
         await send_update(resource, {
             "status": status_to_set,
             "title": title,
-            "chunksLength": len(chunks),
+            "processedChunks": len(chunks),
             "fileSize": file_size,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
@@ -250,8 +260,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
         # Send failure update
         await send_update(resource, {
             "status": "FAILED",
-            "title": fallback_title,
-            "chunksLength": 0,
+            "title": title,
             "fileSize": 0,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
@@ -274,13 +283,6 @@ async def process_resource_embeddings(
         tokenizer = tiktoken.get_encoding("cl100k_base")
         # First generate chunks
         chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id)
-
-        await send_update(resource, {
-            "processedChunks": 0,
-            "totalChunks": len(chunks_data["chunks"]),
-            "resourceId": resource.id,
-            "knowledgeId": knowledge_id
-        })
 
         chunks: List[Chunk] = chunks_data["chunks"]
         file_size = chunks_data["file_size"]

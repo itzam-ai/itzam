@@ -65,7 +65,7 @@ def save_chunks_to_db(chunks_data: List[Dict[str, Any]], resource_id: str, workf
             "chunks_saved": 0
         }
 
-def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None):
+def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None, total_chunks: Optional[int] = None):
     """Update resource status in the database using SQLAlchemy."""
     try:
         session = get_db_session()
@@ -79,6 +79,8 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
             update_data["title"] = title
         if file_size is not None:
             update_data["file_size"] = file_size
+        if total_chunks is not None:
+            update_data["total_chunks"] = total_chunks
         
         # Update resource
         stmt = update(Resource).where(Resource.id == resource_id).values(**update_data)
@@ -86,7 +88,14 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         session.commit()
         session.close()
         
-        logger.info(f"Updated resource {resource_id} status to {status}")
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info("--------------------------------");
+        logger.info(f"Updated resource {resource_id} with data: {update_data}")
         
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")

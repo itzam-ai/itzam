@@ -1,7 +1,10 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToResourceUpdates, ResourceUpdatePayload } from "@itzam/supabase/client";
+import {
+  subscribeToResourceUpdates,
+  ResourceUpdatePayload,
+} from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -45,15 +48,19 @@ export const LinkInput = ({
   knowledge: Knowledge;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
-    (Knowledge["resources"][number] & { 
-      chunksLength?: number;
+    (Knowledge["resources"][number] & {
       processedChunks?: number;
       totalChunks?: number;
     })[]
-  >(knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []);
-
-  // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<Record<string, number>>({});
+  >(
+    knowledge?.resources
+      .filter((resource) => resource.type === "LINK")
+      .map((resource) => ({
+        ...resource,
+        processedChunks: resource.chunks.length ?? 0,
+        totalChunks: resource.totalChunks ?? 0,
+      })) ?? []
+  );
 
   const [link, setLink] = useState<string>("");
   const [linkError, setLinkError] = useState<string>("");
@@ -111,6 +118,7 @@ export const LinkInput = ({
       knowledgeId: knowledge?.id ?? "",
       workflowId,
       active: true,
+      totalChunks: 0,
       chunks: [],
     }));
 
@@ -149,30 +157,37 @@ export const LinkInput = ({
             if (link.id === payload.resourceId) {
               // Only update fields that are present in the payload (partial updates)
               const updatedLink = { ...link };
-              
-              if (payload.status !== undefined) updatedLink.status = payload.status;
-              if (payload.title !== undefined) updatedLink.title = payload.title;
-              if (payload.chunksLength !== undefined) updatedLink.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined) updatedLink.fileSize = payload.fileSize;
-              
-              // Handle progress updates for processing
-              if (payload.processedChunks !== undefined && payload.totalChunks !== undefined) {
-                updatedLink.processedChunks = payload.processedChunks;
-                updatedLink.totalChunks = payload.totalChunks;
+
+              if (
+                payload.status !== undefined &&
+                payload.status !== "PROCESSED"
+              ) {
+                updatedLink.status = payload.status;
               }
+              if (payload.title !== undefined)
+                updatedLink.title = payload.title;
+              if (payload.fileSize !== undefined)
+                updatedLink.fileSize = payload.fileSize;
+              if (payload.processedChunks !== undefined) {
+                updatedLink.processedChunks =
+                  (updatedLink.processedChunks ?? 0) + payload.processedChunks;
+                if (
+                  (updatedLink.processedChunks ?? 0) >=
+                  (updatedLink.totalChunks ?? 1)
+                )
+                  updatedLink.status = "PROCESSED";
+              }
+              if (
+                payload.totalChunks !== undefined &&
+                payload.totalChunks !== 0
+              )
+                updatedLink.totalChunks = payload.totalChunks;
 
               return updatedLink;
             }
             return link;
           });
         });
-      },
-      (progressPayload) => {
-        // Handle processed-chunks events to accumulate progress
-        setProcessedChunksMap((prev) => ({
-          ...prev,
-          [progressPayload.resourceId]: (prev[progressPayload.resourceId] || 0) + progressPayload.processedChunks
-        }));
       }
     );
 
@@ -402,7 +417,6 @@ export const LinkInput = ({
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}
-              processedChunks={processedChunksMap[resource.id]}
             />
           ))}
         </motion.div>

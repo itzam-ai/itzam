@@ -154,7 +154,7 @@ export function Hero() {
           >
             {isSignedIn ? (
               <Link href="/dashboard">
-                <Button variant="primary" className="">
+                <Button variant="primary" className="w-40">
                   Integrate now
                   <ArrowRight className="size-4" />
                 </Button>
