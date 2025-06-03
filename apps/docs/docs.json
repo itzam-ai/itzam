@@ -38,6 +38,7 @@
                   "sdks/javascript/stream-text",
                   "sdks/javascript/generate-object",
                   "sdks/javascript/stream-object",
+                  "sdks/javascript/threads",
                   "sdks/javascript/attachments",
                   "sdks/javascript/get-run-by-id",
                   "sdks/javascript/get-models",
@@ -59,7 +60,11 @@
               "api-reference/endpoints/generate-object",
               "api-reference/endpoints/stream-object",
               "api-reference/endpoints/get-run-by-id",
-              "api-reference/endpoints/get-models"
+              "api-reference/endpoints/get-models",
+              "api-reference/endpoints/create-thread",
+              "api-reference/endpoints/get-thread-by-id",
+              "api-reference/endpoints/get-threads-by-workflow",
+              "api-reference/endpoints/get-runs-by-thread"
             ]
           }
         ]

@@ -145,19 +145,17 @@
           },
           "workflowSlug": {
             "type": "string",
-            "minLength": 1,
             "example": "my_great_workflow",
-            "description": "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)"
+            "description": "The slug of the Workflow to use for generation (required if threadId is not provided)"
           },
-          "groupId": {
+          "threadId": {
             "type": "string",
-            "example": "my-group-id",
-            "description": "Optional identifier for grouping related runs (e.g. user ID, session ID, etc.)"
+            "example": "thread_1234567890",
+            "description": "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)"
           }
         },
         "required": [
-          "input",
-          "workflowSlug"
+          "input"
         ]
       },
       "GenerateObjectResponse": {
@@ -281,14 +279,13 @@
           },
           "workflowSlug": {
             "type": "string",
-            "minLength": 1,
             "example": "my_great_workflow",
-            "description": "The slug of the Workflow to use for generation (can be found in the Itzam dashboard)"
+            "description": "The slug of the Workflow to use for generation (required if threadId is not provided)"
           },
-          "groupId": {
+          "threadId": {
             "type": "string",
-            "example": "my-group-id",
-            "description": "Optional identifier for grouping related runs (e.g. user ID, session ID, etc.)"
+            "example": "thread_1234567890",
+            "description": "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)"
           },
           "schema": {
             "example": {
@@ -301,7 +298,6 @@
         },
         "required": [
           "input",
-          "workflowSlug",
           "schema"
         ]
       },
@@ -616,10 +612,13 @@
             "example": 100,
             "description": "The duration of the run in milliseconds"
           },
-          "groupId": {
-            "type": "string",
-            "example": "group_1234567890",
-            "description": "The group ID of the run"
+          "threadId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "thread_1234567890",
+            "description": "The thread ID of the run"
           },
           "model": {
             "type": "object",
@@ -669,7 +668,7 @@
           "outputTokens",
           "cost",
           "durationInMs",
-          "groupId",
+          "threadId",
           "model",
           "schema",
           "workflowId",
@@ -760,6 +759,191 @@
         },
         "required": [
           "models"
+        ]
+      },
+      "CreateThreadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "thread_1234567890",
+            "description": "The ID of the created thread"
+          },
+          "name": {
+            "type": "string",
+            "example": "My Thread",
+            "description": "The name of the thread"
+          },
+          "lookupKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "user-123-session",
+            "description": "The lookup key of the thread"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2021-01-01T00:00:00.000Z",
+            "description": "The creation date of the thread"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2021-01-01T00:00:00.000Z",
+            "description": "The last update date of the thread"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lookupKey",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateThreadInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "My Thread",
+            "description": "The name of the thread (optional, will auto-generate if not provided)"
+          },
+          "lookupKey": {
+            "type": "string",
+            "example": "user-123-session",
+            "description": "Optional lookup key for finding the thread later"
+          },
+          "workflowSlug": {
+            "type": "string",
+            "minLength": 1,
+            "example": "my_great_workflow",
+            "description": "The slug of the workflow this thread belongs to"
+          }
+        },
+        "required": [
+          "workflowSlug"
+        ]
+      },
+      "GetThreadsByWorkflowResponse": {
+        "type": "object",
+        "properties": {
+          "threads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GetThreadResponse"
+            },
+            "description": "Array of threads for the workflow"
+          }
+        },
+        "required": [
+          "threads"
+        ]
+      },
+      "GetThreadResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "thread_1234567890",
+            "description": "The ID of the thread"
+          },
+          "name": {
+            "type": "string",
+            "example": "My Thread",
+            "description": "The name of the thread"
+          },
+          "lookupKey": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "user-123-session",
+            "description": "The lookup key of the thread"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2021-01-01T00:00:00.000Z",
+            "description": "The creation date of the thread"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2021-01-01T00:00:00.000Z",
+            "description": "The last update date of the thread"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lookupKey",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GetRunsByThreadResponse": {
+        "type": "object",
+        "properties": {
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThreadRun"
+            },
+            "description": "Array of runs in the thread"
+          }
+        },
+        "required": [
+          "runs"
+        ]
+      },
+      "ThreadRun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "run_1234567890",
+            "description": "The ID of the run"
+          },
+          "input": {
+            "type": "string",
+            "example": "What is React?",
+            "description": "The input of the run"
+          },
+          "output": {
+            "type": "string",
+            "example": "React is a JavaScript library...",
+            "description": "The output of the run"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2021-01-01T00:00:00.000Z",
+            "description": "The creation date of the run"
+          },
+          "model": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "gpt-4o",
+                "description": "The name of the model"
+              },
+              "tag": {
+                "type": "string",
+                "example": "openai:gpt-4o",
+                "description": "The tag of the model"
+              }
+            },
+            "required": [
+              "name",
+              "tag"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "input",
+          "output",
+          "createdAt",
+          "model"
         ]
       }
     }
@@ -1033,6 +1217,182 @@
         "parameters": [],
         "summary": "Get models",
         "description": "Retrieve all models available on Itzam"
+      }
+    },
+    "/api/v1/threads": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateThreadResponse"
+                }
+              }
+            },
+            "description": "Successfully created thread"
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
+        },
+        "operationId": "createThread",
+        "parameters": [],
+        "summary": "Create thread",
+        "description": "Create a new thread for continuous messaging",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/threads/workflow/{workflowSlug}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetThreadsByWorkflowResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved threads"
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
+        },
+        "operationId": "getThreadsByWorkflow",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "workflowSlug",
+            "required": true
+          }
+        ],
+        "summary": "Get threads by workflow",
+        "description": "Retrieve all threads for a specific workflow, optionally filtered by lookup key"
+      }
+    },
+    "/api/v1/threads/{threadId}/runs": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRunsByThreadResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved thread runs"
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
+        },
+        "operationId": "getRunsByThread",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "threadId",
+            "required": true
+          }
+        ],
+        "summary": "Get runs by thread",
+        "description": "Retrieve all runs for a specific thread"
+      }
+    },
+    "/api/v1/threads/{id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetThreadResponse"
+                }
+              }
+            },
+            "description": "Successfully retrieved thread"
+          },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
+          "403": {
+            "description": "Forbidden - organization does not have an active subscription"
+          },
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
+        },
+        "operationId": "getThreadById",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "summary": "Get thread by ID",
+        "description": "Retrieve a thread by its ID"
       }
     }
   }
