@@ -125,4 +125,3 @@ Knowledge
   - [x] 50MB free tier
 - [x] Fix big files upload [A]
 - [x] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
-
