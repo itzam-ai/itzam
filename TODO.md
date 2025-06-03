@@ -1,6 +1,6 @@
 ### Now (23w · 2025)
 
-- [ ] Threads docs (missed from 22w)
+- [x] Threads docs (missed from 22w)
 
 - [ ] Context (segmented knowledge)
 
