@@ -20,7 +20,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
-import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -168,6 +168,10 @@ export const FileInput = ({
       active: true,
       totalChunks: 0,
       chunks: [],
+      scrapeFrequency: "NEVER" as const,
+      lastScrapedAt: null,
+      totalBatches: 0,
+      processedBatches: 0,
     }));
 
     setWorkflowFiles((prevFiles) => {

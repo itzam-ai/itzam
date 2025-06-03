@@ -74,7 +74,7 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         update_data = {
             "status": status,
         }
-        
+
         if title:
             update_data["title"] = title
         if file_size is not None:
@@ -87,15 +87,6 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         session.execute(stmt)
         session.commit()
         session.close()
-        
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info("--------------------------------");
-        logger.info(f"Updated resource {resource_id} with data: {update_data}")
         
     except Exception as e:
         logger.error(f"Failed to update resource status: {str(e)}")
@@ -119,3 +110,75 @@ def get_resource_by_id(resource_id: str) -> Optional[Resource]:
         if 'session' in locals():
             session.close()
         return None
+
+def update_resource_total_batches(resource_id: str, total_batches: int):
+    """Update the total_batches field for a resource."""
+    try:
+        session = get_db_session()
+        
+        stmt = update(Resource).where(Resource.id == resource_id).values(
+            total_batches=total_batches,
+            updated_at=datetime.utcnow()
+        )
+        session.execute(stmt)
+        session.commit()
+        session.close()
+        
+        logger.info(f"Updated total_batches to {total_batches} for resource {resource_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to update total_batches for resource {resource_id}: {str(e)}")
+        if 'session' in locals():
+            session.rollback()
+            session.close()
+
+def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
+    """
+    Atomically increment processed_batches and check if all batches are completed.
+    Returns True if all batches are now processed, False otherwise.
+    """
+    try:
+        session = get_db_session()
+        
+        # Get current resource state
+        stmt = select(Resource).where(Resource.id == resource_id)
+        resource = session.execute(stmt).scalar_one_or_none()
+        
+        if not resource:
+            logger.error(f"Resource {resource_id} not found")
+            session.close()
+            return False
+        
+        new_processed_batches = resource.processed_batches + batch_count
+        
+        # Check if all batches are completed
+        all_batches_completed = new_processed_batches >= resource.total_batches
+        
+        if all_batches_completed:
+            # Update both processed_batches and last_scraped_at
+            stmt = update(Resource).where(Resource.id == resource_id).values(
+                processed_batches=new_processed_batches,
+                last_scraped_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            logger.info(f"All {resource.total_batches} batches completed for resource {resource_id}. Updated last_scraped_at.")
+        else:
+            # Update only processed_batches
+            stmt = update(Resource).where(Resource.id == resource_id).values(
+                processed_batches=new_processed_batches,
+                updated_at=datetime.utcnow()
+            )
+            logger.info(f"Processed batch for resource {resource_id}. Progress: {new_processed_batches}/{resource.total_batches}")
+        
+        session.execute(stmt)
+        session.commit()
+        session.close()
+        
+        return all_batches_completed
+        
+    except Exception as e:
+        logger.error(f"Failed to increment processed_batches for resource {resource_id}: {str(e)}")
+        if 'session' in locals():
+            session.rollback()
+            session.close()
+        return False

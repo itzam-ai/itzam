@@ -40,7 +40,8 @@
         "SUPABASE_SERVICE_ROLE_KEY",
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
-        "PYTHON_KNOWLEDGE_API_URL"
+        "PYTHON_KNOWLEDGE_API_URL",
+        "RESCAPE_CRON_SECRET"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]

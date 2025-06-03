@@ -49,3 +49,28 @@ async def send_update(resource: Dict[str, Any], payload: Dict[str, Any], event_t
         logger.error(f"Failed to send {event_type} to channel: {str(e)}")
         # Don't raise the exception to avoid breaking the main flow
         pass
+
+async def send_usage_update(workflow_id: str, file_size: int, event_type: str = "update"):
+    """Send real-time usage (orange chart) update via Supabase channel."""
+    try:
+        supabase = await get_supabase_async_client()
+        channel_id = f"{workflow_id}-usage"
+        
+        # Create channel and subscribe
+        channel = supabase.channel(channel_id)
+        await channel.subscribe()
+        
+        logger.info(f"Sending {event_type} to channel {channel_id}: {file_size}")
+        
+        # Send the broadcast update
+        await channel.send_broadcast(event_type, {"newFileSize": file_size})
+        
+        # Unsubscribe from channel
+        await channel.unsubscribe()
+        
+        logger.info(f"Successfully sent {event_type} to channel {channel_id}")
+        
+    except Exception as e:
+        logger.error(f"Failed to send {event_type} to channel: {str(e)}")
+        # Don't raise the exception to avoid breaking the main flow
+        pass

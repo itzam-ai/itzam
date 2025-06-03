@@ -259,7 +259,10 @@ async function fileSizeExceedsPlanLimit(
     type,
   });
 
-  if (file.size > maxSize) {
+  if (
+    file.size + currentKnowledgeSizeInWorkflowWithoutCurrentResource >
+    maxKnowledgeSize
+  ) {
     return true;
   }
 

@@ -7,8 +7,8 @@ from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
-from .database import save_chunks_to_db, update_resource_status
-from .supabase import send_update
+from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches
+from .supabase import send_update, send_usage_update
 from .schemas import LinkResource, FileResource, ResourceBase
 
 logger = logging.getLogger(__name__)
@@ -45,11 +45,6 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     """Generate a title using Itzam API or fallback to simple generation."""
     if not text.strip():
         return original_filename
-    
-    print("--------------------------------");
-    print("original_filename:", original_filename);
-    print("text:", text);
-    print("--------------------------------");
     
     # Try to generate title using Itzam API if available
     if settings.ITZAM_API_KEY:
@@ -93,7 +88,7 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     else:
         return text.strip() or original_filename
 
-async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str):
+async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str, workflow_id: str):
     """Extract text from resource and generate chunks."""
     try:
         logger.info(f"Starting chunk generation for resource {resource.id}")
@@ -106,10 +101,33 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No text content extracted from the provided URL"
             )
+
+        # Send initial update with file size
+        await send_update(resource, {
+            "status": "PENDING",
+            "title": "",
+            "fileSize": file_size,
+            "totalChunks": 0,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
+        })
+        
+        # Send usage update
+        await send_usage_update(workflow_id, file_size)
         
         # Generate title using Itzam API or fallback
         original_filename = resource.url
         title = await generate_file_title(text_content, original_filename)
+
+        # Send update with title
+        await send_update(resource, {
+            "status": "PENDING",
+            "title": title,
+            "fileSize": file_size,
+            "totalChunks": chunk_length,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id
+        })
         
         # Update resource with title and file size
         update_resource_status(resource.id, "PENDING", title, file_size)
@@ -124,15 +142,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         # Update resource with total chunks
         update_resource_status(resource.id, "PENDING", title, file_size, chunk_length)
 
-        logger.info({
-            "status": "PENDING",
-            "title": title,
-            "totalChunks": chunk_length,
-            "fileSize": file_size,
-            "resourceId": resource.id,
-            "knowledgeId": knowledge_id
-        })
-
+        # Send update with total chunks
         await send_update(resource, {
             "status": "PENDING",
             "title": title,
@@ -227,6 +237,13 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             result["embeddings"] = embeddings_data
             status_to_set = "PROCESSED"
         
+        # Increment processed batches and check if all batches are completed
+        all_batches_completed = increment_processed_batches(resource.id, 1)
+        
+        if all_batches_completed:
+            logger.info(f"All embedding batches completed for resource {resource.id}. Resource fully processed.")
+            # The last_scraped_at was already updated in increment_processed_batches
+        
         # Update resource status
         update_resource_status(resource.id, status_to_set)
 
@@ -236,7 +253,8 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "processedChunks": len(chunks),
             "fileSize": file_size,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "allBatchesCompleted": all_batches_completed
         })
         
         # Send real-time update
@@ -246,7 +264,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "processedChunks": len(chunks),
             "fileSize": file_size,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
         })
         
         return result
@@ -282,7 +300,7 @@ async def process_resource_embeddings(
 
         tokenizer = tiktoken.get_encoding("cl100k_base")
         # First generate chunks
-        chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id)
+        chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id, workflow_id)
 
         chunks: List[Chunk] = chunks_data["chunks"]
         file_size = chunks_data["file_size"]
@@ -313,6 +331,10 @@ async def process_resource_embeddings(
 
         if current_batch:
             batches.append(current_batch)
+
+        # Update total_batches in the database
+        update_resource_total_batches(resource.id, len(batches))
+        logger.info(f"Set total_batches to {len(batches)} for resource {resource.id}")
 
         # Add a background task for each batch
         for batch in batches:

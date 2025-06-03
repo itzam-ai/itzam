@@ -10,7 +10,6 @@ import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
-import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -25,10 +24,20 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { KnowledgeItem } from "./knowledge-item";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 
 type LinkToAdd = {
   id: string;
   url: string;
+  scrapeFrequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY";
 };
 
 const isValidUrl = (url: string) => {
@@ -63,6 +72,9 @@ export const LinkInput = ({
   );
 
   const [link, setLink] = useState<string>("");
+  const [scrapeFrequency, setScrapeFrequency] = useState<
+    "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+  >("NEVER");
   const [linkError, setLinkError] = useState<string>("");
   const [linksToAdd, setLinksToAdd] = useState<LinkToAdd[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -95,8 +107,9 @@ export const LinkInput = ({
       return;
     }
 
-    setLinksToAdd([...linksToAdd, { id: v7(), url: link }]);
+    setLinksToAdd([...linksToAdd, { id: v7(), url: link, scrapeFrequency }]);
     setLink("");
+    setScrapeFrequency("NEVER");
     setIsDialogOpen(false);
   };
 
@@ -120,6 +133,10 @@ export const LinkInput = ({
       active: true,
       totalChunks: 0,
       chunks: [],
+      scrapeFrequency: link.scrapeFrequency,
+      lastScrapedAt: null,
+      totalBatches: 0,
+      processedBatches: 0,
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
@@ -217,29 +234,60 @@ export const LinkInput = ({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add links</DialogTitle>
+                <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge base
+                  Add URLs to the model&apos;s knowledge.
                 </DialogDescription>
               </DialogHeader>
 
-              <Input
-                type="url"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddLink();
-                  }
-                }}
-                className={cn(linkError ? "ring-1 ring-red-500" : "")}
-                placeholder="https://"
-                value={linkError ? linkError : link}
-                onChange={(e) => {
-                  setLink(e.target.value);
-                  setLinkError("");
-                }}
-              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="ml-0.5">
+                    URL
+                  </Label>
+                  <Input
+                    type="url"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddLink();
+                      }
+                    }}
+                    className={cn(linkError ? "ring-1 ring-red-500" : "")}
+                    placeholder="https://"
+                    value={linkError ? linkError : link}
+                    onChange={(e) => {
+                      setLink(e.target.value);
+                      setLinkError("");
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scrape-frequency" className="ml-0.5">
+                    Scrape frequency
+                  </Label>
+                  <Select
+                    value={scrapeFrequency}
+                    onValueChange={(value) =>
+                      setScrapeFrequency(
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEVER">Never</SelectItem>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <DialogFooter>
                 <Button
@@ -257,6 +305,7 @@ export const LinkInput = ({
                   type="submit"
                   variant="primary"
                   size="sm"
+                  className="w-20"
                   onClick={handleAddLink}
                   disabled={!link}
                 >

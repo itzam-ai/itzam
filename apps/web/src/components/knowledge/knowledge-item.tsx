@@ -7,12 +7,14 @@ import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
+  ClockIcon,
   Download,
   ExternalLink,
   FileIcon,
   GlobeIcon,
   Loader2,
   TrashIcon,
+  Worm,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -95,9 +97,24 @@ export const KnowledgeItem = ({
           </p>
 
           <span className="text-muted-foreground text-xs whitespace-nowrap">
-            {formatDistanceToNow(resource.createdAt, {
-              addSuffix: true,
-            })}
+            {resource.type === "FILE" ? (
+              <span className="flex items-center gap-1">
+                <ClockIcon className="size-3" />
+                {formatDistanceToNow(resource.createdAt, {
+                  addSuffix: true,
+                })}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1">
+                <Worm className="size-3" />
+                {formatDistanceToNow(
+                  resource.lastScrapedAt ?? resource.createdAt,
+                  {
+                    addSuffix: true,
+                  }
+                )}
+              </span>
+            )}
           </span>
 
           <div className="px-2 py-0.5 bg-muted rounded-sm flex font-mono items-center justify-center gap-0.5 text-xs">
