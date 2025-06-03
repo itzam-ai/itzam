@@ -73,7 +73,6 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
         # Prepare update data
         update_data = {
             "status": status,
-            "updated_at": datetime.utcnow()
         }
         
         if title:

@@ -1,18 +1,15 @@
-import uuid
 import logging
-from typing import Dict, Any, List, Tuple, Union
-import asyncio
+from typing import Dict, Any, List, Union
 import aiohttp
 import tiktoken
 import json
-from openai import OpenAI
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
 from .database import save_chunks_to_db, update_resource_status
 from .supabase import send_update
-from .schemas import UpdatePayload, LinkResource, FileResource
+from .schemas import LinkResource, FileResource
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +114,8 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         
         # Chunk the text
         chunks = chunker(text_content)
-
         chunk_length = len(chunks)
+
         logger.info({
             "status": "PENDING",
             "title": title,
@@ -154,6 +151,7 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         
         # Send failure update
         fallback_title = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+        
         await send_update(resource, {
             "status": "FAILED",
             "title": fallback_title,

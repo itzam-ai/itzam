@@ -38,11 +38,13 @@ apps/python/
 ## Setup
 
 1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Set up environment variables:
+
 ```bash
 export NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 export SUPABASE_ANON_KEY="your-supabase-anon-key"
@@ -50,6 +52,7 @@ export OPENAI_API_KEY="your-openai-api-key"  # Required for embeddings
 ```
 
 3. Run the application:
+
 ```bash
 # Option 1: Direct Python execution
 python main.py
@@ -74,18 +77,23 @@ Authorization: Bearer your-supabase-jwt-token
 ## API Endpoints
 
 ### Health Check
+
 ```
 GET /health/
 ```
+
 Returns the health status of the API and checks for required environment variables.
 
 ### Root Status
+
 ```
 GET /
 ```
+
 Returns basic API status information.
 
 ### Create Resource Task
+
 ```
 POST /api/v1/create-resource
 ```
@@ -94,6 +102,7 @@ POST /api/v1/create-resource
 **Description**: Create and process multiple resources with automatic chunking, embedding generation, and database storage. Equivalent to the TypeScript `createResourceTask`.
 
 **Request Body:**
+
 ```json
 {
   "resources": [
@@ -118,6 +127,7 @@ POST /api/v1/create-resource
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -141,6 +151,7 @@ POST /api/v1/create-resource
 ```
 
 ### Chunk Task
+
 ```
 POST /api/v1/chunk
 ```
@@ -149,6 +160,7 @@ POST /api/v1/chunk
 **Description**: Process a single resource for chunking and optionally generate embeddings. Equivalent to the TypeScript `chunkTask`.
 
 **Request Body:**
+
 ```json
 {
   "resource": {
@@ -165,6 +177,7 @@ POST /api/v1/chunk
 ```
 
 **Response:**
+
 ```json
 {
   "chunks": ["chunk1 text...", "chunk2 text..."],
@@ -180,31 +193,37 @@ POST /api/v1/chunk
 ## Architecture
 
 ### Configuration (`app/config.py`)
+
 - Centralized settings management
 - Environment variable handling
 - Health check utilities
 
 ### Schemas (`app/schemas.py`)
+
 - Pydantic models for request/response validation
 - Type safety and automatic documentation
 - Alias support for camelCase/snake_case conversion
 
 ### Database (`app/database.py`)
+
 - Supabase client management
 - Database operations (CRUD)
 - Real-time channel updates
 
 ### Dependencies (`app/dependencies.py`)
+
 - Authentication middleware
 - Dependency injection patterns
 - Security utilities
 
 ### Services (`app/services.py`)
+
 - Business logic implementation
 - Document processing workflows
 - Embedding generation and storage
 
 ### Routers (`app/routers/`)
+
 - Modular endpoint organization
 - Route-specific logic
 - Clean separation of concerns
@@ -216,6 +235,7 @@ The API sends real-time updates via Supabase channels during processing:
 **Channel Format**: `knowledge-{knowledgeId}-{files|links}`
 
 **Update Payload**:
+
 ```json
 {
   "status": "PROCESSED",
@@ -231,6 +251,7 @@ The API sends real-time updates via Supabase channels during processing:
 The API interacts with the following Supabase tables:
 
 ### Resources Table
+
 ```sql
 CREATE TABLE resources (
   id UUID PRIMARY KEY,
@@ -247,6 +268,7 @@ CREATE TABLE resources (
 ```
 
 ### Chunks Table
+
 ```sql
 CREATE TABLE chunks (
   id UUID PRIMARY KEY,
@@ -263,6 +285,7 @@ CREATE TABLE chunks (
 ## Interactive Documentation
 
 Once the server is running, you can access:
+
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 - OpenAPI JSON: `http://localhost:8000/openapi.json`
@@ -289,6 +312,7 @@ uvicorn app.main:app --reload --port 8001
 ## Error Handling
 
 The API includes comprehensive error handling:
+
 - HTTP 401: Authentication required/failed
 - HTTP 400: Bad request (invalid data, missing parameters, etc.)
 - HTTP 500: Internal server error
@@ -320,4 +344,4 @@ For production deployment:
 
 ```bash
 gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
-``` 
+```

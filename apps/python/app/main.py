@@ -29,9 +29,3 @@ def read_root():
         status="healthy",
         message="Itzam Processing API is running"
     )
-
-# For backward compatibility - remove auth requirement for basic endpoints
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    """Legacy endpoint for backward compatibility."""
-    return {"item_id": item_id, "q": q} 
