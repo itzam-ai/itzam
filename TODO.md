@@ -1,22 +1,6 @@
-## Now (22w · 2025)
+### Now (23w · 2025)
 
-- [ ] Knowledge
-
-  - [ ] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
-
-- [x] Threads
-
-  - [ ] Docs
-
-- [x] Attachments
-
-  - [x] UI (be able to see attachments used in a run)
-  - [x] Test SDK
-    - [x] URLs
-    - [x] Base64
-  - [x] Check docs
-
-### 23w · 2025
+- [ ] Threads docs (missed from 22w)
 
 - [ ] Context (segmented knowledge)
 
@@ -110,6 +94,18 @@ itzam.thread.create({
 
 #### 22w 2025
 
+Attachments
+
+- [x] UI (be able to see attachments used in a run)
+- [x] Test SDK
+  - [x] URLs
+  - [x] Base64
+- [x] Check docs
+
+Threads
+
+- [x] Works
+
 Playground
 
 - [x] Improve UI (less boxes)
@@ -128,3 +124,5 @@ Knowledge
 - [x] Validate plan limit [G]
   - [x] 50MB free tier
 - [x] Fix big files upload [A]
+- [x] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
+
