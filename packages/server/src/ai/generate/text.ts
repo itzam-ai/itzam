@@ -258,7 +258,7 @@ export async function generateTextResponse(
     runId: run.id,
   };
 
-  void createRunWithCost({
+  await createRunWithCost({
     ...run,
     metadata: { metadata, aiParams },
     model: model,
