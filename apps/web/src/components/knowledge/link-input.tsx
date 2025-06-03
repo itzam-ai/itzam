@@ -122,9 +122,7 @@ export const LinkInput = ({
       chunks: [],
     }));
 
-    setWorkflowLinks((prevLinks) => {
-      return prevLinks.concat(resourcesToAdd);
-    });
+    setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
 
     try {
       await createResourceAndSendoToAPI({
@@ -309,12 +307,12 @@ export const LinkInput = ({
                       link.url ? "opacity-100" : "opacity-50"
                     }`}
                   >
-                    <Globe className="size-3" />
-                    <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-48">
+                    <Globe className="size-3 text-muted-foreground" />
+                    <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-48 mr-0.5">
                       {link.url}
                     </p>
                     <X
-                      className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-red-500"
+                      className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
                       onClick={() =>
                         setLinksToAdd(linksToAdd.filter((l) => l !== link))
                       }

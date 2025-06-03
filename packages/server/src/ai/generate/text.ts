@@ -148,8 +148,6 @@ export async function generateTextOrObjectStream(
         (event as unknown as { metadata: unknown }).metadata = metadata;
       }
 
-      console.log("🔥 event", event);
-
       await streamSSE?.writeSSE({
         data: JSON.stringify(event),
         event: event.type,

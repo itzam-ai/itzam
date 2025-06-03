@@ -105,7 +105,7 @@ export const FileInput = ({
       return extendedFile;
     });
 
-    setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
+    setFiles((prevFiles) => [...filesWithIds, ...prevFiles]);
 
     startTransition(async () => {
       // upload the files using Supabase function
@@ -171,7 +171,7 @@ export const FileInput = ({
     }));
 
     setWorkflowFiles((prevFiles) => {
-      return prevFiles.concat(resourcesToAdd);
+      return [...resourcesToAdd, ...prevFiles];
     });
 
     try {
@@ -327,7 +327,7 @@ export const FileInput = ({
                           className={`size-3 ${isUploaded ? "text-muted-foreground" : "text-muted-foreground/50"}`}
                         />
                         <p
-                          className={`text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32 ${isUploaded ? "text-primary" : "text-muted-foreground"}`}
+                          className={`text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32 ${isUploaded ? "text-primary" : "text-muted-foreground"} mr-1`}
                         >
                           {file.name}
                         </p>
@@ -367,7 +367,7 @@ export const FileInput = ({
                 </div>
 
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleSubmit}
                   disabled={isUploading || isSubmitting || files.length === 0}
