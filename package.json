@@ -3,22 +3,27 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "predev": "pnpm copy-env",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "postinstall": "manypkg check",
-    "db:drop": "turbo run db:drop",
-    "db:push": "turbo run db:push",
-    "db:seed": "turbo run db:seed",
-    "db:sample-data": "turbo run db:sample-data",
-    "db:studio": "turbo run db:studio"
+    "postinstall": "manypkg check && pnpm install-python",
+    "clear-env": "tsx scripts/clear-env.ts",
+    "copy-env": "tsx scripts/copy-env.ts",
+    "install-python": "cd apps/python && pip install -r requirements.txt && cd ../..",
+    "db:drop": "cd packages/server &&  db:drop",
+    "db:push": "cd packages/server && pnpm db:push",
+    "db:seed": "cd packages/server && db:seed",
+    "db:sample-data": "cd packages/server && db:sample-data",
+    "db:studio": "cd packages/server && db:studio"
   },
   "devDependencies": {
     "@manypkg/cli": "^0.23.0",
     "prettier": "^3.5.3",
     "supabase": "^2.23.4",
+    "tsx": "^4.19.4",
     "turbo": "^2.5.0",
     "typescript": "^5.8.3"
   },
