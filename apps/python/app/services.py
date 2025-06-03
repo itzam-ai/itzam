@@ -88,7 +88,7 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     else:
         return text.strip() or original_filename
 
-async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str):
+async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str = None):
     """Extract text from resource and generate chunks."""
     try:
         logger.info(f"Starting chunk generation for resource {resource.id}")
@@ -163,7 +163,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str, file_size: int, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
+async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str = None, file_size: int = 0, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
     """Generate embeddings for chunks and optionally save to database."""
     try:
         # Use provided title or generate a fallback
@@ -248,6 +248,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
         update_resource_status(resource.id, "FAILED")
         
         # Send failure update
+        fallback_title = title or str(resource.url)
         await send_update(resource, {
             "status": "FAILED",
             "title": fallback_title,
@@ -263,8 +264,9 @@ async def process_resource_embeddings(
     background_tasks: BackgroundTasks,
     resource: ResourceBase,
     workflow_id: str,
-    knowledge_id: str,
-    save_to_db: bool = False
+    knowledge_id: str = None,
+    save_to_db: bool = False,
+    is_context_flow: bool = False
 ) -> Dict[str, Any]:
     """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
     try:

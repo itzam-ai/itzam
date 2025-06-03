@@ -19,7 +19,8 @@ class LinkResource(ResourceBase):
 
 class CreateResourceRequest(BaseModel):
     resources: List[ResourceBase]
-    knowledge_id: str = Field(..., alias="knowledgeId")
+    knowledge_id: Optional[str] = Field(None, alias="knowledgeId")
+    context_ids: Optional[List[str]] = Field(None, alias="contextIds")
     workflow_id: str = Field(..., alias="workflowId")
     user_id: str = Field(..., alias="userId")
 

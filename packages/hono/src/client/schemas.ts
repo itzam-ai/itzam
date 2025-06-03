@@ -582,3 +582,184 @@ export type NonLiteralJson = Exclude<Json, Literal>;
 const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
+
+// -------- CONTEXTS --------
+export const CreateContextInputSchema = z
+  .object({
+    name: z.string().min(1).max(256).openapi({
+      example: "Customer Support",
+      description: "The name of the context",
+    }),
+    description: z.string().optional().openapi({
+      example: "Context for customer support related documents",
+      description: "Optional description of the context",
+    }),
+    workflowSlug: z.string().min(1).openapi({
+      example: "my_great_workflow",
+      description: "The slug of the workflow this context belongs to",
+    }),
+  })
+  .openapi({ ref: "CreateContextInput" });
+
+export const CreateContextResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "context_1234567890",
+      description: "The ID of the created context",
+    }),
+    name: z.string().openapi({
+      example: "Customer Support",
+      description: "The name of the context",
+    }),
+    slug: z.string().openapi({
+      example: "customer-support",
+      description: "The slug of the context",
+    }),
+    description: z.string().nullable().openapi({
+      example: "Context for customer support related documents",
+      description: "The description of the context",
+    }),
+    workflowId: z.string().openapi({
+      example: "workflow_1234567890",
+      description: "The ID of the workflow this context belongs to",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the context",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the context",
+    }),
+    resources: z.array(z.object({
+      id: z.string().openapi({
+        example: "resource_1234567890",
+        description: "The ID of the resource",
+      }),
+      title: z.string().nullable().openapi({
+        example: "Support Documentation",
+        description: "The title of the resource",
+      }),
+      type: z.enum(["FILE", "LINK"]).openapi({
+        example: "FILE",
+        description: "The type of the resource",
+      }),
+      url: z.string().openapi({
+        example: "https://example.com/document.pdf",
+        description: "The URL of the resource",
+      }),
+      status: z.enum(["PENDING", "PROCESSED", "FAILED"]).openapi({
+        example: "PROCESSED",
+        description: "The processing status of the resource",
+      }),
+    })).optional().openapi({
+      description: "Array of resources associated with this context",
+    }),
+  })
+  .openapi({ ref: "CreateContextResponse" });
+
+export const GetContextByWorkflowParamsSchema = z.object({
+  workflowSlug: z.string().openapi({
+    example: "my_great_workflow",
+    description: "The slug of the workflow to get contexts for",
+  }),
+});
+
+export const GetContextByIdentifierParamsSchema = z.object({
+  identifier: z.string().openapi({
+    example: "context_1234567890",
+    description: "The ID or slug of the context to retrieve",
+  }),
+});
+
+export const GetContextResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "context_1234567890",
+      description: "The ID of the context",
+    }),
+    name: z.string().openapi({
+      example: "Customer Support",
+      description: "The name of the context",
+    }),
+    slug: z.string().openapi({
+      example: "customer-support",
+      description: "The slug of the context",
+    }),
+    description: z.string().nullable().openapi({
+      example: "Context for customer support related documents",
+      description: "The description of the context",
+    }),
+    workflowId: z.string().openapi({
+      example: "workflow_1234567890",
+      description: "The ID of the workflow this context belongs to",
+    }),
+    createdAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The creation date of the context",
+    }),
+    updatedAt: z.string().openapi({
+      example: "2021-01-01T00:00:00.000Z",
+      description: "The last update date of the context",
+    }),
+    resources: z.array(z.object({
+      id: z.string().openapi({
+        example: "resource_1234567890",
+        description: "The ID of the resource",
+      }),
+      title: z.string().nullable().openapi({
+        example: "Support Documentation",
+        description: "The title of the resource",
+      }),
+      type: z.enum(["FILE", "LINK"]).openapi({
+        example: "FILE",
+        description: "The type of the resource",
+      }),
+      url: z.string().openapi({
+        example: "https://example.com/document.pdf",
+        description: "The URL of the resource",
+      }),
+      status: z.enum(["PENDING", "PROCESSED", "FAILED"]).openapi({
+        example: "PROCESSED",
+        description: "The processing status of the resource",
+      }),
+    })).optional().openapi({
+      description: "Array of resources associated with this context",
+    }),
+  })
+  .openapi({ ref: "GetContextResponse" });
+
+export const GetContextsByWorkflowResponseSchema = z
+  .object({
+    contexts: z.array(GetContextResponseSchema).openapi({
+      description: "Array of contexts for the workflow",
+    }),
+  })
+  .openapi({ ref: "GetContextsByWorkflowResponse" });
+
+export const UpdateContextInputSchema = z
+  .object({
+    name: z.string().min(1).max(256).optional().openapi({
+      example: "Updated Customer Support",
+      description: "The updated name of the context",
+    }),
+    description: z.string().optional().openapi({
+      example: "Updated context description",
+      description: "The updated description of the context",
+    }),
+    resourceIds: z.array(z.string()).optional().openapi({
+      example: ["resource_1234567890", "resource_0987654321"],
+      description: "Array of resource IDs to associate with this context",
+    }),
+  })
+  .openapi({ ref: "UpdateContextInput" });
+
+export const UpdateContextParamsSchema = z.object({
+  id: z.string().openapi({
+    example: "context_1234567890",
+    description: "The ID of the context to update",
+  }),
+});
+
+export const UpdateContextResponseSchema = GetContextResponseSchema
+  .openapi({ ref: "UpdateContextResponse" });

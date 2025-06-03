@@ -9,6 +9,7 @@ import { modelsRoute } from "./routes/models";
 import { runsRoute } from "./routes/runs";
 import { streamRoute } from "./routes/stream";
 import { threadsRoute } from "./routes/threads";
+import { contextsRoute } from "./routes/contexts";
 
 const app = new Hono()
   .basePath("/api/v1")
@@ -16,7 +17,8 @@ const app = new Hono()
   .route("/stream", streamRoute)
   .route("/runs", runsRoute)
   .route("/models", modelsRoute)
-  .route("/threads", threadsRoute);
+  .route("/threads", threadsRoute)
+  .route("/contexts", contextsRoute);
 
 app.get(
   "/doc",

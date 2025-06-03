@@ -4,9 +4,11 @@ import { HTTPException } from "hono/http-exception";
 import { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  CreateContextInputSchema,
   CreateThreadInputSchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
+  UpdateContextInputSchema,
 } from "../../client/schemas";
 
 const messages = {
@@ -76,4 +78,14 @@ export const objectCompletionValidator = zValidator(
 export const createThreadValidator = zValidator(
   "json",
   CreateThreadInputSchema
+);
+
+export const createContextValidator = zValidator(
+  "json",
+  CreateContextInputSchema
+);
+
+export const updateContextValidator = zValidator(
+  "json",
+  UpdateContextInputSchema
 );

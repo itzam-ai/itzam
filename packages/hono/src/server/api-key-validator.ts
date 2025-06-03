@@ -3,9 +3,9 @@ import { validateRequest } from "../utils";
 
 // Define the type for context variables set by this middleware
 type ApiKeyValidatorEnv = {
-  Variables: {
-    userId: string;
-  };
+	Variables: {
+		userId: string;
+	};
 };
 
 /**
@@ -17,29 +17,29 @@ type ApiKeyValidatorEnv = {
  * @see https://hono.dev/docs/guides/middleware
  */
 export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
-  async (c, next) => {
-    const apiKey = c.req.header("Api-Key");
+	async (c, next) => {
+		const apiKey = c.req.header("Api-Key");
 
-    if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
-      // Return a JSON response consistent with other potential errors
-      return c.json({ error: "API key is required" }, 401);
-    }
+		if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+			// Return a JSON response consistent with other potential errors
+			return c.json({ error: "API key is required" }, 401);
+		}
 
-    const validationResult = await validateRequest(apiKey);
+		const validationResult = await validateRequest(apiKey);
 
-    if (validationResult.error) {
-      // Status is guaranteed to be non-null if error is non-null based on validateRequest types
-      return c.json(
-        { error: validationResult.error },
-        validationResult.status!
-      );
-    }
+		if (validationResult.error) {
+			// Status is guaranteed to be non-null if error is non-null based on validateRequest types
+			return c.json(
+				{ error: validationResult.error },
+				validationResult.status || 401,
+			);
+		}
 
-    // Set the validated organization in the context for downstream handlers
-    // Organization is guaranteed to be non-null on success based on validateRequest types
-    c.set("userId", validationResult.userId!);
+		// Set the validated organization in the context for downstream handlers
+		// Organization is guaranteed to be non-null on success based on validateRequest types
+		c.set("userId", validationResult.userId!);
 
-    // Proceed to the next middleware or handler
-    await next();
-  }
+		// Proceed to the next middleware or handler
+		await next();
+	},
 );
