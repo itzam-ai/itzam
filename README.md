@@ -1,4 +1,4 @@
-![itzam-without-bg.png](./assets/itzam-readme.png)
+![itzam-without-bg.png](./assets/readme.png)
 
 # Itzam
 
