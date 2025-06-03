@@ -1,7 +1,11 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToResourceUpdates, supabase, ResourceUpdatePayload } from "@itzam/supabase/client";
+import {
+  ResourceUpdatePayload,
+  subscribeToResourceUpdates,
+  supabase,
+} from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -9,7 +13,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
-import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
+import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -64,16 +68,18 @@ export const FileInput = ({
     }>;
   }>;
 }) => {
-  const [workflowFiles, setWorkflowFiles] = useState<(Knowledge["resources"][number] & { 
-    chunksLength?: number;
-    processedChunks?: number;
-    totalChunks?: number;
-  })[]>(
-    knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []
-  );
+  const [workflowFiles, setWorkflowFiles] = useState<
+    (Knowledge["resources"][number] & {
+      chunksLength?: number;
+      processedChunks?: number;
+      totalChunks?: number;
+    })[]
+  >(knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []);
 
   // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<Record<string, number>>({});
+  const [processedChunksMap, setProcessedChunksMap] = useState<
+    Record<string, number>
+  >({});
 
   const { user } = useCurrentUser();
   const [isUploading, setIsUploading] = useState(false);
@@ -169,7 +175,7 @@ export const FileInput = ({
     });
 
     try {
-      await createResourceAndSendoToAPI({
+      await createResourceAndSendToAPI({
         resources: resourcesToAdd,
         knowledgeId: contextId ? undefined : knowledge?.id,
         contextId: contextId,
@@ -190,7 +196,7 @@ export const FileInput = ({
     );
   };
 
-  const channelId = contextId 
+  const channelId = contextId
     ? `context-${contextId}-files`
     : `knowledge-${knowledge?.id}-files`;
 
@@ -203,14 +209,21 @@ export const FileInput = ({
             if (file.id === payload.resourceId) {
               // Only update fields that are present in the payload (partial updates)
               const updatedFile = { ...file };
-              
-              if (payload.status !== undefined) updatedFile.status = payload.status;
-              if (payload.title !== undefined) updatedFile.title = payload.title;
-              if (payload.chunksLength !== undefined) updatedFile.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined) updatedFile.fileSize = payload.fileSize;
-              
+
+              if (payload.status !== undefined)
+                updatedFile.status = payload.status;
+              if (payload.title !== undefined)
+                updatedFile.title = payload.title;
+              if (payload.chunksLength !== undefined)
+                updatedFile.chunksLength = payload.chunksLength;
+              if (payload.fileSize !== undefined)
+                updatedFile.fileSize = payload.fileSize;
+
               // Handle progress updates for processing
-              if (payload.processedChunks !== undefined && payload.totalChunks !== undefined) {
+              if (
+                payload.processedChunks !== undefined &&
+                payload.totalChunks !== undefined
+              ) {
                 updatedFile.processedChunks = payload.processedChunks;
                 updatedFile.totalChunks = payload.totalChunks;
               }
@@ -225,7 +238,9 @@ export const FileInput = ({
         // Handle processed-chunks events to accumulate progress
         setProcessedChunksMap((prev) => ({
           ...prev,
-          [progressPayload.resourceId]: (prev[progressPayload.resourceId] || 0) + progressPayload.processedChunks
+          [progressPayload.resourceId]:
+            (prev[progressPayload.resourceId] || 0) +
+            progressPayload.processedChunks,
         }));
       }
     );

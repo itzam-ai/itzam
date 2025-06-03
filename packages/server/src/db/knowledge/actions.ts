@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
@@ -27,7 +27,10 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
     where: eq(knowledge.id, workflow.knowledgeId),
     with: {
       resources: {
-        where: eq(resources.active, true),
+        where: and(
+          eq(resources.active, true),
+          eq(resources.knowledgeId, workflow.knowledgeId)
+        ),
         orderBy: desc(resources.createdAt),
         with: {
           chunks: {
@@ -46,7 +49,7 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   return knowledgeFromWorkflow;
 }
 
-export async function checkPlanLimits(knowledgeId: string) {
+export async function checkPlanLimits(workflowId: string) {
   const user = await getUser();
 
   if (user.error || !user.data.user) {
@@ -55,12 +58,23 @@ export async function checkPlanLimits(knowledgeId: string) {
 
   const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
 
+  // Get the workflow's knowledge to check limits
+  const workflow = await db.query.workflows.findFirst({
+    where: eq(workflows.id, workflowId),
+    columns: {
+      knowledgeId: true,
+    },
+  });
+
+  if (!workflow) {
+    throw new Error("Workflow not found");
+  }
+
   // check if the user has reached the limit in this workflow (50MB)
-
-  const resourcesSize = await db.query.resources.findMany({
+  // Get all resources in the workflow (both knowledge and context resources)
+  const knowledgeResources = await db.query.resources.findMany({
     where: and(
-      eq(resources.knowledgeId, knowledgeId),
-
+      eq(resources.knowledgeId, workflow.knowledgeId),
       eq(resources.active, true)
     ),
     columns: {
@@ -68,8 +82,32 @@ export async function checkPlanLimits(knowledgeId: string) {
     },
   });
 
-  const totalSize = resourcesSize.reduce(
-    (acc, resource) => acc + (resource.fileSize ?? 0),
+  // Get all context resources for this workflow
+  const contextResources = await db.query.resourceContexts.findMany({
+    where: sql`context_id IN (SELECT id FROM context WHERE workflow_id = ${workflowId})`,
+    with: {
+      resource: {
+        columns: {
+          fileSize: true,
+          active: true,
+        },
+      },
+    },
+  });
+
+  // Filter active context resources and extract their sizes
+  const activeContextResourceSizes = contextResources
+    .filter(rc => rc.resource.active)
+    .map(rc => rc.resource.fileSize || 0);
+
+  // Combine all resource sizes
+  const allResourceSizes = [
+    ...knowledgeResources.map(r => r.fileSize || 0),
+    ...activeContextResourceSizes,
+  ];
+
+  const totalSize = allResourceSizes.reduce(
+    (acc, size) => acc + size,
     0
   );
 

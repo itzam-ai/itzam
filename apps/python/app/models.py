@@ -335,6 +335,7 @@ class Workflow(Base):
         ForeignKeyConstraint(['model_settings_id'], ['model_settings.id'], name='workflow_model_settings_id_model_settings_id_fk'),
         ForeignKeyConstraint(['user_id'], ['auth.users.id'], name='workflow_user_id_users_id_fk'),
         PrimaryKeyConstraint('id', name='workflow_pkey'),
+        Index('workflow_id_idx', 'id'),
         Index('workflow_model_id_idx', 'model_id'),
         Index('workflow_model_settings_id_idx', 'model_settings_id'),
         Index('workflow_slug_idx', 'slug'),

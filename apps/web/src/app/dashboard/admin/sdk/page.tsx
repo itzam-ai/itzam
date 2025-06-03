@@ -1,6 +1,8 @@
 "use client";
 
 import { GetRunByIdResponseSchema } from "@itzam/hono/client/schemas";
+import { getContexts } from "@itzam/server/actions/contexts";
+import { getUserWorkflows } from "@itzam/server/db/workflow/actions";
 import { env } from "@itzam/utils";
 import Itzam from "itzam";
 import { ItzamError } from "itzam/errors";
@@ -13,6 +15,7 @@ import { z } from "zod";
 import { ResponseCard } from "~/components/playground/response-card";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Checkbox } from "~/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -32,12 +35,13 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 
 const abdulLocalKey =
-  "itzam_61b01ef4-bbaf-47ac-a1e2-580c33921e83_czzo14zxl7smr9y4ahqunreqy7hh52z";
+  "itzam_5d695f4e-6ff7-460a-88aa-ec630e886da3_aqhiovwmtjvsqtwsbdl0mc32g1rzujw6";
 
 const gustavoLocalKey =
   "itzam_1346408f-2401-4fea-8545-bd816776fbc4_xamqeu207qpk54xvf6btp1s6sajtfn57";
 
-const slug = "code-assistant";
+// Default workflow slug - will be overridden by selector
+const DEFAULT_SLUG = "code-assistant";
 
 type Metadata = {
   runId: string;
@@ -71,6 +75,18 @@ type ThreadRun = {
     tag: string;
   };
 };
+
+type Workflow = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type Context = {
+  id: string;
+  name: string;
+  slug: string;
+};
 const toBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -94,12 +110,25 @@ export default function AdminSdkPage() {
   );
 
   const [models, setModels] = useState<{ name: string; tag: string }[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [contexts, setContexts] = useState<Context[]>([]);
+  const [selectedWorkflowSlug, setSelectedWorkflowSlug] =
+    useLocalStorage<string>("admin_sdk_selected_workflow", DEFAULT_SLUG);
+  const [selectedContextIds, setSelectedContextIds] = useLocalStorage<string[]>(
+    "admin_sdk_selected_contexts",
+    []
+  );
   const [threads, setThreads] = useState<Thread[]>([]);
-  const [selectedThreadId, setSelectedThreadId] = useState<string>("");
+  const [selectedThreadId, setSelectedThreadId] = useLocalStorage<string>(
+    "admin_sdk_selected_thread",
+    ""
+  );
   const [threadHistory, setThreadHistory] = useState<ThreadRun[]>([]);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingThreads, setIsLoadingThreads] = useState(false);
+  const [isLoadingWorkflows, setIsLoadingWorkflows] = useState(false);
+  const [isLoadingContexts, setIsLoadingContexts] = useState(false);
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<string>("");
@@ -112,9 +141,10 @@ export default function AdminSdkPage() {
   const [file, setFile] = useState<File | null>(null);
 
   const makeConfig = async () => ({
-    workflowSlug: slug,
+    workflowSlug: selectedWorkflowSlug,
     input,
     threadId: selectedThreadId || undefined,
+    contexts: selectedContextIds.length > 0 ? selectedContextIds : undefined,
     attachments: file
       ? [
           {
@@ -130,11 +160,58 @@ export default function AdminSdkPage() {
     experiences: z.array(z.string()),
   });
 
+  // Fetch workflows using server action
+  const fetchWorkflows = useCallback(async () => {
+    setIsLoadingWorkflows(true);
+    try {
+      const response = await getUserWorkflows();
+      if (response.error) {
+        throw new Error("Failed to fetch workflows");
+      }
+
+      const workflowsData: Workflow[] = response.data.map((workflow) => ({
+        id: workflow.id,
+        name: workflow.name,
+        slug: workflow.slug,
+      }));
+
+      setWorkflows(workflowsData);
+    } catch (error) {
+      toast.error("Failed to fetch workflows");
+      console.error("Error fetching workflows:", error);
+    } finally {
+      setIsLoadingWorkflows(false);
+    }
+  }, []);
+
+  // Fetch contexts for selected workflow using server action
+  const fetchContexts = useCallback(async (workflowSlug: string) => {
+    setIsLoadingContexts(true);
+    try {
+      const response = await getContexts(workflowSlug);
+
+      const contextsData: Context[] = response.data.map((context) => ({
+        id: context.id,
+        name: context.name,
+        slug: context.slug,
+      }));
+
+      setContexts(contextsData);
+    } catch (error) {
+      toast.error("Failed to fetch contexts");
+      console.error("Error fetching contexts:", error);
+      // Set empty array on error
+      setContexts([]);
+    } finally {
+      setIsLoadingContexts(false);
+    }
+  }, []);
+
   // Real API functions for thread management using new structure
   const fetchThreads = useCallback(async () => {
     setIsLoadingThreads(true);
     try {
-      const response = await itzam.threads.list(slug);
+      const response = await itzam.threads.list(selectedWorkflowSlug);
       setThreads(response.threads);
     } catch (error) {
       toast.error("Failed to fetch threads");
@@ -142,12 +219,12 @@ export default function AdminSdkPage() {
     } finally {
       setIsLoadingThreads(false);
     }
-  }, [itzam]);
+  }, [itzam, selectedWorkflowSlug]);
 
   const createNewThread = async () => {
     try {
       const response = await itzam.threads.create({
-        workflowSlug: slug,
+        workflowSlug: selectedWorkflowSlug,
         name: `New Thread ${threads.length + 1}`,
       });
 
@@ -293,14 +370,59 @@ export default function AdminSdkPage() {
 
   useEffect(() => {
     handleGetModels();
-    fetchThreads();
-  }, [handleGetModels, fetchThreads]);
+    fetchWorkflows();
+  }, [handleGetModels, fetchWorkflows]);
+
+  // Validate and update selected workflow when workflows are loaded
+  useEffect(() => {
+    if (workflows.length > 0) {
+      const workflowExists = workflows.some(
+        (w) => w.slug === selectedWorkflowSlug
+      );
+      if (!workflowExists) {
+        // If selected workflow doesn't exist, use the first available one
+        const firstWorkflow = workflows[0];
+        if (firstWorkflow) {
+          setSelectedWorkflowSlug(firstWorkflow.slug);
+        }
+      }
+    }
+  }, [workflows, selectedWorkflowSlug, setSelectedWorkflowSlug]);
+
+  useEffect(() => {
+    if (selectedWorkflowSlug && workflows.length > 0) {
+      fetchThreads();
+      fetchContexts(selectedWorkflowSlug);
+    }
+  }, [fetchThreads, fetchContexts, selectedWorkflowSlug, workflows]);
+
+  // Clear contexts and thread when workflow changes
+  useEffect(() => {
+    setSelectedContextIds([]);
+    setSelectedThreadId("");
+  }, [selectedWorkflowSlug, setSelectedContextIds, setSelectedThreadId]);
+
+  // Validate and filter selected contexts when contexts are loaded
+  useEffect(() => {
+    if (contexts.length > 0 && selectedContextIds.length > 0) {
+      const validContextIds = selectedContextIds.filter((id) =>
+        contexts.some((context) => context.id === id)
+      );
+
+      if (validContextIds.length !== selectedContextIds.length) {
+        setSelectedContextIds(validContextIds);
+      }
+    }
+  }, [contexts, selectedContextIds, setSelectedContextIds]);
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between">
         <h2 className="font-bold text-2xl">
-          Input <span className="text-muted-foreground">({slug})</span>
+          Input{" "}
+          <span className="text-muted-foreground">
+            ({selectedWorkflowSlug})
+          </span>
         </h2>
         <Button
           className="ml-auto"
@@ -309,6 +431,83 @@ export default function AdminSdkPage() {
         >
           Using {apiKey === "abdul" ? "abdul" : "gustavo"}&apos;s api key
         </Button>
+      </div>
+
+      {/* Workflow and Context Selectors */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="workflow-select">Workflow</Label>
+          <Select
+            value={selectedWorkflowSlug}
+            onValueChange={setSelectedWorkflowSlug}
+          >
+            <SelectTrigger id="workflow-select">
+              <SelectValue
+                placeholder={
+                  isLoadingWorkflows
+                    ? "Loading workflows..."
+                    : "Select a workflow"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {workflows.map((workflow) => (
+                <SelectItem key={workflow.slug} value={workflow.slug}>
+                  {workflow.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label>Contexts (optional)</Label>
+          <div className="border rounded-md p-3 min-h-[40px] bg-background">
+            {isLoadingContexts ? (
+              <span className="text-muted-foreground text-sm">
+                Loading contexts...
+              </span>
+            ) : contexts.length === 0 ? (
+              <span className="text-muted-foreground text-sm">
+                No contexts available
+              </span>
+            ) : (
+              <div className="space-y-2">
+                {contexts.map((context) => (
+                  <div key={context.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`context-${context.id}`}
+                      checked={selectedContextIds.includes(context.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedContextIds((prev) => [
+                            ...prev,
+                            context.id,
+                          ]);
+                        } else {
+                          setSelectedContextIds((prev) =>
+                            prev.filter((id) => id !== context.id)
+                          );
+                        }
+                      }}
+                    />
+                    <Label
+                      htmlFor={`context-${context.id}`}
+                      className="text-sm font-normal cursor-pointer"
+                    >
+                      {context.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {selectedContextIds.length > 0 && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              {selectedContextIds.length} context(s) selected
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Thread Selector */}
@@ -443,6 +642,26 @@ export default function AdminSdkPage() {
           />
         </div>
         <div className="flex flex-col gap-8 text-sm">
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold text-sm">Configuration</p>
+            <p>Workflow: {selectedWorkflowSlug}</p>
+            <p>
+              Contexts:{" "}
+              {selectedContextIds.length > 0
+                ? selectedContextIds
+                    .map((id) => contexts.find((c) => c.id === id)?.name || id)
+                    .join(", ")
+                : "None"}
+            </p>
+            <p>
+              Thread:{" "}
+              {selectedThreadId
+                ? (threads.find((t) => t.id === selectedThreadId)?.name ??
+                  "Selected")
+                : "None"}
+            </p>
+          </div>
+
           <div className="flex flex-col gap-2">
             <p className="font-semibold text-sm">Metadata</p>
             <p>Run ID: {metadata?.runId ?? "-"}</p>

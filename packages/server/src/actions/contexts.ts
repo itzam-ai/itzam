@@ -2,7 +2,7 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 import { db } from "../db";
-import { contexts, resourceContexts } from "../db/schema";
+import { contexts, resourceContexts, resources, workflows } from "../db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 
@@ -155,6 +155,15 @@ export async function addResourceToContexts(
       },
     });
 
+    const isAddingToAnyContext = contextIds.length > 0;
+
+    // If adding to any context, remove from knowledge
+    if (isAddingToAnyContext) {
+      await db.update(resources)
+        .set({ knowledgeId: null })
+        .where(eq(resources.id, resourceId));
+    }
+
     // Update each context
     for (const context of allContexts) {
       const shouldHaveResource = contextIds.includes(context.id);
@@ -179,7 +188,23 @@ export async function addResourceToContexts(
       }
     }
 
+    // If removing from all contexts, add back to knowledge
+    if (!isAddingToAnyContext) {
+      // Get the workflow's knowledge ID
+      const workflow = await db.query.workflows.findFirst({
+        where: eq(workflows.id, workflowId),
+        columns: { knowledgeId: true },
+      });
+      
+      if (workflow) {
+        await db.update(resources)
+          .set({ knowledgeId: workflow.knowledgeId })
+          .where(eq(resources.id, resourceId));
+      }
+    }
+
     revalidatePath(`/dashboard/workflows/${workflowId}/knowledge`);
+    revalidatePath(`/dashboard/workflows/${workflowId}/context`);
     return { success: true };
   } catch (error) {
     console.error("Error updating resource contexts:", error);

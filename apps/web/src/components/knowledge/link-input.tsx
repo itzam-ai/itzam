@@ -1,13 +1,16 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
-import { subscribeToResourceUpdates, ResourceUpdatePayload } from "@itzam/supabase/client";
+import {
+  ResourceUpdatePayload,
+  subscribeToResourceUpdates,
+} from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
-import { createResourceAndSendoToAPI } from "~/components/knowledge/actions";
+import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -56,7 +59,7 @@ export const LinkInput = ({
   }>;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
-    (Knowledge["resources"][number] & { 
+    (Knowledge["resources"][number] & {
       chunksLength?: number;
       processedChunks?: number;
       totalChunks?: number;
@@ -64,7 +67,9 @@ export const LinkInput = ({
   >(knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []);
 
   // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<Record<string, number>>({});
+  const [processedChunksMap, setProcessedChunksMap] = useState<
+    Record<string, number>
+  >({});
 
   const [link, setLink] = useState<string>("");
   const [linkError, setLinkError] = useState<string>("");
@@ -130,7 +135,7 @@ export const LinkInput = ({
     });
 
     try {
-      await createResourceAndSendoToAPI({
+      await createResourceAndSendToAPI({
         resources: resourcesToAdd,
         knowledgeId: contextId ? undefined : knowledge?.id,
         contextId: contextId,
@@ -150,7 +155,7 @@ export const LinkInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = contextId 
+  const channelId = contextId
     ? `context-${contextId}-links`
     : `knowledge-${knowledge?.id}-links`;
 
@@ -163,14 +168,21 @@ export const LinkInput = ({
             if (link.id === payload.resourceId) {
               // Only update fields that are present in the payload (partial updates)
               const updatedLink = { ...link };
-              
-              if (payload.status !== undefined) updatedLink.status = payload.status;
-              if (payload.title !== undefined) updatedLink.title = payload.title;
-              if (payload.chunksLength !== undefined) updatedLink.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined) updatedLink.fileSize = payload.fileSize;
-              
+
+              if (payload.status !== undefined)
+                updatedLink.status = payload.status;
+              if (payload.title !== undefined)
+                updatedLink.title = payload.title;
+              if (payload.chunksLength !== undefined)
+                updatedLink.chunksLength = payload.chunksLength;
+              if (payload.fileSize !== undefined)
+                updatedLink.fileSize = payload.fileSize;
+
               // Handle progress updates for processing
-              if (payload.processedChunks !== undefined && payload.totalChunks !== undefined) {
+              if (
+                payload.processedChunks !== undefined &&
+                payload.totalChunks !== undefined
+              ) {
                 updatedLink.processedChunks = payload.processedChunks;
                 updatedLink.totalChunks = payload.totalChunks;
               }
@@ -185,7 +197,9 @@ export const LinkInput = ({
         // Handle processed-chunks events to accumulate progress
         setProcessedChunksMap((prev) => ({
           ...prev,
-          [progressPayload.resourceId]: (prev[progressPayload.resourceId] || 0) + progressPayload.processedChunks
+          [progressPayload.resourceId]:
+            (prev[progressPayload.resourceId] || 0) +
+            progressPayload.processedChunks,
         }));
       }
     );

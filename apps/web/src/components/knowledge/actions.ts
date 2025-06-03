@@ -7,7 +7,7 @@ import { checkPlanLimits } from "@itzam/server/db/knowledge/actions";
 import { resources as resourcesTable } from "@itzam/server/db/schema";
 import { env } from "@itzam/utils/env";
 
-export async function createResourceAndSendoToAPI({
+export async function createResourceAndSendToAPI({
   knowledgeId,
   contextId,
   workflowId,
@@ -24,10 +24,8 @@ export async function createResourceAndSendoToAPI({
     throw new Error("User not found");
   }
 
-  // check plan limits if adding to knowledge
-  if (knowledgeId) {
-    await checkPlanLimits(knowledgeId);
-  }
+  // check plan limits
+  await checkPlanLimits(workflowId);
 
   // create resources in the database
   const createdResources = await db
@@ -47,11 +45,15 @@ export async function createResourceAndSendoToAPI({
     workflowId,
   };
 
-  // Add either knowledgeId or contextId array based on what's provided
+  // Add sourceType and appropriate IDs based on what's provided
   if (knowledgeId) {
+    bodyData.sourceType = "KNOWLEDGE";
     bodyData.knowledgeId = knowledgeId;
   } else if (contextId) {
-    bodyData.contextId = [contextId];
+    bodyData.sourceType = "CONTEXT";
+    bodyData.contextIds = [contextId];
+  } else {
+    throw new Error("Either knowledgeId or contextId must be provided");
   }
 
   const handle = await fetch(

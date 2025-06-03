@@ -1,4 +1,5 @@
 import { getContext } from "@itzam/server/actions/contexts";
+import { getWorkflowByIdWithRelations } from "@itzam/server/db/workflow/actions";
 import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -21,6 +22,11 @@ export default async function ContextDetailPage({
     const context = contextResponse.data;
     
     if (!context) {
+      notFound();
+    }
+
+    const workflow = await getWorkflowByIdWithRelations(workflowId);
+    if (!workflow || "error" in workflow) {
       notFound();
     }
 
@@ -50,56 +56,30 @@ export default async function ContextDetailPage({
           </Badge>
         </div>
 
-        {/* Add Resources */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Resources</CardTitle>
-            <CardDescription>
-              Add files and links to this context
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Resources */}
+        <Card className="p-6 flex flex-col">
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-1">
+              <h1 className="text font-medium">Resources</h1>
+              <p className="text-xs text-muted-foreground mb-8">
+                Add files and links to this context.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
             <FileInput 
               workflowId={workflowId} 
               contextId={contextId}
-              knowledge={null as any}
+              knowledge={{ resources } as any}
+              contexts={workflow.contexts || []}
             />
             <LinkInput 
               workflowId={workflowId}
               contextId={contextId}
-              knowledge={null as any}
+              knowledge={{ resources } as any}
+              contexts={workflow.contexts || []}
             />
-          </CardContent>
-        </Card>
-
-        {/* Resources List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Resources</CardTitle>
-            <CardDescription>
-              Manage resources in this context
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {resources.length > 0 ? (
-              <div className="space-y-2">
-                {resources.map((resource: any) => (
-                  <KnowledgeItem
-                    key={resource.id}
-                    resource={resource}
-                    workflowId={workflowId}
-                    contextId={contextId}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-sm text-muted-foreground">
-                  No resources added to this context yet
-                </p>
-              </div>
-            )}
-          </CardContent>
+          </div>
         </Card>
       </div>
     );

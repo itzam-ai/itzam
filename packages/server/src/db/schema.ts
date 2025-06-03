@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { and, eq, relations, sql } from "drizzle-orm";
 import {
   boolean,
   decimal,
@@ -8,6 +8,7 @@ import {
   pgEnum,
   pgSchema,
   pgTableCreator,
+  pgView,
   text,
   timestamp,
   uuid,
@@ -244,6 +245,7 @@ export const workflows = createTable(
       .notNull(),
   },
   (table) => ({
+    workflowIdIndex: index("workflow_id_idx").on(table.id),
     modelIdIndex: index("workflow_model_id_idx").on(table.modelId),
     modelSettingsIdIndex: index("workflow_model_settings_id_idx").on(
       table.modelSettingsId
@@ -400,6 +402,22 @@ export const chunks = createTable(
     resourceIdIndex: index("chunks_resource_id_idx").on(table.resourceId),
     workflowIdIndex: index("chunks_workflow_id_idx").on(table.workflowId),
   })
+);
+
+export const workflowChunks = pgView("workflow_chunks").as((qb) =>
+  qb
+    .select({
+      id: chunks.id,
+      contextId: resourceContexts.contextId,
+      knowledgeId: resources.knowledgeId,
+      resourceId: resources.id,
+      embeddings: chunks.embedding,
+      content: chunks.content,
+    })
+    .from(resources)
+    .innerJoin(chunks, eq(resources.id, chunks.resourceId))
+    .innerJoin(resourceContexts, eq(resources.id, resourceContexts.resourceId))
+    .where(and(eq(resources.active, true), eq(chunks.active, true)))
 );
 
 export const providerKeys = createTable(

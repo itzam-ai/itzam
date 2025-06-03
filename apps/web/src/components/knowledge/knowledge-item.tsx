@@ -189,7 +189,7 @@ export const KnowledgeItem = ({
           </div>
         </div>
         <div className="flex items-center">
-          {workflowId && contexts && !contextId && (
+          {workflowId && contexts && (
             <ContextPopover
               resourceId={resource.id}
               workflowId={workflowId}
