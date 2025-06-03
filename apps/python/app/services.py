@@ -9,7 +9,7 @@ from fastapi import BackgroundTasks, HTTPException, status
 from .config import settings
 from .database import save_chunks_to_db, update_resource_status
 from .supabase import send_update
-from .schemas import LinkResource, FileResource
+from .schemas import LinkResource, FileResource, ResourceBase
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     else:
         return text.strip() or original_filename
 
-async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str):
+async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str):
     """Extract text from resource and generate chunks."""
     try:
         logger.info(f"Starting chunk generation for resource {resource.id}")
@@ -103,7 +103,7 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
             )
         
         # Generate title using Itzam API or fallback
-        original_filename = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+        original_filename = resource.url
         title = await generate_file_title(text_content, original_filename)
         
         # Update resource with title and file size
@@ -150,7 +150,7 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         update_resource_status(resource.id, "FAILED")
         
         # Send failure update
-        fallback_title = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+        fallback_title = str(resource.url)
         
         await send_update(resource, {
             "status": "FAILED",
@@ -163,12 +163,12 @@ async def generate_chunks(resource: Union[LinkResource, FileResource], chunk_siz
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource, FileResource], workflow_id: str, knowledge_id: str, file_size: int, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
+async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str, file_size: int, title: str = None, save_to_db: bool = False) -> Dict[str, Any]:
     """Generate embeddings for chunks and optionally save to database."""
     try:
         # Use provided title or generate a fallback
         if not title:
-            original_filename = resource.fileName if hasattr(resource, 'fileName') and resource.fileName else str(resource.url)
+            original_filename = str(resource.url)
             title = original_filename
         
         # Generate embeddings if OpenAI API key is available
@@ -261,7 +261,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: Union[LinkResource,
 
 async def process_resource_embeddings(
     background_tasks: BackgroundTasks,
-    resource: Union[LinkResource, FileResource],
+    resource: ResourceBase,
     workflow_id: str,
     knowledge_id: str,
     save_to_db: bool = False

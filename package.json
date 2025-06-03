@@ -13,11 +13,11 @@
     "clear-env": "tsx scripts/clear-env.ts",
     "copy-env": "tsx scripts/copy-env.ts",
     "install-python": "cd apps/python && pip install -r requirements.txt && cd ../..",
-    "db:drop": "cd packages/server &&  db:drop",
+    "db:drop": "cd packages/server && pnpm db:drop",
     "db:push": "cd packages/server && pnpm db:push",
-    "db:seed": "cd packages/server && db:seed",
-    "db:sample-data": "cd packages/server && db:sample-data",
-    "db:studio": "cd packages/server && db:studio"
+    "db:seed": "cd packages/server && pnpm db:seed",
+    "db:sample-data": "cd packages/server && pnpm db:sample-data",
+    "db:studio": "cd packages/server && pnpm db:studio"
   },
   "devDependencies": {
     "@manypkg/cli": "^0.23.0",

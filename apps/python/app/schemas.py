@@ -18,7 +18,7 @@ class LinkResource(ResourceBase):
     file_size: int = Field(0, alias="fileSize")
 
 class CreateResourceRequest(BaseModel):
-    resources: List[Union[FileResource, LinkResource]]
+    resources: List[ResourceBase]
     knowledge_id: str = Field(..., alias="knowledgeId")
     workflow_id: str = Field(..., alias="workflowId")
     user_id: str = Field(..., alias="userId")
