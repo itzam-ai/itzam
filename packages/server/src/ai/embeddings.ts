@@ -6,7 +6,7 @@ import { chunks } from "../db/schema";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
-const SIMILARITY_THRESHOLD = 0.7;
+const SIMILARITY_THRESHOLD = 0.5;
 
 export type Chunk = typeof chunks.$inferSelect;
 
