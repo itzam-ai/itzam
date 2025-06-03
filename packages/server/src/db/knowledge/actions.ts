@@ -55,8 +55,6 @@ export async function checkPlanLimits(knowledgeId: string) {
 
   const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
 
-  // check if the user has reached the limit in this workflow (50MB)
-
   const resourcesSize = await db.query.resources.findMany({
     where: and(
       eq(resources.knowledgeId, knowledgeId),
@@ -73,6 +71,7 @@ export async function checkPlanLimits(knowledgeId: string) {
     0
   );
 
+  // check if the user has reached the limit in this workflow (50MB or 500MB)
   const maxSize = isSubscribedToItzamPro.isSubscribed
     ? 500 * 1024 * 1024
     : 50 * 1024 * 1024;
