@@ -8,9 +8,16 @@ import {
   Bot,
   Code,
   LucideIcon,
+  Menu, // Added Menu icon
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
+import {
+  Sheet, // Added Sheet components
+  SheetClose,
+  SheetContent,
+  SheetTrigger,
+} from "~/components/ui/sheet";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -59,8 +66,9 @@ export function NavBar() {
     <>
       <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6 xl:px-0">
         <nav className="mx-auto w-full max-w-5xl rounded-2xl border bg-card">
-          <div className="grid h-16 grid-cols-2 items-center px-4 md:grid-cols-3">
-            <div className="ml-2 flex items-center">
+          <div className="grid h-16 grid-cols-3 items-center px-4"> {/* Always 3 columns */}
+            {/* Logo */}
+            <div className="flex items-center justify-start"> {/* Changed ml-2 to justify-start */}
               <Link href="/" className="flex items-center gap-x-2">
                 <Image
                   unoptimized
@@ -77,10 +85,71 @@ export function NavBar() {
               </Link>
             </div>
 
-            <div className="hidden flex-wrap md:flex md:flex-1 md:justify-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  <NavigationMenuItem>
+            {/* Mobile Menu Trigger (Centred) & Desktop Navigation (Centred) */}
+            <div className="flex justify-center items-center">
+              {/* Mobile Menu Trigger */}
+              <div className="md:hidden">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu className="h-6 w-6" />
+                      <span className="sr-only">Open menu</span>
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-3/4 pt-10">
+                    <div className="flex flex-col space-y-5">
+                      <SheetClose asChild>
+                        <Link
+                          href="/pricing"
+                          className="block w-full rounded-md px-3 py-2 text-lg font-medium hover:bg-accent"
+                        >
+                          Pricing
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link
+                          href="/roadmap"
+                          className="block w-full rounded-md px-3 py-2 text-lg font-medium hover:bg-accent"
+                        >
+                          Roadmap
+                        </Link>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Link
+                          href="https://docs.itz.am"
+                          target="_blank"
+                          className="block w-full rounded-md px-3 py-2 text-lg font-medium hover:bg-accent"
+                        >
+                          Docs
+                        </Link>
+                      </SheetClose>
+
+                      <div className="pt-4">
+                        <h3 className="mb-2 px-3 text-base font-semibold text-muted-foreground">
+                          Features
+                        </h3>
+                        {features.map((feature) => (
+                          <SheetClose asChild key={feature.label}>
+                            <Link
+                              href={feature.href}
+                              className="block w-full rounded-md px-3 py-2 text-base hover:bg-accent"
+                              scroll={true}
+                            >
+                              {feature.label}
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+
+              {/* Desktop Navigation */}
+              <div className="hidden md:flex">
+                <NavigationMenu>
+                  <NavigationMenuList>
+                    <NavigationMenuItem>
                     <NavigationMenuTrigger>Features</NavigationMenuTrigger>
                     <NavigationMenuContent>
                       <ul className="flex flex-col gap-1 p-2 pb-3 md:w-[400px] ">
@@ -122,7 +191,8 @@ export function NavBar() {
               </NavigationMenu>
             </div>
 
-            <div className="flex gap-2 items-center justify-end">
+            {/* Auth Buttons */}
+            <div className="flex items-center justify-end gap-2"> {/* Added gap-2 here for consistency */}
               <Link href="https://github.com/itzam-ai/itzam" target="_blank">
                 <Button
                   variant="ghost"

@@ -122,6 +122,9 @@ export const CTA = () => {
           in 2 minutes{" "}
           <i className="text-muted-foreground/50 italic">or less</i>
         </p>
+        <p className="text-base text-muted-foreground md:text-lg mt-2">
+          Start building powerful AI features for your application today.
+        </p>
       </div>
       <div className="mx-auto mt-4 flex gap-4 md:mx-0">
         <Link href="https://docs.itz.am">

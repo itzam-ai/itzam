@@ -101,7 +101,7 @@ export function Hero() {
             transition={{ duration: 0.5 }}
             className="font-medium text-3xl md:text-5xl"
           >
-            Integrate
+            Integrate Large Language Models
             <TextLoop
               className="text-primary ml-4 hidden md:inline-flex"
               transition={{ duration: 0.3 }}
@@ -177,8 +177,11 @@ export function Hero() {
           initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
           animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
-          className="md:w-1/2 w-full flex justify-end"
+          className="md:w-1/2 w-full flex flex-col justify-end"
         >
+          <p className="text-sm text-muted-foreground text-center md:text-right mb-2 md:mr-8">
+            See how easily you can power your application with AI. The code snippet on the right demonstrates a simple integration using Itzam to create a support chat.
+          </p>
           <Showcase />
         </motion.div>
       </div>
