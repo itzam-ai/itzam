@@ -9,7 +9,7 @@ export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className='inline-flex items-center gap-x-1 rounded-lg border bg-background p-1'>
+    <div className="inline-flex items-center gap-x-1 rounded-lg border bg-background p-1 h-8">
       <Button
         variant="ghost"
         size="icon"
@@ -20,7 +20,7 @@ export function ThemeToggle() {
         onClick={() => setTheme("light")}
         aria-label="Light theme"
       >
-        <Sun className="h-4 w-4" />
+        <Sun className="size-3" />
         <span className="sr-only">Light theme</span>
       </Button>
       <Button
@@ -33,7 +33,7 @@ export function ThemeToggle() {
         onClick={() => setTheme("dark")}
         aria-label="Dark theme"
       >
-        <Moon className="h-4 w-4" />
+        <Moon className="size-3" />
         <span className="sr-only">Dark theme</span>
       </Button>
       <Button
@@ -46,9 +46,9 @@ export function ThemeToggle() {
         onClick={() => setTheme("system")}
         aria-label="System theme"
       >
-        <Computer className="h-4 w-4" />
+        <Computer className="size-3" />
         <span className="sr-only">System theme</span>
       </Button>
     </div>
   );
-} 
+}

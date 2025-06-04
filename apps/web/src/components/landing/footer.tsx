@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { Button } from "../ui/button";
+import GitHubLogo from "public/github-logo";
 
 export function Footer() {
   return (
@@ -25,8 +27,14 @@ export function Footer() {
             <p className="mt-2 text-muted-foreground text-sm">
               Seamlessly integrate AI into your applications
             </p>
-            <div className="mt-6 w-fit">
+            <div className="mt-4 w-fit flex gap-2 items-center">
               <ThemeToggle />
+              <Link href="https://github.com/itzam-ai/itzam" target="_blank">
+                <Button variant="outline" size="sm">
+                  <GitHubLogo size="sm" />
+                  Star us
+                </Button>
+              </Link>
             </div>
           </div>
 
