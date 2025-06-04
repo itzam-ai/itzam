@@ -16,7 +16,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ChevronLeft, Sparkle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ProviderIcon from "public/models/svgs/provider-icon";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -106,6 +106,7 @@ export function CreateWorkflowDialog({
       const generatedSlug = generateSlug(name);
       form.setValue("slug", generatedSlug);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("name")]);
 
   // Check slug availability when slug changes
@@ -146,6 +147,7 @@ export function CreateWorkflowDialog({
       const debounceTimer = setTimeout(checkSlug, 500);
       return () => clearTimeout(debounceTimer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.watch("slug")]);
 
   const isFirstStepValid =
@@ -314,19 +316,21 @@ export function CreateWorkflowDialog({
     }, 50);
 
     return () => clearTimeout(initialTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  const formValuesChanged = useMemo(() => {
+    return form.watch("name") || form.watch("prompt") || form.watch("modelId");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.watch("name"), form.watch("prompt"), form.watch("modelId")]);
 
   // Measure when form values change
   useEffect(() => {
     if (shouldMeasure) {
       measureCurrentStep();
     }
-  }, [
-    shouldMeasure,
-    form.watch("name"),
-    form.watch("prompt"),
-    form.watch("modelId"),
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldMeasure, formValuesChanged]);
 
   // Handle animation complete
   const onAnimationComplete = () => {
@@ -346,6 +350,7 @@ export function CreateWorkflowDialog({
 
       return () => clearTimeout(timer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Sort models into featured and other categories

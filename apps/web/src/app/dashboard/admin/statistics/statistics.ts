@@ -147,6 +147,7 @@ export async function getUserUsage(): Promise<UserUsageData> {
     `);
 
     // Format top users data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const topUsers = topUsersResults.map((row: any) => ({
       id: row.id,
       name:
@@ -170,6 +171,7 @@ export async function getUserUsage(): Promise<UserUsageData> {
     `);
 
     // Format activity data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const activityOverTime = activityResults.map((row: any) => ({
       date: format(new Date(row.date), "MMM dd"),
       activeUsers: Number(row.activeUsers) || 0,
@@ -191,6 +193,7 @@ export async function getUserUsage(): Promise<UserUsageData> {
     `);
 
     // Format cost per user data
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const costPerUser = costPerUserResults.map((row: any) => ({
       id: row.id,
       name:

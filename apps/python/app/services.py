@@ -124,7 +124,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "status": "PENDING",
             "title": title,
             "fileSize": file_size,
-            "totalChunks": chunk_length,
+            "totalChunks": 0,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id
         })

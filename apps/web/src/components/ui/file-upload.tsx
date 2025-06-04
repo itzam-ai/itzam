@@ -5,6 +5,7 @@ import {
   Children,
   cloneElement,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -36,10 +37,13 @@ function FileUpload({
   const [isDragging, setIsDragging] = useState(false);
   const dragCounter = useRef(0);
 
-  const handleFiles = (files: FileList) => {
-    const newFiles = Array.from(files);
-    onFilesAdded(newFiles);
-  };
+  const handleFiles = useCallback(
+    (files: FileList) => {
+      const newFiles = Array.from(files);
+      onFilesAdded(newFiles);
+    },
+    [onFilesAdded]
+  );
 
   useEffect(() => {
     const handleDrag = (e: DragEvent) => {
