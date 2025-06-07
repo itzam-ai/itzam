@@ -5,15 +5,7 @@ import {
   updateCurrentModel,
 } from "@itzam/server/db/model/actions";
 import { ProviderKey } from "@itzam/server/db/provider-keys/actions";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  Brain,
-  Code,
-  Eye,
-  Shuffle,
-} from "lucide-react";
+import { ArrowRight, Brain, Code, Eye, Shuffle } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import ProviderIcon from "public/models/svgs/provider-icon";
@@ -96,23 +88,23 @@ function ProviderModelList({
   return (
     <div key={providerName}>
       <div className="flex items-center mb-3">
-        <h4 className="flex items-center gap-2 font-medium text-sm w-52 ml-0.5">
+        <h4 className="flex items-center gap-2 font-medium text-sm w-64 ml-0.5">
           <ProviderIcon id={models[0]?.providerId ?? ""} size="sm" />
           {providerName}
         </h4>
-        <div className="w-28" />
-        <div className="flex items-center gap-1 w-20 ml-0.5">
-          <p className="text-xs text-muted-foreground">Input</p>
-          <ArrowDown className="size-3 text-muted-foreground" />
-        </div>
-        <div className="flex items-center gap-1 w-20 ">
-          <p className="text-xs text-muted-foreground">Output</p>
-          <ArrowUp className="size-3 text-muted-foreground" />
+        <div className="w-32">
+          <p className="text-xs text-muted-foreground">Features</p>
         </div>
         <div className="w-24">
+          <p className="text-xs text-muted-foreground">Input</p>
+        </div>
+        <div className="w-24">
+          <p className="text-xs text-muted-foreground">Output</p>
+        </div>
+        <div className="w-28">
           <p className="text-xs text-muted-foreground">Context</p>
         </div>
-        <div className="w-20">
+        <div className="w-24">
           <p className="text-xs text-muted-foreground">Max Tokens</p>
         </div>
       </div>
@@ -167,33 +159,19 @@ function ModelRow({
 
   return (
     <div
-      className={`w-full flex items-center justify-between pl-1 pr-2 border-b border-border pb-2 pt-1 group`}
+      className={`w-full flex items-center justify-between pl-1 pr-2 border-b border-border pb-2 pt-1`}
     >
       <div className="flex">
-        <div className="flex items-center gap-2 w-52">
+        <div className="flex items-center gap-2 w-64">
           <ModelIcon tag={model.tag} size="xs" />
           <h3 className="font-medium text-xs">{model.name}</h3>
           {isCurrentModel && (
-            <Badge variant="orange" size="sm">
+            <Badge variant="orange" size="sm" className="ml-0.5">
               Current
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1 w-28 ">
-          {model.hasReasoningCapability && (
-            <TooltipProvider>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger>
-                  <div className="flex cursor-pointer items-center gap-1 rounded-md border border-green-600/20 bg-green-600/10 p-1 text-green-600 transition-all duration-200 hover:border-green-600/30 hover:bg-green-600/20">
-                    <Brain className="size-3" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Thinks before answering</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+        <div className="flex items-center gap-1 w-32">
           {model.hasVision && (
             <TooltipProvider>
               <Tooltip delayDuration={100}>
@@ -208,6 +186,21 @@ function ModelRow({
               </Tooltip>
             </TooltipProvider>
           )}
+          {model.hasReasoningCapability && (
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger>
+                  <div className="flex cursor-pointer items-center gap-1 rounded-md border border-green-600/20 bg-green-600/10 p-1 text-green-600 transition-all duration-200 hover:border-green-600/30 hover:bg-green-600/20">
+                    <Brain className="size-3" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Thinks before answering</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           {model.isOpenSource && (
             <TooltipProvider>
               <Tooltip delayDuration={100}>
@@ -225,22 +218,22 @@ function ModelRow({
             </TooltipProvider>
           )}
         </div>
-        <div className="flex items-center gap-1 w-20 ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatCurrency(Number(model.inputPerMillionTokenCost))}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-20   ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatCurrency(Number(model.outputPerMillionTokenCost))}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-24 ">
+        <div className="flex items-center gap-1 w-28">
           <p className="text-xs text-muted-foreground">
             {formatNumber(model.contextWindowSize)}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-20   ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatNumber(model.maxTokens)}
           </p>
