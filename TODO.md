@@ -1,9 +1,5 @@
 ### Now (23w · 2025)
 
-- [x] Threads docs (missed from 22w)
-
-- [x] Link rescrape (knowledge/context)
-
 - [ ] Context (segmented knowledge)
 
   - [ ] Docs
@@ -46,6 +42,11 @@ itzam.thread.create({
 - [ ] Tools · _Integrate tools to your workflow._
 
 ### Other improvements
+
+- [ ] Docs
+
+  - [ ] Improve clarity
+  - [ ] Add tutorials & guides
 
 - [ ] UI
 
@@ -91,6 +92,16 @@ itzam.thread.create({
 - [ ] Status page
 
 ### Past (Done)
+
+#### 23w 2025
+
+- [x] Threads docs (missed from 22w)
+
+- [x] Link rescrape (knowledge/context)
+
+- Model tab
+
+  - [x] Improve switch modal
 
 #### 22w 2025
 

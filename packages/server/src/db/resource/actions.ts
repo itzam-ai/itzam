@@ -134,7 +134,7 @@ export async function rescrapeResources(
       // If scraping is not for now, skip
       if (
         lastScrapedAt &&
-        lastScrapingIsNewerThanScrapeFrequency(
+        lastScrapingDateIsNewerThanScrapeFrequency(
           lastScrapedAt,
           resource.scrapeFrequency
         )
@@ -244,7 +244,7 @@ export async function rescrapeResources(
   });
 }
 
-function lastScrapingIsNewerThanScrapeFrequency(
+function lastScrapingDateIsNewerThanScrapeFrequency(
   lastScrapedAt: Date,
   scrapeFrequency: "HOURLY" | "DAILY" | "WEEKLY" | "NEVER"
 ) {
@@ -256,21 +256,21 @@ function lastScrapingIsNewerThanScrapeFrequency(
         lastScrapedAt.setHours(lastScrapedAt.getHours() + 1)
       );
 
-      return lastScrapedAtDate > nextScrapeAt;
+      return lastScrapedAtDate < nextScrapeAt;
     }
     case "DAILY": {
       const nextScrapeAt = new Date(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 1)
       );
 
-      return lastScrapedAtDate > nextScrapeAt;
+      return lastScrapedAtDate < nextScrapeAt;
     }
     case "WEEKLY": {
       const nextScrapeAt = new Date(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 7)
       );
 
-      return lastScrapedAtDate > nextScrapeAt;
+      return lastScrapedAtDate < nextScrapeAt;
     }
   }
 }
