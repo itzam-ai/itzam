@@ -36,6 +36,9 @@ export function GraphCard({ workflowId }: { workflowId: string }) {
       try {
         setIsLoading(true);
         const runsData = await getLast7DaysRunsCountByDay(workflowId);
+
+        console.log("runsData", runsData);
+
         setData(runsData);
         setError(null);
       } catch (err) {
@@ -105,13 +108,6 @@ export function GraphCard({ workflowId }: { workflowId: string }) {
               Try again
             </button>
           </div>
-        ) : data.length === 0 || data.every((item) => item.count === 0) ? (
-          <EmptyStateDetails
-            title="No runs in the last 7 days"
-            description="Run data will appear here once available"
-            icon={<BarChart3 />}
-            className="mt-8 pl-6"
-          />
         ) : (
           <ChartContainer config={chartConfig} className="h-[170px] w-full">
             <ResponsiveContainer>

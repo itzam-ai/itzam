@@ -10,7 +10,7 @@
   - [ ] CRUD (UI)
   - [ ] SDK (Integration with threads API)
 
-- [ ] Link rescrape (knowledge/context)
+- [x] Link rescrape (knowledge/context)
 
 ```ts
 // Context usage example
