@@ -12,7 +12,7 @@ export async function GET() {
   );
 
   void sendDiscordNotification({
-    content: `🐛 Rescraping started! 🐛\nFound ${resources.length} link resources to rescrape`,
+    content: `🐛 Rescraping started! \n 🐛 Found ${resources.length} link resources to rescrape`,
   });
 
   await rescrapeResources(resources);
