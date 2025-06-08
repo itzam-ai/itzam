@@ -6,7 +6,6 @@ import {
   ChartSpline,
   ExternalLink,
   FileText,
-  Github,
   Key,
   Lock,
   Terminal,
@@ -142,6 +141,22 @@ export function AppSidebar({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+            <SidebarMenuItem>
+              <Link
+                href={"https://docs.itz.am"}
+                prefetch={true}
+                target="_blank"
+                className="group/docs"
+              >
+                <SidebarMenuButton tooltip={"Docs"}>
+                  <FileText className="text-muted-foreground" />
+                  <p>Docs</p>
+                  <SidebarMenuBadge className="group-hover/docs:opacity-100 opacity-0 transition-opacity duration-300">
+                    <ExternalLink className="size-3 text-muted-foreground" />
+                  </SidebarMenuBadge>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -194,30 +209,6 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Link href={"https://github.com/itzam-ai/itzam"} target="_blank">
-              <SidebarMenuButton tooltip={"Github"}>
-                <Github className="text-muted-foreground" />
-                <p>Github</p>
-                <SidebarMenuBadge>
-                  <ExternalLink className="size-3 text-muted-foreground" />
-                </SidebarMenuBadge>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href={"https://docs.itz.am"} prefetch={true} target="_blank">
-              <SidebarMenuButton tooltip={"Docs"}>
-                <FileText className="text-muted-foreground" />
-                <p>Docs</p>
-                <SidebarMenuBadge>
-                  <ExternalLink className="size-3 text-muted-foreground" />
-                </SidebarMenuBadge>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-        </SidebarMenu>
         <NavUser
           name={user?.name ?? ""}
           avatar={user?.image ?? ""}
