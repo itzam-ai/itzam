@@ -36,6 +36,18 @@ export async function getResourcesToRescrape() {
   return resources;
 }
 
+export async function updateRescrapeFrequency(
+  resourceId: string,
+  frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+) {
+  await db
+    .update(resourcesTable)
+    .set({
+      scrapeFrequency: frequency,
+    })
+    .where(eq(resourcesTable.id, resourceId));
+}
+
 export async function createResourceAndSendoToAPI({
   knowledgeId,
   workflowId,

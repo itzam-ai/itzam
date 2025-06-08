@@ -1,25 +1,43 @@
 "use client";
 
 import { deleteResource, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { updateRescrapeFrequency } from "@itzam/server/db/resource/actions";
 import NumberFlow from "@number-flow/react";
 import { formatBytes } from "bytes-formatter";
 import { formatDistanceToNow } from "date-fns";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
-  ClockIcon,
   Download,
   ExternalLink,
   FileIcon,
   GlobeIcon,
   Loader2,
+  Settings,
   TrashIcon,
-  Worm,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 export const KnowledgeItem = ({
   resource,
@@ -32,6 +50,12 @@ export const KnowledgeItem = ({
   onDelete?: (resourceId: string) => void;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdatingRescrapeFrequency, setIsUpdatingRescrapeFrequency] =
+    useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [scrapeFrequency, setScrapeFrequency] = useState<
+    "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+  >(resource.scrapeFrequency ?? "NEVER");
   const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
 
   const handleDelete = async () => {
@@ -39,6 +63,15 @@ export const KnowledgeItem = ({
     await deleteResource(resource.id);
     onDelete?.(resource.id);
     setIsDeleting(false);
+  };
+
+  const handleUpdateRescrapeFrequency = async (
+    frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+  ) => {
+    setIsUpdatingRescrapeFrequency(true);
+    await updateRescrapeFrequency(resource.id, frequency);
+    setIsUpdatingRescrapeFrequency(false);
+    toast.success("Rescrape frequency updated");
   };
 
   return (
@@ -99,14 +132,14 @@ export const KnowledgeItem = ({
           <span className="text-muted-foreground text-xs whitespace-nowrap">
             {resource.type === "FILE" ? (
               <span className="flex items-center gap-1">
-                <ClockIcon className="size-3" />
+                created{" "}
                 {formatDistanceToNow(resource.createdAt, {
                   addSuffix: true,
                 })}
               </span>
             ) : (
               <span className="flex items-center gap-1">
-                <Worm className="size-3" />
+                scraped{" "}
                 {formatDistanceToNow(
                   resource.lastScrapedAt ?? resource.createdAt,
                   {
@@ -176,6 +209,85 @@ export const KnowledgeItem = ({
           </div>
         </div>
         <div className="flex items-center">
+          {resource.type === "LINK" && (
+            <Dialog
+              open={isDialogOpen}
+              onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) {
+                  setScrapeFrequency(resource.scrapeFrequency ?? "NEVER");
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={isUpdatingRescrapeFrequency}
+                >
+                  <Settings className="size-3" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Rescrape</DialogTitle>
+                  <DialogDescription>
+                    Update the rescrape frequency for this link.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scrape-frequency" className="ml-0.5">
+                    Scrape frequency
+                  </Label>
+                  <Select
+                    value={scrapeFrequency}
+                    onValueChange={(value) =>
+                      setScrapeFrequency(
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEVER">Never</SelectItem>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      setScrapeFrequency(resource.scrapeFrequency ?? "NEVER");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    className="w-24"
+                    onClick={() => {
+                      handleUpdateRescrapeFrequency(scrapeFrequency);
+                      setIsDialogOpen(false);
+                    }}
+                    disabled={isUpdatingRescrapeFrequency}
+                  >
+                    Update
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
           <Button
             variant="ghost"
             size="icon"

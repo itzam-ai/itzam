@@ -11,9 +11,11 @@ export async function GET() {
     `🐛 Found ${resources.length} resources to rescrape (not FILE and frequency not NEVER)`
   );
 
-  void sendDiscordNotification({
-    content: `🐛 Rescraping started! \n 🐛 Found ${resources.length} link resources to rescrape`,
-  });
+  if (resources.length > 0) {
+    void sendDiscordNotification({
+      content: `🐛 Found ${resources.length} link resources to rescrape`,
+    });
+  }
 
   await rescrapeResources(resources);
 

@@ -506,9 +506,13 @@ export type Database = {
           file_size: number | null
           id: string
           knowledge_id: string | null
+          last_scraped_at: string | null
           mime_type: string
+          processed_batches: number
+          scrape_frequency: Database["public"]["Enums"]["resource_scrape_frequency"]
           status: Database["public"]["Enums"]["resource_status"]
           title: string | null
+          total_batches: number
           total_chunks: number
           type: Database["public"]["Enums"]["resource_type"]
           updated_at: string
@@ -521,9 +525,13 @@ export type Database = {
           file_size?: number | null
           id: string
           knowledge_id?: string | null
+          last_scraped_at?: string | null
           mime_type: string
+          processed_batches?: number
+          scrape_frequency?: Database["public"]["Enums"]["resource_scrape_frequency"]
           status?: Database["public"]["Enums"]["resource_status"]
           title?: string | null
+          total_batches?: number
           total_chunks?: number
           type: Database["public"]["Enums"]["resource_type"]
           updated_at: string
@@ -536,9 +544,13 @@ export type Database = {
           file_size?: number | null
           id?: string
           knowledge_id?: string | null
+          last_scraped_at?: string | null
           mime_type?: string
+          processed_batches?: number
+          scrape_frequency?: Database["public"]["Enums"]["resource_scrape_frequency"]
           status?: Database["public"]["Enums"]["resource_status"]
           title?: string | null
+          total_batches?: number
           total_chunks?: number
           type?: Database["public"]["Enums"]["resource_type"]
           updated_at?: string
@@ -814,6 +826,7 @@ export type Database = {
       context_item_type: "TEXT" | "IMAGE" | "FILE" | "URL"
       max_tokens_preset: "SHORT" | "MEDIUM" | "LONG" | "CUSTOM"
       OcrTestStatus: "IDLE" | "RUNNING" | "DONE"
+      resource_scrape_frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
       resource_status: "PENDING" | "PROCESSED" | "FAILED"
       resource_type: "FILE" | "LINK"
       run_origin: "SDK" | "WEB"
@@ -940,6 +953,7 @@ export const Constants = {
       context_item_type: ["TEXT", "IMAGE", "FILE", "URL"],
       max_tokens_preset: ["SHORT", "MEDIUM", "LONG", "CUSTOM"],
       OcrTestStatus: ["IDLE", "RUNNING", "DONE"],
+      resource_scrape_frequency: ["NEVER", "HOURLY", "DAILY", "WEEKLY"],
       resource_status: ["PENDING", "PROCESSED", "FAILED"],
       resource_type: ["FILE", "LINK"],
       run_origin: ["SDK", "WEB"],
