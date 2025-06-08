@@ -1,5 +1,10 @@
 ![itzam-without-bg.png](./assets/readme.png)
 
+> [!WARNING]  
+> Itzam is in a development hiatus, we are trying to get to 10 paid users or 1000 sign-ups by the end of june.
+> 
+> If you have any idea, advice, or are willing to invest, please get in touch [@heyimgustavo](x.com/heyimgustavo) [@abdulhdr1](x.com/abdulhdr1)
+
 # Itzam
 
 [Itzam](https://itz.am) is an open source platform for integrating AI.
