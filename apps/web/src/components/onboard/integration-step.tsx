@@ -56,10 +56,10 @@ const response = await itzam.${functionName}({
 
   return (
     <div className="max-w-xl w-full">
-      <h2 className="text-2xl font-medium flex items-center gap-2">
+      <h2 className="text-lg font-medium flex items-center gap-2">
         Integrate!
       </h2>
-      <p className="text-muted-foreground mt-1">
+      <p className="text-muted-foreground mt-1 text-sm">
         Create an Itzam API key and you&apos;re good to go!
       </p>
 
@@ -203,12 +203,7 @@ const response = await itzam.${functionName}({
           </Link>{" "}
           for other snippets.
         </p>
-        <Button
-          variant="primary"
-          size="sm"
-          className="w-20"
-          onClick={handleNextStep}
-        >
+        <Button variant="primary" size="sm" onClick={handleNextStep}>
           <Check className="size-3" strokeWidth={2.5} />
           Finish
         </Button>

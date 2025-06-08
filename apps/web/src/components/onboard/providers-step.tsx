@@ -27,7 +27,7 @@ export const ProvidersStep = ({
 
   return (
     <div className="max-w-xl w-full">
-      <h2 className="text-xl font-medium flex items-center gap-2">Providers</h2>
+      <h2 className="text-lg font-medium flex items-center gap-2">Providers</h2>
       <p className="text-muted-foreground mt-1 text-sm">
         Add API Keys to enable the providers you want to use.
       </p>

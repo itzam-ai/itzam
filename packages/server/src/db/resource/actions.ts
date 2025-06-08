@@ -225,6 +225,14 @@ export async function rescrapeResources(
     await db
       .delete(chunks)
       .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
+
+    // Update resource lastScrapedAt
+    await db
+      .update(resourcesTable)
+      .set({
+        lastScrapedAt: new Date(),
+      })
+      .where(eq(resourcesTable.id, resource.id));
   }
 
   console.log(

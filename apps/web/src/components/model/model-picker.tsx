@@ -31,6 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { Card } from "../ui/card";
 export function ModelPicker({
   models,
   currentModel,
@@ -302,22 +303,33 @@ function SwitchModelButton({
         tabIndex={-1}
       >
         <DialogHeader>
-          <DialogTitle>Save Model Settings</DialogTitle>
+          <DialogTitle>Switch Model</DialogTitle>
           <DialogDescription>
-            This will change the model for this workflow and reset the model
-            settings.
+            You are about to switch the live model for this workflow.
           </DialogDescription>
         </DialogHeader>
 
-        <p className="text-sm flex flex-row gap-1 items-center">
-          Model: <ModelIcon tag={currentModel.tag} size="xs" className="ml-1" />
-          {currentModel.name}
-          <ArrowRight className="size-3" />
-          <ModelIcon tag={model.tag} size="xs" className="ml-1" />
-          {model.name}
-        </p>
+        <div className="flex gap-4 items-center mt-2">
+          <Card className="p-3 w-full">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              From
+            </p>
+            <div className="flex items-center gap-2">
+              <ModelIcon tag={currentModel.tag} size="xs" />
+              <span className="text-sm font-medium">{currentModel.name}</span>
+            </div>
+          </Card>
+          <ArrowRight className="size-4 text-muted-foreground w-10" />
+          <Card className="p-3 w-full">
+            <p className="text-xs font-medium text-muted-foreground mb-1">To</p>
+            <div className="flex items-center gap-2">
+              <ModelIcon tag={model.tag} size="xs" />
+              <span className="text-sm font-medium">{model.name}</span>
+            </div>
+          </Card>
+        </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} size="sm">
             Cancel
           </Button>
@@ -325,7 +337,7 @@ function SwitchModelButton({
             variant="primary"
             onClick={() => setNewModel(model)}
             size="sm"
-            className="w-20"
+            className="w-24"
             disabled={isLoading}
           >
             {isLoading ? (

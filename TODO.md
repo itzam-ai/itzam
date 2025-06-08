@@ -2,6 +2,8 @@
 
 - [x] Threads docs (missed from 22w)
 
+- [x] Link rescrape (knowledge/context)
+
 - [ ] Context (segmented knowledge)
 
   - [ ] Docs
@@ -9,8 +11,6 @@
     - [ ] Glossary
   - [ ] CRUD (UI)
   - [ ] SDK (Integration with threads API)
-
-- [x] Link rescrape (knowledge/context)
 
 ```ts
 // Context usage example
@@ -78,7 +78,6 @@ itzam.thread.create({
   - [ ] Model fallback
   - [ ] Filters
   - [ ] Task requirements based on prompt/description
-  - [ ] Improve switch modal
 
 - [ ] Better support for thinking models
 
