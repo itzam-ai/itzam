@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from typing import Union
 
 from .config import settings
-from .routers import health, resources
+from .routers import health, resources, rescrape
 from .schemas import HealthResponse
 
 # Configure logging
@@ -20,6 +20,7 @@ app = FastAPI(
 # Include routers
 app.include_router(health.router)
 app.include_router(resources.router)
+app.include_router(rescrape.router)
 
 # Root endpoint
 @app.get("/", response_model=HealthResponse)

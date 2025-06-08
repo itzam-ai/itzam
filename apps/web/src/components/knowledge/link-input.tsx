@@ -408,29 +408,60 @@ export const LinkInput = ({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add links</DialogTitle>
+                <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge base
+                  Add URLs to the model&apos;s knowledge.
                 </DialogDescription>
               </DialogHeader>
 
-              <Input
-                type="url"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddLink();
-                  }
-                }}
-                className={cn(linkError ? "ring-1 ring-red-500" : "")}
-                placeholder="https://"
-                value={linkError ? linkError : link}
-                onChange={(e) => {
-                  setLink(e.target.value);
-                  setLinkError("");
-                }}
-              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="ml-0.5">
+                    URL
+                  </Label>
+                  <Input
+                    type="url"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddLink();
+                      }
+                    }}
+                    className={cn(linkError ? "ring-1 ring-red-500" : "")}
+                    placeholder="https://"
+                    value={linkError ? linkError : link}
+                    onChange={(e) => {
+                      setLink(e.target.value);
+                      setLinkError("");
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scrape-frequency" className="ml-0.5">
+                    Scrape frequency
+                  </Label>
+                  <Select
+                    value={scrapeFrequency}
+                    onValueChange={(value) =>
+                      setScrapeFrequency(
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEVER">Never</SelectItem>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <DialogFooter>
                 <Button
@@ -448,6 +479,7 @@ export const LinkInput = ({
                   type="submit"
                   variant="primary"
                   size="sm"
+                  className="w-20"
                   onClick={handleAddLink}
                   disabled={!link}
                 >

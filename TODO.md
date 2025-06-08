@@ -78,6 +78,7 @@ itzam.thread.create({
   - [ ] Model fallback
   - [ ] Filters
   - [ ] Task requirements based on prompt/description
+  - [ ] Improve switch modal
 
 - [ ] Better support for thinking models
 

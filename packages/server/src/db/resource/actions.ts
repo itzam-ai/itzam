@@ -3,7 +3,7 @@ import { db } from "..";
 import { env } from "@itzam/utils/env";
 import { getUser } from "../auth/actions";
 import { checkPlanLimits, Knowledge } from "../knowledge/actions";
-import { resources, resources as resourcesTable } from "../schema";
+import { chunks, resources, resources as resourcesTable } from "../schema";
 import { sendDiscordNotification } from "../../discord/actions";
 import {
   customerIsSubscribedToItzamPro,
@@ -21,7 +21,8 @@ export async function getResourcesToRescrape() {
     where: (resources, { and, eq, not }) =>
       and(
         not(eq(resources.scrapeFrequency, "NEVER")),
-        not(eq(resources.type, "FILE"))
+        not(eq(resources.type, "FILE")),
+        eq(resources.active, true)
       ),
     with: {
       knowledge: {
@@ -85,14 +86,13 @@ export async function createResourceAndSendoToAPI({
   return await handle.json();
 }
 
-// TODO: Improve error handling to user (send email when rescrape fails -- saying if it was because of the size or because of the frequency - cancelled Pro)
+// TODO: Improve error handling to user (send email when rescrape fails -- saying if it was because of the size)
 // Also, send discord notification for everything
 
 export async function rescrapeResources(
   resources: ResourceWithKnowledgeAndWorkflow[]
 ) {
   // group resources by user
-  // for each resource, check if the user is subscribed to Itzam Pro for HOURLY frequency
   // for each resource, check if lastScrapedAt is older than scrapeFrequency || lastScrapedAt is null
   // if true, validate if the user has reached the limit in this workflow (50MB) (fetch url, check old size and check if new size is bigger than the limit)
   // if true, send request to python to rescrape the resource (use RESCRAPE_CRON_SECRET to authenticate)
@@ -106,22 +106,20 @@ export async function rescrapeResources(
     "knowledge.workflow.userId"
   );
 
-  // For each user, check if they are subscribed to Itzam Pro for HOURLY frequency resources
   for (const userId in resourcesGroupedByUserId) {
     const resourcesByUser = resourcesGroupedByUserId[userId];
+
+    console.log(
+      `🐛 Checking ${resourcesByUser?.length ?? 0} resources for user ${userId}`
+    );
 
     const { isSubscribed } =
       await customerIsSubscribedToItzamProForUserId(userId);
 
     for (const resource of resourcesByUser || []) {
-      // Remove resources that have HOURLY frequency if the user is not subscribed
-      if (!isSubscribed && resource.scrapeFrequency === "HOURLY") {
-        // TODO: Send email to user saying that they are not subscribed to Itzam Pro for HOURLY frequency
-        continue;
-      }
+      const lastScrapedAt = resource.lastScrapedAt;
 
       // If scraping is not for now, skip
-      const lastScrapedAt = resource.lastScrapedAt;
       if (
         lastScrapedAt &&
         lastScrapingIsNewerThanScrapeFrequency(
@@ -129,46 +127,101 @@ export async function rescrapeResources(
           resource.scrapeFrequency
         )
       ) {
+        console.log(
+          `🐛 Skipping resource ${resource.id} because it was scraped less than ${resource.scrapeFrequency} ago`
+        );
+
         continue;
       }
 
       // Check if new size is bigger than the limit
       if (await fileSizeExceedsPlanLimit(resource, isSubscribed)) {
         // TODO: Send email to user saying that they have reached the limit in this workflow
+        console.log(
+          `🐛 Skipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users)`
+        );
+
+        void sendDiscordNotification({
+          content: `🐛 Skipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users). 🗣️ Talk to user: ${userId}`,
+        });
+
         continue;
       }
+
+      console.log(`🐛 ${resource.id} passed the checks for user ${userId}`);
 
       resourcesToRescrape.push(resource);
     }
   }
-
-  console.log("resourcesToRescrape", resourcesToRescrape);
 
   if (resourcesToRescrape.length === 0) {
     return;
   }
 
   for (const resource of resourcesToRescrape) {
-    void fetch(`${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        knowledgeId: resource.knowledge?.id,
-        resources: [
-          {
-            type: resource.type,
-            id: resource.id,
-            url: resource.url,
-          },
-        ],
-        userId: resource.knowledge?.workflow.userId,
-        workflowId: resource.knowledge?.workflow.id,
-        rescrapeSecret: env.RESCRAPE_CRON_SECRET,
-      }),
-    });
+    // Set old chunks to inactive to delete later
+    await db
+      .update(chunks)
+      .set({
+        active: false,
+      })
+      .where(eq(chunks.resourceId, resource.id));
+
+    console.log(`🐛 Sending resource ${resource.id} to Python API`);
+
+    const response = await fetch(
+      `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          knowledgeId: resource.knowledge?.id,
+          resources: [
+            {
+              type: resource.type,
+              id: resource.id,
+              url: resource.url,
+            },
+          ],
+          userId: resource.knowledge?.workflow.userId,
+          workflowId: resource.knowledge?.workflow.id,
+          rescrapeSecret: env.RESCRAPE_CRON_SECRET,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.log(
+        `🐛 Failed to rescrape resource ${resource.id} (status: ${response.status})`
+      );
+
+      // Update chunks back to active
+      await db
+        .update(chunks)
+        .set({
+          active: true,
+        })
+        .where(eq(chunks.resourceId, resource.id));
+      continue;
+    }
+
+    console.log(`🐛 Successfully ✅ rescraped resource ${resource.id}`);
+
+    // Delete old chunks
+    await db
+      .delete(chunks)
+      .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
   }
+
+  console.log(
+    `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`
+  );
+
+  void sendDiscordNotification({
+    content: `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`,
+  });
 }
 
 function lastScrapingIsNewerThanScrapeFrequency(
@@ -183,10 +236,6 @@ function lastScrapingIsNewerThanScrapeFrequency(
         lastScrapedAt.setHours(lastScrapedAt.getHours() + 1)
       );
 
-      console.log("scrapeFrequency", scrapeFrequency);
-      console.log("nextScrapeAt", nextScrapeAt);
-      console.log("lastScrapedAtDate", lastScrapedAtDate);
-
       return lastScrapedAtDate > nextScrapeAt;
     }
     case "DAILY": {
@@ -194,20 +243,12 @@ function lastScrapingIsNewerThanScrapeFrequency(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 1)
       );
 
-      console.log("scrapeFrequency", scrapeFrequency);
-      console.log("nextScrapeAt", nextScrapeAt);
-      console.log("lastScrapedAtDate", lastScrapedAtDate);
-
       return lastScrapedAtDate > nextScrapeAt;
     }
     case "WEEKLY": {
       const nextScrapeAt = new Date(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 7)
       );
-
-      console.log("scrapeFrequency", scrapeFrequency);
-      console.log("nextScrapeAt", nextScrapeAt);
-      console.log("lastScrapedAtDate", lastScrapedAtDate);
 
       return lastScrapedAtDate > nextScrapeAt;
     }

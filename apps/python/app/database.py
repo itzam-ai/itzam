@@ -157,7 +157,7 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
         if all_batches_completed:
             # Update both processed_batches and last_scraped_at
             stmt = update(Resource).where(Resource.id == resource_id).values(
-                processed_batches=new_processed_batches,
+                processed_batches=min(new_processed_batches, resource.total_batches),
                 last_scraped_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
