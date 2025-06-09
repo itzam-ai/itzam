@@ -1,6 +1,6 @@
 "use server";
 import { env } from "@itzam/utils/env";
-import { addDays, addHours, isBefore } from "date-fns";
+import { addDays, addHours, isAfter, isBefore } from "date-fns";
 import { and, eq, not } from "drizzle-orm";
 import { groupBy } from "lodash";
 import { db } from "..";
@@ -246,26 +246,26 @@ function lastScrapingDateIsNewerThanScrapeFrequency(
   lastScrapedAt: Date,
   scrapeFrequency: "HOURLY" | "DAILY" | "WEEKLY" | "NEVER"
 ) {
-  const lastScrapedAtDate = new Date(lastScrapedAt);
+  const now = new Date();
 
-  console.log(`🐛 lastScrapedAtDate: ${lastScrapedAtDate}`);
-  console.log(`🐛 scrapeFrequency: ${scrapeFrequency}`);
+  console.log(`🐛 now: ${now}`);
+  console.log(`🐛 lastScrapedAt: ${lastScrapedAt}`);
 
   switch (scrapeFrequency) {
     case "HOURLY": {
-      const nextScrapeAt = addHours(lastScrapedAtDate, 1);
+      const nextScrapeAt = addHours(lastScrapedAt, 1);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-      return isBefore(lastScrapedAtDate, nextScrapeAt);
+      return isBefore(now, nextScrapeAt);
     }
     case "DAILY": {
-      const nextScrapeAt = addDays(lastScrapedAtDate, 1);
+      const nextScrapeAt = addDays(lastScrapedAt, 1);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-      return isBefore(lastScrapedAtDate, nextScrapeAt);
+      return isBefore(now, nextScrapeAt);
     }
     case "WEEKLY": {
-      const nextScrapeAt = addDays(lastScrapedAtDate, 7);
+      const nextScrapeAt = addDays(lastScrapedAt, 7);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-      return isBefore(lastScrapedAtDate, nextScrapeAt);
+      return isBefore(now, nextScrapeAt);
     }
   }
 }
