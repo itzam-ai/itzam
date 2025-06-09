@@ -1,16 +1,14 @@
 "use server";
-import { db } from "..";
 import { env } from "@itzam/utils/env";
+import { addDays, addHours, isBefore } from "date-fns";
+import { and, eq, not } from "drizzle-orm";
+import { groupBy } from "lodash";
+import { db } from "..";
+import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
+import { customerIsSubscribedToItzamProForUserId } from "../billing/actions";
 import { checkPlanLimits, Knowledge } from "../knowledge/actions";
 import { chunks, resources, resources as resourcesTable } from "../schema";
-import { sendDiscordNotification } from "../../discord/actions";
-import {
-  customerIsSubscribedToItzamPro,
-  customerIsSubscribedToItzamProForUserId,
-} from "../billing/actions";
-import { groupBy } from "lodash";
-import { and, eq, not } from "drizzle-orm";
 
 export type ResourceWithKnowledgeAndWorkflow = Awaited<
   ReturnType<typeof getResourcesToRescrape>
@@ -255,31 +253,19 @@ function lastScrapingDateIsNewerThanScrapeFrequency(
 
   switch (scrapeFrequency) {
     case "HOURLY": {
-      const nextScrapeAt = new Date(
-        lastScrapedAt.setHours(lastScrapedAt.getHours() + 1)
-      );
-
+      const nextScrapeAt = addHours(lastScrapedAtDate, 1);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-
-      return lastScrapedAtDate < nextScrapeAt;
+      return isBefore(lastScrapedAtDate, nextScrapeAt);
     }
     case "DAILY": {
-      const nextScrapeAt = new Date(
-        lastScrapedAt.setDate(lastScrapedAt.getDate() + 1)
-      );
-
+      const nextScrapeAt = addDays(lastScrapedAtDate, 1);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-
-      return lastScrapedAtDate < nextScrapeAt;
+      return isBefore(lastScrapedAtDate, nextScrapeAt);
     }
     case "WEEKLY": {
-      const nextScrapeAt = new Date(
-        lastScrapedAt.setDate(lastScrapedAt.getDate() + 7)
-      );
-
+      const nextScrapeAt = addDays(lastScrapedAtDate, 7);
       console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
-
-      return lastScrapedAtDate < nextScrapeAt;
+      return isBefore(lastScrapedAtDate, nextScrapeAt);
     }
   }
 }
