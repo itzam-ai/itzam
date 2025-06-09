@@ -21,7 +21,7 @@ export async function getResourcesToRescrape() {
     where: (resources, { and, eq, not }) =>
       and(
         not(eq(resources.scrapeFrequency, "NEVER")),
-        not(eq(resources.type, "FILE")),
+        eq(resources.type, "LINK"),
         eq(resources.active, true)
       ),
     with: {
@@ -250,11 +250,16 @@ function lastScrapingDateIsNewerThanScrapeFrequency(
 ) {
   const lastScrapedAtDate = new Date(lastScrapedAt);
 
+  console.log(`🐛 lastScrapedAtDate: ${lastScrapedAtDate}`);
+  console.log(`🐛 scrapeFrequency: ${scrapeFrequency}`);
+
   switch (scrapeFrequency) {
     case "HOURLY": {
       const nextScrapeAt = new Date(
         lastScrapedAt.setHours(lastScrapedAt.getHours() + 1)
       );
+
+      console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
 
       return lastScrapedAtDate < nextScrapeAt;
     }
@@ -263,12 +268,16 @@ function lastScrapingDateIsNewerThanScrapeFrequency(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 1)
       );
 
+      console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
+
       return lastScrapedAtDate < nextScrapeAt;
     }
     case "WEEKLY": {
       const nextScrapeAt = new Date(
         lastScrapedAt.setDate(lastScrapedAt.getDate() + 7)
       );
+
+      console.log(`🐛 nextScrapeAt: ${nextScrapeAt}`);
 
       return lastScrapedAtDate < nextScrapeAt;
     }

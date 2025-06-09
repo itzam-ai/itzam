@@ -7,7 +7,7 @@ export async function GET() {
   const resources = await getResourcesToRescrape();
 
   console.log(
-    `🐛 Found ${resources.length} resources to rescrape (not FILE and frequency not NEVER)`
+    `🐛 Found ${resources.length} resources to rescrape (type LINK and frequency not NEVER)`
   );
 
   await rescrapeResources(resources);

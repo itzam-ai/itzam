@@ -28,7 +28,7 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
                 detail="Invalid rescrape secret"
             )
         
-        logger.info(f"Processing create-resource request for {len(request.resources)} resources")
+        logger.info(f"Processing rescrape request for {len(request.resources)} resources")
 
         # Queue background tasks for embedding generation
         for resource in request.resources:
@@ -43,8 +43,8 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
         )
         
     except Exception as e:
-        logger.error(f"Error in create-resource task: {str(e)}")
+        logger.error(f"Error in rescrape task: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to process resources: {str(e)}"
+            detail=f"Failed to rescrape resources: {str(e)}"
         )

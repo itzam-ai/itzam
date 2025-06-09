@@ -151,7 +151,7 @@ export const WorkflowDetailsStep = ({
                 transition={{
                   duration: 0.3,
                 }}
-                className="text-muted-foreground text-xs"
+                className="text-muted-foreground text-xs pl-1"
               >
                 Slug:{" "}
                 <span className="font-mono text-foreground select-none pointer-events-none">
