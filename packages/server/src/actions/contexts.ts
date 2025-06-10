@@ -164,28 +164,40 @@ export async function addResourceToContexts(
         .where(eq(resources.id, resourceId));
     }
 
-    // Update each context
+    // Prepare batch operations
+    const contextsToAdd: string[] = [];
+    const contextsToRemove: string[] = [];
+
     for (const context of allContexts) {
       const shouldHaveResource = contextIds.includes(context.id);
       const hasResource = context.resourceContexts?.some((rc) => rc.resourceId === resourceId);
 
       if (shouldHaveResource && !hasResource) {
-        // Add resource to context
-        await db.insert(resourceContexts).values({
-          id: uuidv7(),
-          contextId: context.id,
-          resourceId,
-        });
+        contextsToAdd.push(context.id);
       } else if (!shouldHaveResource && hasResource) {
-        // Remove resource from context
-        await db.delete(resourceContexts)
-          .where(
-            and(
-              eq(resourceContexts.contextId, context.id),
-              eq(resourceContexts.resourceId, resourceId)
-            )
-          );
+        contextsToRemove.push(context.id);
       }
+    }
+
+    // Batch insert new associations
+    if (contextsToAdd.length > 0) {
+      const associations = contextsToAdd.map(contextId => ({
+        id: uuidv7(),
+        contextId,
+        resourceId,
+      }));
+      await db.insert(resourceContexts).values(associations);
+    }
+
+    // Batch delete removed associations
+    if (contextsToRemove.length > 0) {
+      await db.delete(resourceContexts)
+        .where(
+          and(
+            sql`${resourceContexts.contextId} IN ${contextsToRemove}`,
+            eq(resourceContexts.resourceId, resourceId)
+          )
+        );
     }
 
     // If removing from all contexts, add back to knowledge

@@ -7,7 +7,10 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:sample-data": "tsx src/db/sample-data.ts",
     "db:studio": "drizzle-kit studio",
-    "clean": "rm -rf dist node_modules .turbo"
+    "clean": "rm -rf dist node_modules .turbo",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "exports": {
     "./*": "./src/*.ts",
@@ -18,11 +21,14 @@
     "@types/pg": "^8.11.13",
     "@types/react": "19.1.0",
     "@types/uuid": "^10.0.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
     "drizzle-kit": "^0.24.0",
     "eslint-plugin-drizzle": "^0.2.3",
     "next": "^15.3.1",
     "react": "^19.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^2.1.8"
   },
   "peerDependencies": {
     "@types/react": "19.x",

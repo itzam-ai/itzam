@@ -12,7 +12,10 @@
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "knip": "knip"
+    "knip": "knip",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.744.0",
@@ -21,7 +24,6 @@
     "@itzam/hono": "workspace:*",
     "@itzam/server": "workspace:*",
     "@itzam/supabase": "workspace:*",
-    "@itzam/tasks": "workspace:*",
     "@itzam/utils": "workspace:*",
     "@number-flow/react": "^0.5.9",
     "@radix-ui/react-accordion": "^1.2.3",
@@ -114,6 +116,13 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/ui": "^2.1.8",
+    "jsdom": "^26.0.0",
+    "vitest": "^2.1.8",
     "@openapitools/openapi-generator-cli": "^2.17.0",
     "@repo/eslint-config": "workspace:*",
     "@tailwindcss/typography": "^0.5.16",

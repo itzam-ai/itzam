@@ -1,6 +1,6 @@
 import { db } from "@itzam/server/db/index";
 import { contexts, workflows, resources, resourceContexts } from "@itzam/server/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -147,32 +147,34 @@ export const contextsRoute = new Hono()
           );
         }
 
+        // Fetch contexts with their resources in a single query
         const contextList = await db.query.contexts.findMany({
           where: eq(contexts.workflowId, workflow.id),
+          with: {
+            resourceContexts: {
+              with: {
+                resource: {
+                  columns: {
+                    id: true,
+                    title: true,
+                    type: true,
+                    url: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
         });
 
-        const contextsWithResources = await Promise.all(
-          contextList.map(async (context) => {
-            const contextResources = await db
-              .select({
-                id: resources.id,
-                title: resources.title,
-                type: resources.type,
-                url: resources.url,
-                status: resources.status,
-              })
-              .from(resourceContexts)
-              .innerJoin(resources, eq(resourceContexts.resourceId, resources.id))
-              .where(eq(resourceContexts.contextId, context.id));
-
-            return {
-              ...context,
-              createdAt: context.createdAt.toISOString(),
-              updatedAt: context.updatedAt.toISOString(),
-              resources: contextResources,
-            };
-          })
-        );
+        // Transform the data to match the expected format
+        const contextsWithResources = contextList.map((context) => ({
+          ...context,
+          createdAt: context.createdAt.toISOString(),
+          updatedAt: context.updatedAt.toISOString(),
+          resources: context.resourceContexts?.map((rc) => rc.resource) || [],
+          resourceContexts: undefined, // Remove the intermediate relation data
+        }));
 
         return c.json({ contexts: contextsWithResources });
       } catch (error) {
@@ -206,16 +208,28 @@ export const contextsRoute = new Hono()
       try {
         const identifier = c.req.param("identifier");
 
-        // Try to find by ID first, then by slug
-        let context = await db.query.contexts.findFirst({
-          where: eq(contexts.id, identifier),
+        // Try to find by ID or slug with resources in a single query
+        const context = await db.query.contexts.findFirst({
+          where: or(
+            eq(contexts.id, identifier),
+            eq(contexts.slug, identifier)
+          ),
+          with: {
+            resourceContexts: {
+              with: {
+                resource: {
+                  columns: {
+                    id: true,
+                    title: true,
+                    type: true,
+                    url: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
         });
-
-        if (!context) {
-          context = await db.query.contexts.findFirst({
-            where: eq(contexts.slug, identifier),
-          });
-        }
 
         if (!context) {
           return c.json(
@@ -224,24 +238,12 @@ export const contextsRoute = new Hono()
           );
         }
 
-        // Get resources
-        const contextResources = await db
-          .select({
-            id: resources.id,
-            title: resources.title,
-            type: resources.type,
-            url: resources.url,
-            status: resources.status,
-          })
-          .from(resourceContexts)
-          .innerJoin(resources, eq(resourceContexts.resourceId, resources.id))
-          .where(eq(resourceContexts.contextId, context.id));
-
         return c.json({
           ...context,
           createdAt: context.createdAt.toISOString(),
           updatedAt: context.updatedAt.toISOString(),
-          resources: contextResources,
+          resources: context.resourceContexts?.map((rc) => rc.resource) || [],
+          resourceContexts: undefined, // Remove the intermediate relation data
         });
       } catch (error) {
         console.error("Error fetching context:", error);
@@ -338,9 +340,24 @@ export const contextsRoute = new Hono()
           }
         }
 
-        // Fetch updated context with resources
+        // Fetch updated context with resources in a single query
         const updatedContext = await db.query.contexts.findFirst({
           where: eq(contexts.id, contextId),
+          with: {
+            resourceContexts: {
+              with: {
+                resource: {
+                  columns: {
+                    id: true,
+                    title: true,
+                    type: true,
+                    url: true,
+                    status: true,
+                  },
+                },
+              },
+            },
+          },
         });
 
         if (!updatedContext) {
@@ -350,23 +367,12 @@ export const contextsRoute = new Hono()
           );
         }
 
-        const contextResources = await db
-          .select({
-            id: resources.id,
-            title: resources.title,
-            type: resources.type,
-            url: resources.url,
-            status: resources.status,
-          })
-          .from(resourceContexts)
-          .innerJoin(resources, eq(resourceContexts.resourceId, resources.id))
-          .where(eq(resourceContexts.contextId, contextId));
-
         return c.json({
           ...updatedContext,
           createdAt: updatedContext.createdAt.toISOString(),
           updatedAt: updatedContext.updatedAt.toISOString(),
-          resources: contextResources,
+          resources: updatedContext.resourceContexts?.map((rc) => rc.resource) || [],
+          resourceContexts: undefined, // Remove the intermediate relation data
         });
       } catch (error) {
         console.error("Error updating context:", error);
