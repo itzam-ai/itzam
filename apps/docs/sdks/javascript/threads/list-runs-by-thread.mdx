@@ -6,4 +6,43 @@ keywords: ["list", "runs", "thread", "JavaScript", "SDK", "executions"]
 
 ## Overview
 
-The `threads.getRuns`
+The `threads.getRuns` method retrieves all runs associated with a specific thread.
+
+## Usage
+
+```typescript
+import Itzam from "itzam";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const runs = await itzam.threads.getRuns("thread_1234567890");
+
+runs.runs.forEach((run) => {
+  console.log(`Input: ${run.input}`);
+  console.log(`Output: ${run.output}`);
+  console.log(`Model: ${run.model.name}`);
+});
+```
+
+### Parameters
+
+| Parameter  | Type     | Required | Description                  |
+| ---------- | -------- | -------- | ---------------------------- |
+| `threadId` | `string` | **Yes**  | The ID of the thread to get. |
+
+### Return Value
+
+```typescript
+type RunsResponse = {
+  runs: Array<{
+    id: string; // Run ID
+    input: string; // Input text
+    output: string; // Generated output
+    createdAt: string; // ISO 8601 timestamp
+    model: {
+      name: string; // Model name
+      tag: string; // Model tag
+    };
+  }>;
+};
+```
