@@ -1,0 +1,35 @@
+---
+title: "Get By Id"
+description: "Get a thread by its ID using the JavaScript SDK."
+keywords: ["get", "thread", "ID", "JavaScript", "SDK", "retrieve"]
+---
+
+## Overview
+
+The `threads.get` method retrieves a thread by its ID.
+
+## Usage
+
+```typescript
+const thread = await itzam.threads.get("thread_1234567890");
+
+console.log(thread.name);
+```
+
+### Parameters
+
+| Parameter  | Type     | Required | Description                  |
+| ---------- | -------- | -------- | ---------------------------- |
+| `threadId` | `string` | **Yes**  | The ID of the thread to get. |
+
+### Return Value
+
+```typescript
+type Thread = {
+  id: string; // The unique thread ID
+  name: string; // The thread name
+  lookupKey: string | null; // The lookup key if provided
+  createdAt: string; // ISO 8601 timestamp
+  updatedAt: string; // ISO 8601 timestamp
+};
+```

@@ -1,0 +1,82 @@
+---
+title: "Threads"
+description: "How to use threads with Itzam."
+icon: "messages-square"
+keywords:
+  [
+    "threads",
+    "conversation",
+    "messages",
+    "chat",
+    "session",
+    "workflow",
+    "persistent",
+  ]
+---
+
+Threads allow you to easily create a conversation inside a Workflow.
+
+A thread is a collection of messages between a user and the AI.
+
+You can create as many threads as you want inside a Workflow:
+
+## Create a thread
+
+First of all, you need to create a thread (think of it as a chat session).
+
+### SDK
+
+```javascript
+const thread = await itzam.threads.create({
+  workflowSlug: "customer-support",
+  name: "Chat for user 123", // optional
+  lookupKey: "user-123", // optional
+});
+
+console.log(thread.id); // "thread_424242" (save this ID in your database)
+```
+
+### API
+
+```bash
+curl -X POST https://itz.am/api/v1/threads \
+  -H "Authorization: Bearer $ITZAM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"workflowSlug": "customer-support", "name": "Chat for user 123", "lookupKey": "user-123"}'
+```
+
+## Send messages
+
+After creating a thread, you can use its ID when sending new messages.
+
+This will make the AI continue the conversation and remember all previous messages.
+
+```javascript
+const message = await itzam.generateText({
+  threadId: "thread_424242",
+  input: "Hello, I'm Gustavo, how are you?",
+});
+
+console.log(message.content); // "I'm doing well, thank you!"
+```
+
+```javascript
+const message = await itzam.generateText({
+  threadId: "thread_424242",
+  input: "What's my name?",
+});
+
+console.log(message.content); // "Your name is Gustavo"
+```
+
+## Check threads
+
+You can check how a thread is going by clicking in the threads option inside any run.
+
+![Threads](/images/threads-in-run.png)
+
+You can also use our API or SDKs to get the thread by its ID or by Workflow.
+
+## Check runs
+
+You can check the runs using our API or SDKs.

@@ -1,0 +1,45 @@
+---
+title: "Authentication"
+description: "How to authenticate your requests to the Itzam API."
+icon: "lock"
+keywords:
+  [
+    "authentication",
+    "API key",
+    "security",
+    "authorization",
+    "access",
+    "credentials",
+  ]
+---
+
+All API endpoints are authenticated using API Keys. You can create one in the [API
+keys section](https://itz.am/dashboard/api-keys) of the Itzam dashboard.
+
+![API Keys](/images/new-api-key.png)
+
+Now, you can use the API key to authenticate your requests.
+
+In the API:
+
+```bash Bash
+curl -X POST \
+  -H "Api-Key: YOUR_API_KEY" \
+  -d '{"input": "Hello, world!", "workflowSlug": "my_great_workflow"}' \
+  https://itz.am/api/v1/generate/text
+```
+
+In the SDKs:
+
+{/* TODO: Add more SDKs (see https://mintlify.com/docs/content/components/code-groups) */}
+
+```typescript TypeScript
+import Itzam from "itzam";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const response = await itzam.generateText({
+  input: "Hello, world!",
+  workflowSlug: "my_great_workflow",
+});
+```

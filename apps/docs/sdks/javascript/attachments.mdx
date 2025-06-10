@@ -1,12 +1,14 @@
 ---
 title: "Attachments"
-description: "Learn how to send files and images as attachments with your requests using the JavaScript SDK."
-icon: "paperclip"
+description: "Send files and images as attachments with your requests using the JavaScript SDK."
+icon: "image"
+keywords:
+  ["attachments", "files", "images", "upload", "multimodal", "documents"]
 ---
 
 ## Overview
 
-Attachments allow you to include files, images, documents, and other media in your requests to enhance AI workflows with multimodal capabilities. The Itzam SDK supports sending attachments in two formats: base64-encoded data or remote URLs.
+Attachments allow you to include files, images, documents, and other media in your requests to enhance AI workflows with multimodal capabilities.
 
 ## Supported Formats
 
@@ -19,8 +21,8 @@ Attachments can be sent in the following ways:
 
 ```typescript
 const response = await itzam.generateText({
-  input: "What do you see in this image?",
-  workflowSlug: "vision-workflow",
+  input: "What can you say about this document?",
+  workflowSlug: "document-analysis",
   attachments: [
     {
       file: "https://example.com/document.pdf",
@@ -32,39 +34,12 @@ const response = await itzam.generateText({
 ## Using Base64
 
 ```typescript
-const response = await itzam.generateText({
-  input: "Analyze this document",
-  workflowSlug: "document-analysis",
-  attachments: [
-    {
-      file: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
-    },
-  ],
-});
-```
-
-## Usage with Generate Object
-
-```typescript
-import Itzam from "itzam";
-import { z } from "zod";
-
-const itzam = new Itzam("YOUR_API_KEY");
-
-const analysisSchema = z.object({
-  objects: z.array(z.string()),
-  colors: z.array(z.string()),
-  description: z.string(),
-  confidence: z.number().min(0).max(1),
-});
-
-const response = await itzam.generateObject({
-  input: "Analyze this image and extract key information",
+const response = await itzam.streamText({
+  input: "Analyze this image",
   workflowSlug: "image-analysis",
-  schema: analysisSchema,
   attachments: [
     {
-      file: "https://example.com/image.jpg",
+      file: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...",
     },
   ],
 });
@@ -93,10 +68,10 @@ const response = await itzam.generateText({
 
 ## Attachment Object Structure
 
-| Property   | Type     | Required | Description                                                                     |
-| ---------- | -------- | -------- | ------------------------------------------------------------------------------- |
-| `file`     | `string` | Yes      | The file data as base64 string or URL                                           |
-| `mimeType` | `string` | No       | The MIME type of the file (e.g., "image/png", "application/pdf"). Auto-detected |
+| Property   | Type     | Required | Description                                                                                                                 |
+| ---------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `file`     | `string` | **Yes**  | The file data as base64 string or URL                                                                                       |
+| `mimeType` | `string` | No       | The MIME type of the file (e.g., "image/png", "application/pdf"). Auto-detected, but helps the AI understand the file type. |
 
 ## Supported MIME Types
 
@@ -123,60 +98,3 @@ Common MIME types that work well with AI models:
 - `application/json` - JSON files
 - `text/csv` - CSV files
 - `application/xml` - XML files
-
-## Best Practices
-
-### File Size
-
-- Keep file sizes reasonable for better performance
-- Large files may increase processing time and costs
-- Consider compressing images when possible
-
-### MIME Type Specification
-
-```typescript
-// Always try to specify MIME type for better processing
-{
-  file: base64Data,
-  mimeType: "image/jpeg" // Helps the AI understand the file type
-}
-```
-
-### URLs
-
-```typescript
-// URLs must be publicly accessible
-{
-  file: "https://example.com/public-image.jpg", // ✅ Good
-  mimeType: "image/jpeg"
-}
-
-// Private URLs requiring authentication won't work
-{
-  file: "https://private-bucket.s3.amazonaws.com/private-file.pdf", // ❌ Won't work
-  mimeType: "application/pdf"
-}
-```
-
-## Error Handling
-
-Attachment-related errors will be thrown as `ItzamError` instances:
-
-```typescript
-try {
-  const response = await itzam.generateText({
-    input: "Analyze this",
-    workflowSlug: "analysis",
-    attachments: [
-      {
-        file: "invalid-url",
-        mimeType: "image/jpeg",
-      },
-    ],
-  });
-} catch (error) {
-  if (error instanceof ItzamError) {
-    console.error("Attachment error:", error.message);
-  }
-}
-```

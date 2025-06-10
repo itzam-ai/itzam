@@ -1,0 +1,118 @@
+---
+title: "Overview"
+description: "Itzam is the open-source platform for AI integration."
+icon: "play"
+keywords:
+  [
+    "overview",
+    "getting started",
+    "workflow",
+    "AI integration",
+    "setup",
+    "dashboard",
+    "API",
+    "SDK",
+    "platform",
+  ]
+---
+
+Welcome to the Itzam documentation!
+
+Here you will learn how to create AI features in your projects using Itzam.
+
+## How it works
+
+Let's use a real-world example to understand how Itzam works.
+
+Imagine you want to create an AI support chat.
+
+### Workflow
+
+Everything starts in the dashboard, where you will create a **Workflow**. A Workflow represents a functionality in your app, in this case, the support chat.
+
+1. Create a Workflow called "Support Chat".
+   ![Create a Workflow](/images/new-workflow.png)
+
+2. Inside your **Workflow** you can configure:
+
+   - **AI model** (GPT, Claude, Gemini)
+   - **Prompt** (e.g. "You are a customer support agent from Acme Inc…")
+   - **Model settings** (response length, style)
+   - **Knowledge** (what the model will use as context, e.g. docs, links)
+
+   ![Workflow configuration](/images/workflow-dashboard.png)
+
+3. Now create a new API key in the dashboard.
+   ![Create an API key](/images/new-api-key.png)
+
+4. Great! Now grab this **Workflow**'s slug (in this case, `support-chat`) and your API key and let's integrate!
+
+You have two options to integrate this **Workflow** in your app:
+
+### SDKs
+
+1. Install the SDK:
+
+```bash
+npm i itzam
+```
+
+2. Use the API key to authenticate:
+
+```jsx
+import Itzam from "itzam";
+
+const itzam = new Itzam("itzam_81d443ca-3952-4c53-bfda-7...");
+```
+
+3. Use the **Workflow**'s slug to run it with your user's input:
+
+```jsx
+const response = await itzam.streamText({
+  input: "Where is your documentation?",
+  workflowSlug: "support-chat",
+});
+
+// response = "Follow this link to access our documentation: acme.com/docs"
+```
+
+### API
+
+If you prefer, you can also use the API directly.
+
+```bash
+curl -X POST \
+  -H "Api-Key: YOUR_API_KEY" \
+  -d '{"input": "Hello, world!", "workflowSlug": "my_great_workflow"}' \
+  https://itz.am/api/v1/stream/text
+```
+
+## Nice work! 🎉
+
+You have created your first **Workflow** and integrated it in your app.
+
+Now you can manage everything about it in the dashboard. You can:
+
+### Change the **AI model**
+
+![Change model](/images/change-model.png)
+
+### Update the **model settings**
+
+![Update model settings](/images/change-model-settings.png)
+
+### Tweak the **prompt**
+
+![Tweak prompt](/images/prompt.png)
+
+### Add **knowledge** (docs, links, etc.)
+
+![Add knowledge](/images/knowledge.png)
+
+### Check your **runs**
+
+![Check runs](/images/runs.png)
+
+### Make tests in **playground**
+
+![Test inputs](/images/playground.png)
