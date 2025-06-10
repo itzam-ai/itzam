@@ -32,7 +32,6 @@ export function DetailsCard({
     const fetchRun = async () => {
       if (metadata?.runId) {
         const run = await getRunById(metadata.runId);
-        console.log("run", run);
         setRun(run ?? null);
       }
     };

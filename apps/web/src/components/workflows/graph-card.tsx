@@ -37,8 +37,6 @@ export function GraphCard({ workflowId }: { workflowId: string }) {
         setIsLoading(true);
         const runsData = await getLast7DaysRunsCountByDay(workflowId);
 
-        console.log("runsData", runsData);
-
         setData(runsData);
         setError(null);
       } catch (err) {
