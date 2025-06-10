@@ -35,6 +35,7 @@ export const updateSecret = async (
   secret: string
 ) => {
   const supabase = await createAdminClient();
+
   const { data: updatedSecretId, error } = await supabase.rpc("update_secret", {
     secret_id: secretId,
     secret_name: name,

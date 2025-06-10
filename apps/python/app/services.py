@@ -95,6 +95,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         
         # Extract text content
         text_content, file_size = await get_text_from_tika(str(resource.url))
+
+        logger.info(f"Text content: {text_content}")
         
         if not text_content.strip():
             raise HTTPException(

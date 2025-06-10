@@ -12,5 +12,5 @@ export async function GET() {
 
   await rescrapeResources(resources);
 
-  return new Response("Rescraped workflows");
+  return new Response("Rescraped resources! 🎉");
 }

@@ -102,19 +102,7 @@ export function AppSidebar({
                 </SidebarMenuSub>
               )}
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <Link href={"/dashboard/api-keys"} prefetch={true}>
-                <SidebarMenuButton
-                  tooltip={"API Keys"}
-                  isActive={pathname.includes("/api-keys")}
-                >
-                  <Lock
-                    className={`${pathname.includes("/api-keys") ? "text-primary" : "text-muted-foreground"}`}
-                  />
-                  <p>API Keys</p>
-                </SidebarMenuButton>
-              </Link>
-            </SidebarMenuItem>
+
             <SidebarMenuItem>
               <Link href={"/dashboard/providers"} prefetch={true}>
                 <SidebarMenuButton
@@ -128,6 +116,21 @@ export function AppSidebar({
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <Link href={"/dashboard/api-keys"} prefetch={true}>
+                <SidebarMenuButton
+                  tooltip={"API Keys"}
+                  isActive={pathname.includes("/api-keys")}
+                >
+                  <Lock
+                    className={`${pathname.includes("/api-keys") ? "text-primary" : "text-muted-foreground"}`}
+                  />
+                  <p>API Keys</p>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+
             <SidebarMenuItem>
               <Link href={"/dashboard/usage"} prefetch={true}>
                 <SidebarMenuButton
@@ -151,7 +154,7 @@ export function AppSidebar({
                 <SidebarMenuButton tooltip={"Docs"}>
                   <FileText className="text-muted-foreground" />
                   <p>Docs</p>
-                  <SidebarMenuBadge className="group-hover/docs:opacity-100 opacity-0 transition-opacity duration-300">
+                  <SidebarMenuBadge className="group-hover/docs:opacity-100 opacity-0">
                     <ExternalLink className="size-3 text-muted-foreground" />
                   </SidebarMenuBadge>
                 </SidebarMenuButton>
