@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import {
@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { TextLoop } from "./text-loop";
 
 export const KnowledgeItem = ({
   resource,
@@ -57,6 +58,9 @@ export const KnowledgeItem = ({
     "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
   >(resource.scrapeFrequency ?? "NEVER");
   const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
+  const [fileTitle, setFileTitle] = useState(
+    resource.title ?? (resource.fileName as string)
+  );
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -73,6 +77,12 @@ export const KnowledgeItem = ({
     setIsUpdatingRescrapeFrequency(false);
     toast.success("Rescrape frequency updated");
   };
+
+  useEffect(() => {
+    if (resource.title) {
+      setFileTitle(resource.title);
+    }
+  }, [resource]);
 
   return (
     <motion.div key={resource.id} className="flex gap-2 items-center">
@@ -125,9 +135,10 @@ export const KnowledgeItem = ({
               )}
           </AnimatePresence>
 
-          <p className="font-medium text-xs whitespace-nowrap">
-            {resource.title ? resource.title : resource.fileName}
-          </p>
+          <TextLoop
+            className="font-medium text-xs max-w-64 truncate"
+            value={fileTitle}
+          />
 
           <span className="text-muted-foreground text-xs whitespace-nowrap">
             {resource.type === "FILE" ? (
