@@ -148,7 +148,6 @@ export default function AdminSdkPage() {
     try {
       const response = await itzam.threads.create({
         workflowSlug: slug,
-        name: `New Thread ${threads.length + 1}`,
       });
 
       // Add the new thread to the list

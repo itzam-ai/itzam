@@ -60,8 +60,8 @@ export const threadsRoute = new Hono()
           );
         }
 
-        const threadId = v7();
-        const threadName = name || `thread_${threadId.substring(0, 10)}`;
+        const threadId = `thread_${v7()}`;
+        const threadName = name || `Thread ${threadId.slice(-10)}`;
 
         const [thread] = await db
           .insert(threads)
