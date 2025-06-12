@@ -270,20 +270,17 @@ export async function generateTextResponse(
   aiParams: AiParams,
   run: PreRunDetails,
   model: Model,
-  startTime: number
+  startTime: number,
+  type: "text" | "object" = "text"
 ) {
   // @ts-expect-error TODO: fix typing
   const response = await generateObject<GenerationResponse>(aiParams);
 
   const responseTime = Date.now();
 
-  console.log("🕰️ Time before reporting usage: " + (responseTime - startTime));
-
   // ⏰ End timing
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
-
-  console.log("🕰️ Total time:", endTime - startTime);
 
   const metadata = {
     model: {
@@ -301,7 +298,10 @@ export async function generateTextResponse(
     metadata: { metadata, aiParams },
     model: model,
     status: "COMPLETED",
-    output: response.object.text,
+    output:
+      type === "object"
+        ? JSON.stringify(response.object)
+        : response.object.text,
     inputTokens: response.usage?.promptTokens || 0,
     outputTokens: response.usage?.completionTokens || 0,
     durationInMs,
