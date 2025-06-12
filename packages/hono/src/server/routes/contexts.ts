@@ -7,6 +7,7 @@ import { resolver } from "hono-openapi/zod";
 import { v7 } from "uuid";
 import {
   CreateContextResponseSchema,
+  DeleteContextResponseSchema,
   GetContextResponseSchema,
   GetContextsByWorkflowResponseSchema,
   UpdateContextResponseSchema,
@@ -14,7 +15,7 @@ import {
 import { createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
-import { createContextValidator, updateContextValidator } from "../validators";
+import { createContextValidator, deleteContextValidator, updateContextValidator } from "../validators";
 
 
 export const contextsRoute = new Hono()
@@ -378,6 +379,83 @@ export const contextsRoute = new Hono()
         console.error("Error updating context:", error);
         return c.json(
           createErrorResponse(new Error("Failed to update context")),
+          500
+        );
+      }
+    }
+  )
+
+  // Delete context
+  .delete(
+    "/:id",
+    describeRoute({
+      summary: "Delete context",
+      description: "Delete a context and move its resources back to knowledge",
+      validateResponse: true,
+      operationId: "deleteContext",
+      responses: createOpenApiErrors({
+        content: {
+          "application/json": {
+            schema: resolver(DeleteContextResponseSchema),
+          },
+        },
+        description: "Successfully deleted context",
+      }),
+    }),
+    deleteContextValidator,
+    async (c) => {
+      try {
+        const { id } = c.req.valid("param");
+
+        // Get the context to verify it exists
+        const context = await db.query.contexts.findFirst({
+          where: eq(contexts.id, id),
+          columns: { id: true, workflowId: true },
+        });
+
+        if (!context) {
+          return c.json(
+            createErrorResponse(new Error("Context not found")),
+            404
+          );
+        }
+
+        // Get all resources associated with this context
+        const associatedResources = await db.query.resourceContexts.findMany({
+          where: eq(resourceContexts.contextId, id),
+          columns: { resourceId: true },
+        });
+
+        // Get the workflow's knowledge ID for moving resources back
+        const workflow = await db.query.workflows.findFirst({
+          where: eq(workflows.id, context.workflowId),
+          columns: { knowledgeId: true },
+        });
+
+        // Delete all resource-context associations
+        await db.delete(resourceContexts)
+          .where(eq(resourceContexts.contextId, id));
+
+        // Move resources back to knowledge if workflow has knowledge
+        if (workflow?.knowledgeId && associatedResources.length > 0) {
+          const resourceIds = associatedResources.map(rc => rc.resourceId);
+          await db.update(resources)
+            .set({ knowledgeId: workflow.knowledgeId })
+            .where(inArray(resources.id, resourceIds));
+        }
+
+        // Delete the context
+        await db.delete(contexts)
+          .where(eq(contexts.id, id));
+
+        return c.json({
+          id,
+          deleted: true,
+        });
+      } catch (error) {
+        console.error("Error deleting context:", error);
+        return c.json(
+          createErrorResponse(new Error("Failed to delete context")),
           500
         );
       }

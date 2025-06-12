@@ -5,10 +5,11 @@ import {
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
 import { db } from "@itzam/server/db/index";
-import { threads } from "@itzam/server/db/schema";
+import { contexts, threads } from "@itzam/server/db/schema";
+import { getThreadContextIds } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
 import { tryCatch } from "@itzam/utils/try-catch";
-import { eq } from "drizzle-orm";
+import { eq, inArray, or, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -42,6 +43,26 @@ type ValidationSuccess = {
 export type StatusCode = 200 | 400 | 401 | 404 | 500;
 
 type ValidationResult = ValidationError | ValidationSuccess;
+
+// Helper function to resolve context identifiers (IDs or slugs) to context IDs for a specific workflow
+export const resolveContextIds = async (
+  contextIdentifiers: string[],
+  workflowId: string
+): Promise<string[]> => {
+  if (contextIdentifiers.length === 0) {
+    return [];
+  }
+
+  // Query contexts that match either ID or slug and belong to the workflow
+  const matchedContexts = await db.query.contexts.findMany({
+    where: sql`(${inArray(contexts.id, contextIdentifiers)} OR ${inArray(contexts.slug, contextIdentifiers)}) AND ${eq(contexts.workflowId, workflowId)}`,
+    columns: {
+      id: true,
+    },
+  });
+
+  return matchedContexts.map(c => c.id);
+};
 
 // Common error response function
 export const createErrorResponse = (error: unknown) => {
@@ -116,6 +137,21 @@ export const setupRunGeneration = async ({
     return { error: "Workflow not found", status: 404 as StatusCode };
   }
 
+  // Resolve request context identifiers to IDs (for contexts passed in the request)
+  let requestContextIds: string[] = [];
+  if (contexts && contexts.length > 0) {
+    requestContextIds = await resolveContextIds(contexts, workflow.id);
+  }
+  
+  // Get contexts from thread if threadId is provided
+  let threadContextIds: string[] = [];
+  if (threadId) {
+    threadContextIds = await getThreadContextIds(threadId);
+  }
+  
+  // Merge thread contexts with request contexts, removing duplicates
+  const finalContextIds = [...new Set([...threadContextIds, ...requestContextIds])];
+
   const run: PreRunDetails = {
     id: uuidv7(),
     origin: "SDK" as const,
@@ -125,7 +161,7 @@ export const setupRunGeneration = async ({
     modelId: workflow.modelId,
     workflowId: workflow.id,
     resourceIds: [],
-    contextIds: contexts || [],
+    contextIds: finalContextIds,
     attachments: [],
   };
 

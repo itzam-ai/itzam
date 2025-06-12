@@ -6,6 +6,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   CreateContextInputSchema,
   CreateThreadInputSchema,
+  DeleteContextParamsSchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
   UpdateContextInputSchema,
@@ -88,4 +89,9 @@ export const createContextValidator = zValidator(
 export const updateContextValidator = zValidator(
   "json",
   UpdateContextInputSchema
+);
+
+export const deleteContextValidator = zValidator(
+  "param",
+  DeleteContextParamsSchema
 );

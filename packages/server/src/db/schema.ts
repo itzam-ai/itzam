@@ -505,6 +505,31 @@ export const threads = createTable(
   })
 );
 
+// ThreadContexts junction table
+export const threadContexts = createTable(
+  "thread_contexts",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    threadId: varchar("thread_id", { length: 256 })
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    contextId: varchar("context_id", { length: 256 })
+      .notNull()
+      .references(() => contexts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    threadIdIndex: index("thread_contexts_thread_id_idx").on(table.threadId),
+    contextIdIndex: index("thread_contexts_context_id_idx").on(table.contextId),
+    threadContextUniqueIndex: index("thread_context_unique_idx").on(
+      table.threadId,
+      table.contextId
+    ),
+  })
+);
+
 // ----------------- CHAT --------------------------
 export const chats = createTable(
   "chat",
@@ -603,6 +628,7 @@ export const contextRelations = relations(contexts, ({ one, many }) => ({
   }),
   resourceContexts: many(resourceContexts),
   runContexts: many(runContexts),
+  threadContexts: many(threadContexts),
 }));
 
 // -------- Provider --------
@@ -750,6 +776,7 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
     fields: [threads.workflowId],
     references: [workflows.id],
   }),
+  threadContexts: many(threadContexts),
 }));
 
 // -------- ResourceContexts --------
@@ -762,6 +789,21 @@ export const resourceContextRelations = relations(
     }),
     context: one(contexts, {
       fields: [resourceContexts.contextId],
+      references: [contexts.id],
+    }),
+  })
+);
+
+// -------- ThreadContexts --------
+export const threadContextRelations = relations(
+  threadContexts,
+  ({ one }) => ({
+    thread: one(threads, {
+      fields: [threadContexts.threadId],
+      references: [threads.id],
+    }),
+    context: one(contexts, {
+      fields: [threadContexts.contextId],
       references: [contexts.id],
     }),
   })

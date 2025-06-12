@@ -223,3 +223,53 @@ export async function addResourceToContexts(
     throw error;
   }
 }
+
+export async function deleteContext(contextId: string) {
+  try {
+    // First get the context to check if it exists and get its workflow ID
+    const context = await db.query.contexts.findFirst({
+      where: eq(contexts.id, contextId),
+      columns: { id: true, workflowId: true },
+    });
+
+    if (!context) {
+      throw new Error("Context not found");
+    }
+
+    // Get all resources associated with this context
+    const associatedResources = await db.query.resourceContexts.findMany({
+      where: eq(resourceContexts.contextId, contextId),
+      columns: { resourceId: true },
+    });
+
+    // Get the workflow's knowledge ID for moving resources back
+    const workflow = await db.query.workflows.findFirst({
+      where: eq(workflows.id, context.workflowId),
+      columns: { knowledgeId: true },
+    });
+
+    // Delete all resource-context associations
+    await db.delete(resourceContexts)
+      .where(eq(resourceContexts.contextId, contextId));
+
+    // Move resources back to knowledge if workflow has knowledge
+    if (workflow?.knowledgeId && associatedResources.length > 0) {
+      const resourceIds = associatedResources.map(rc => rc.resourceId);
+      await db.update(resources)
+        .set({ knowledgeId: workflow.knowledgeId })
+        .where(sql`${resources.id} IN ${resourceIds}`);
+    }
+
+    // Delete the context
+    await db.delete(contexts)
+      .where(eq(contexts.id, contextId));
+
+    revalidatePath(`/dashboard/workflows/${context.workflowId}/knowledge`);
+    revalidatePath(`/dashboard/workflows/${context.workflowId}/context`);
+    
+    return { data: { id: contextId, deleted: true } };
+  } catch (error) {
+    console.error("Error deleting context:", error);
+    throw error;
+  }
+}

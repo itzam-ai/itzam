@@ -447,6 +447,14 @@ export const CreateThreadInputSchema = z
       example: "my_great_workflow",
       description: "The slug of the workflow this thread belongs to",
     }),
+    contexts: z
+      .array(z.string())
+      .optional()
+      .openapi({
+        example: ["production-data", "user-feedback"],
+        description:
+          "Optional array of context identifiers (IDs or slugs) to associate with this thread",
+      }),
   })
   .openapi({ ref: "CreateThreadInput" });
 
@@ -464,6 +472,11 @@ export const CreateThreadResponseSchema = z
       example: "user-123-session",
       description: "The lookup key of the thread",
     }),
+    contexts: z
+      .array(GetContextResponseSchema)
+      .openapi({
+        description: "Array of contexts associated with this thread",
+      }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -503,6 +516,11 @@ export const GetThreadResponseSchema = z
       example: "user-123-session",
       description: "The lookup key of the thread",
     }),
+    contexts: z
+      .array(GetContextResponseSchema)
+      .openapi({
+        description: "Array of contexts associated with this thread",
+      }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -771,3 +789,23 @@ export const UpdateContextParamsSchema = z.object({
 
 export const UpdateContextResponseSchema = GetContextResponseSchema
   .openapi({ ref: "UpdateContextResponse" });
+
+export const DeleteContextParamsSchema = z.object({
+  id: z.string().openapi({
+    example: "context_1234567890",
+    description: "The ID of the context to delete",
+  }),
+});
+
+export const DeleteContextResponseSchema = z
+  .object({
+    id: z.string().openapi({
+      example: "context_1234567890",
+      description: "The ID of the deleted context",
+    }),
+    deleted: z.boolean().openapi({
+      example: true,
+      description: "Whether the context was successfully deleted",
+    }),
+  })
+  .openapi({ ref: "DeleteContextResponse" });

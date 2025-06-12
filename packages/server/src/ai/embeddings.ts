@@ -1,8 +1,8 @@
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
-import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
+import { and, cosineDistance, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { db } from "../db";
-import { chunks } from "../db/schema";
+import { chunks, workflowChunks, workflows } from "../db/schema";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
@@ -45,9 +45,13 @@ export const findRelevantContent = async (
 
   const whereConditions = [
     gt(similarity, SIMILARITY_THRESHOLD),
-    eq(workflowChunks.knowledgeId, workflow?.id),
-    inArray(workflowChunks.contextId, contextIds ?? []),
+    eq(workflowChunks.knowledgeId, workflow.knowledgeId),
   ];
+
+  // Only add context filter if contextIds are provided and not empty
+  if (contextIds && contextIds.length > 0) {
+    whereConditions.push(inArray(workflowChunks.contextId, contextIds));
+  }
 
   // Retrieving chunks with similarity greater than SIMILARITY_THRESHOLD
   const similarChunks = await db

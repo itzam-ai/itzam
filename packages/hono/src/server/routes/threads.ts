@@ -1,11 +1,11 @@
 import { db } from "@itzam/server/db/index";
-import { threads, workflows } from "@itzam/server/db/schema";
+import { contexts, threadContexts, threads, workflows } from "@itzam/server/db/schema";
 import {
   getThreadById,
   getThreadRunsHistory,
   getThreadsByWorkflowSlug,
 } from "@itzam/server/db/thread/actions";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -46,9 +46,9 @@ export const threadsRoute = new Hono()
     createThreadValidator,
     async (c) => {
       try {
-        const { name, lookupKey, workflowSlug } = c.req.valid("json");
+        const { name, lookupKey, workflowSlug, contexts: contextIds } = c.req.valid("json");
 
-        // Find the workflow by slug and userId
+        // Find the workflow by slug
         const workflow = await db.query.workflows.findFirst({
           where: eq(workflows.slug, workflowSlug),
         });
@@ -60,9 +60,54 @@ export const threadsRoute = new Hono()
           );
         }
 
+        // Validate contexts if provided
+        let validatedContexts: any[] = [];
+        if (contextIds && contextIds.length > 0) {
+          const foundContexts = await db.query.contexts.findMany({
+            where: and(
+              eq(contexts.workflowId, workflow.id),
+              or(
+                inArray(contexts.id, contextIds),
+                inArray(contexts.slug, contextIds)
+              )
+            ),
+            with: {
+              resourceContexts: {
+                with: {
+                  resource: {
+                    columns: {
+                      id: true,
+                      title: true,
+                      type: true,
+                      url: true,
+                      status: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (foundContexts.length !== contextIds.length) {
+            return c.json(
+              createErrorResponse(new Error("One or more contexts not found")),
+              404
+            );
+          }
+
+          validatedContexts = foundContexts.map((context) => ({
+            ...context,
+            createdAt: context.createdAt.toISOString(),
+            updatedAt: context.updatedAt.toISOString(),
+            resources: context.resourceContexts?.map((rc) => rc.resource) || [],
+            resourceContexts: undefined,
+          }));
+        }
+
         const threadId = `thread_${v7()}`;
         const threadName = name || `Thread ${threadId.slice(-10)}`;
 
+        // Create the thread
         const [thread] = await db
           .insert(threads)
           .values({
@@ -80,10 +125,22 @@ export const threadsRoute = new Hono()
           );
         }
 
+        // Associate contexts with the thread
+        if (validatedContexts.length > 0) {
+          const threadContextAssociations = validatedContexts.map((context) => ({
+            id: `tc_${v7()}`,
+            threadId: thread.id,
+            contextId: context.id,
+          }));
+
+          await db.insert(threadContexts).values(threadContextAssociations);
+        }
+
         return c.json({
           id: thread.id,
           name: thread.name,
           lookupKey: thread.lookupKey,
+          contexts: validatedContexts,
           createdAt: thread.createdAt.toISOString(),
           updatedAt: thread.updatedAt.toISOString(),
         });
@@ -141,6 +198,13 @@ export const threadsRoute = new Hono()
             id: thread.id,
             name: thread.name,
             lookupKey: thread.lookupKey,
+            contexts: thread.threadContexts?.map((tc) => ({
+              ...tc.context,
+              createdAt: tc.context.createdAt.toISOString(),
+              updatedAt: tc.context.updatedAt.toISOString(),
+              resources: tc.context.resourceContexts?.map((rc) => rc.resource) || [],
+              resourceContexts: undefined,
+            })) || [],
             createdAt: thread.createdAt.toISOString(),
             updatedAt: thread.updatedAt.toISOString(),
           })),
