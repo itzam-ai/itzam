@@ -5,22 +5,11 @@ import {
   updateCurrentModel,
 } from "@itzam/server/db/model/actions";
 import { ProviderKey } from "@itzam/server/db/provider-keys/actions";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowDown,
-  ArrowRight,
-  ArrowUp,
-  Brain,
-  Check,
-  Code,
-  Eye,
-  Pin,
-  Shuffle,
-  X,
-} from "lucide-react";
+import { ArrowRight, Brain, Code, Eye, Shuffle } from "lucide-react";
+import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import ProviderIcon from "public/models/svgs/provider-icon";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { groupModelsByProviderAndSort } from "~/lib/providers";
 import { formatCurrency, formatNumber } from "~/lib/utils";
@@ -42,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import Link from "next/link";
+import { Card } from "../ui/card";
 export function ModelPicker({
   models,
   currentModel,
@@ -59,132 +48,23 @@ export function ModelPicker({
   ]);
   const modelsSorted = groupModelsByProviderAndSort(models);
 
-  const [shouldMeasure, setShouldMeasure] = useState(false);
-  const [shouldAnimateHeight, setShouldAnimateHeight] = useState(false);
-  const [contentHeight, setContentHeight] = useState<number | "auto">("auto");
-  const pinnedModelsRef = useRef<HTMLDivElement>(null);
-  const emptyModelsRef = useRef<HTMLDivElement>(null);
-
-  const measureCurrentContent = () => {
-    const currentRef = pinnedModelsRef.current
-      ? pinnedModelsRef.current
-      : emptyModelsRef.current;
-    if (currentRef) {
-      setContentHeight(currentRef.offsetHeight);
-    }
-  };
-
-  useEffect(() => {
-    setShouldMeasure(true);
-    const initialTimer = setTimeout(() => {
-      measureCurrentContent();
-    }, 50);
-    return () => clearTimeout(initialTimer);
-  }, []);
-
-  // Measure when content changes
-  useEffect(() => {
-    if (shouldMeasure) {
-      measureCurrentContent();
-    }
-  }, [shouldMeasure, pinnedModels]);
-
-  // Enable height animations after first render
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShouldAnimateHeight(true);
-      measureCurrentContent();
-    }, 200);
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-lg font-medium">Switch model</h2>
-      <div className="space-y-8">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <h4 className="flex items-center gap-2 font-medium text-sm ml-1">
-              <Pin
-                className="size-3 text-muted-foreground"
-                fill="currentColor"
-              />
-              Pinned models
-            </h4>
-          </div>
-          <motion.div
-            initial={{ height: "auto" }}
-            animate={{ height: contentHeight }}
-            transition={{
-              height: shouldAnimateHeight
-                ? { type: "spring", stiffness: 300, damping: 30 }
-                : { duration: 0 },
-            }}
-          >
-            <AnimatePresence
-              mode="wait"
-              onExitComplete={() => {
-                setTimeout(() => {
-                  setShouldMeasure(true);
-                  measureCurrentContent();
-                }, 10);
-              }}
-            >
-              {pinnedModels.length === 0 ? (
-                <motion.div
-                  key="empty"
-                  ref={emptyModelsRef}
-                  initial={{ opacity: 0, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, filter: "blur(4px)" }}
-                  className="text-muted-foreground border border-dashed border-border rounded-lg p-4"
-                >
-                  <p className="text-muted-foreground text-xs flex items-center gap-2">
-                    <Pin className="size-3 text-muted-foreground rotate-45" />
-                    Pin your favorite models to compare them side by side.
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="pinned"
-                  ref={pinnedModelsRef}
-                  initial={{ opacity: 0, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, filter: "blur(4px)" }}
-                  className={`grid gap-4 grid-cols-${pinnedModels.length === 4 ? 4 : pinnedModels.length + 1}`}
-                >
-                  {pinnedModels.map((model) => (
-                    <ModelPinnedCard
-                      key={model.id}
-                      model={model}
-                      currentModel={currentModel}
-                      pinnedModels={pinnedModels}
-                      setPinnedModels={setPinnedModels}
-                      workflowId={workflowId}
-                    />
-                  ))}
-                  {pinnedModels.length < 4 && <EmptyModelCard />}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </div>
-
-        {modelsSorted.map(({ providerName, models }) => (
-          <ProviderModelList
-            key={providerName}
-            models={models}
-            currentModel={currentModel}
-            providerName={providerName}
-            pinnedModels={pinnedModels}
-            setPinnedModels={setPinnedModels}
-            workflowId={workflowId}
-            providerKey={providerKeys.find(
-              (key) => key.providerId === models[0]?.providerId
-            )}
-          />
-        ))}
-      </div>
+      {modelsSorted.map(({ providerName, models }) => (
+        <ProviderModelList
+          key={providerName}
+          models={models}
+          currentModel={currentModel}
+          providerName={providerName}
+          pinnedModels={pinnedModels}
+          setPinnedModels={setPinnedModels}
+          workflowId={workflowId}
+          providerKey={providerKeys.find(
+            (key) => key.providerId === models[0]?.providerId
+          )}
+        />
+      ))}
     </div>
   );
 }
@@ -209,23 +89,23 @@ function ProviderModelList({
   return (
     <div key={providerName}>
       <div className="flex items-center mb-3">
-        <h4 className="flex items-center gap-2 font-medium text-sm w-52 ml-1">
+        <h4 className="flex items-center gap-2 font-medium text-sm w-64 ml-0.5">
           <ProviderIcon id={models[0]?.providerId ?? ""} size="sm" />
           {providerName}
         </h4>
-        <div className="w-28" />
-        <div className="flex items-center gap-1 w-20 ">
-          <p className="text-xs text-muted-foreground">Input</p>
-          <ArrowDown className="size-3 text-muted-foreground" />
-        </div>
-        <div className="flex items-center gap-1 w-20 ">
-          <p className="text-xs text-muted-foreground">Output</p>
-          <ArrowUp className="size-3 text-muted-foreground" />
+        <div className="w-32">
+          <p className="text-xs text-muted-foreground">Features</p>
         </div>
         <div className="w-24">
+          <p className="text-xs text-muted-foreground">Input</p>
+        </div>
+        <div className="w-24">
+          <p className="text-xs text-muted-foreground">Output</p>
+        </div>
+        <div className="w-28">
           <p className="text-xs text-muted-foreground">Context</p>
         </div>
-        <div className="w-20">
+        <div className="w-24">
           <p className="text-xs text-muted-foreground">Max Tokens</p>
         </div>
       </div>
@@ -268,8 +148,6 @@ function ProviderModelList({
 function ModelRow({
   model,
   currentModel,
-  pinnedModels,
-  setPinnedModels,
   workflowId,
 }: {
   model: ModelWithProvider;
@@ -279,56 +157,22 @@ function ModelRow({
   workflowId: string;
 }) {
   const isCurrentModel = model.id === currentModel.id;
-  const isPinned = pinnedModels.some((m) => m.id === model.id);
-  const maxPinnedReached = pinnedModels.length >= 4;
-  const canPin = !maxPinnedReached || isPinned;
 
   return (
     <div
-      className={`w-full flex items-center justify-between pl-1 pr-2 border-b border-border pb-2 pt-1 group`}
+      className={`w-full flex items-center justify-between pl-1 pr-2 border-b border-border pb-2 pt-1`}
     >
       <div className="flex">
-        <div className="flex items-center gap-2 w-52">
-          <button
-            className="cursor-pointer hover:opacity-80 transition-opacity duration-200 mr-1"
-            disabled={!canPin && !isPinned}
-            onClick={(e) => {
-              e.stopPropagation();
-              setPinnedModels(
-                isPinned
-                  ? pinnedModels.filter((m) => m.id !== model.id)
-                  : [...pinnedModels, model]
-              );
-            }}
-          >
-            <Pin
-              className="size-3 text-muted-foreground"
-              fill={isPinned ? "currentColor" : "none"}
-            />
-          </button>
+        <div className="flex items-center gap-2 w-64">
           <ModelIcon tag={model.tag} size="xs" />
           <h3 className="font-medium text-xs">{model.name}</h3>
           {isCurrentModel && (
-            <Badge variant="orange" size="sm">
+            <Badge variant="orange" size="sm" className="ml-0.5">
               Current
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1 w-28 ">
-          {model.hasReasoningCapability && (
-            <TooltipProvider>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger>
-                  <div className="flex cursor-pointer items-center gap-1 rounded-md border border-green-600/20 bg-green-600/10 p-1 text-green-600 transition-all duration-200 hover:border-green-600/30 hover:bg-green-600/20">
-                    <Brain className="size-3" />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Thinks before answering</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+        <div className="flex items-center gap-1 w-32">
           {model.hasVision && (
             <TooltipProvider>
               <Tooltip delayDuration={100}>
@@ -343,6 +187,21 @@ function ModelRow({
               </Tooltip>
             </TooltipProvider>
           )}
+          {model.hasReasoningCapability && (
+            <TooltipProvider>
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger>
+                  <div className="flex cursor-pointer items-center gap-1 rounded-md border border-green-600/20 bg-green-600/10 p-1 text-green-600 transition-all duration-200 hover:border-green-600/30 hover:bg-green-600/20">
+                    <Brain className="size-3" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Thinks before answering</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           {model.isOpenSource && (
             <TooltipProvider>
               <Tooltip delayDuration={100}>
@@ -360,22 +219,22 @@ function ModelRow({
             </TooltipProvider>
           )}
         </div>
-        <div className="flex items-center gap-1 w-20 ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatCurrency(Number(model.inputPerMillionTokenCost))}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-20   ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatCurrency(Number(model.outputPerMillionTokenCost))}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-24 ">
+        <div className="flex items-center gap-1 w-28">
           <p className="text-xs text-muted-foreground">
             {formatNumber(model.contextWindowSize)}
           </p>
         </div>
-        <div className="flex items-center gap-1 w-20   ">
+        <div className="flex items-center gap-1 w-24">
           <p className="text-xs text-muted-foreground">
             {formatNumber(model.maxTokens)}
           </p>
@@ -395,184 +254,6 @@ function ModelRow({
           </SwitchModelButton>
         )}
       </div>
-    </div>
-  );
-}
-
-function ModelPinnedCard({
-  model,
-  currentModel,
-  pinnedModels,
-  setPinnedModels,
-  workflowId,
-}: {
-  model: ModelWithProvider;
-  currentModel: ModelWithProvider;
-  pinnedModels: ModelWithProvider[];
-  setPinnedModels: (models: ModelWithProvider[]) => void;
-  workflowId: string;
-}) {
-  const isCurrentModel = model.id === currentModel.id;
-
-  return (
-    <motion.div
-      className="flex flex-col gap-2 w-full relative border rounded-lg p-4"
-      initial={{ opacity: 0, filter: "blur(4px)" }}
-      animate={{ opacity: 1, filter: "blur(0px)" }}
-      exit={{ opacity: 0, filter: "blur(4px)" }}
-      transition={{
-        height: {
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-        },
-      }}
-    >
-      <div className="flex flex-col gap-1">
-        <p className="text-xs text-muted-foreground">{model.provider?.name}</p>
-        <div className="flex items-center gap-2">
-          <ModelIcon tag={model.tag} size="xs" />
-          <h3 className="font-medium text-sm">{model.name}</h3>
-        </div>
-      </div>
-      <Button
-        variant="ghost"
-        size="xs"
-        onClick={() =>
-          setPinnedModels(pinnedModels.filter((m) => m.id !== model.id))
-        }
-        className="absolute top-2 right-2 text-xs  text-muted-foreground hover:text-foreground transition-colors duration-200"
-      >
-        <X className="size-3" fill="currentColor" />
-      </Button>
-
-      <div className={`w-full flex gap-2 text-start mt-2`}>
-        <div className="flex flex-col gap-1 w-1/2">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            Input <ArrowDown className="size-3 text-muted-foreground" />
-          </p>
-          <p className="text-xs font-medium">
-            {formatCurrency(Number(model.inputPerMillionTokenCost))}
-            <span className="text-[10px] text-muted-foreground font-normal">
-              {" "}
-              /1M tokens
-            </span>
-          </p>
-        </div>
-        <div className="flex flex-col gap-1 w-1/2">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            Output <ArrowUp className="size-3 text-muted-foreground" />
-          </p>
-          <p className="text-xs font-medium">
-            {formatCurrency(Number(model.outputPerMillionTokenCost))}
-            <span className="text-[10px] text-muted-foreground font-normal">
-              {" "}
-              /1M tokens
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="w-full flex gap-2 text-start mt-1">
-        <div className="flex flex-col gap-1 w-1/2">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            Context
-          </p>
-          <p className="text-xs font-medium">
-            {formatNumber(model.contextWindowSize)}
-          </p>
-        </div>
-        <div className="flex flex-col gap-1 w-1/2">
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            Max Tokens
-          </p>
-          <p className="text-xs font-medium">{formatNumber(model.maxTokens)}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 mt-2">
-        {model.hasReasoningCapability && (
-          <TooltipProvider>
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger>
-                <div className="flex cursor-pointer items-center gap-1 rounded-md border border-green-600/20 bg-green-600/10 px-2 py-0.5 text-green-600 transition-all duration-200 hover:border-green-600/30 hover:bg-green-600/20">
-                  <Brain className="size-3" />
-                  <p className="font-medium text-[10px]">Reasoning</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Thinks before answering</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {model.hasVision && (
-          <TooltipProvider>
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger>
-                <div className="flex cursor-pointer items-center gap-1 rounded-md border border-sky-600/20 bg-sky-600/10 px-2 py-0.5 text-sky-600 transition-all duration-200 hover:border-sky-600/30 hover:bg-sky-600/20">
-                  <Eye className="size-3" />
-                  <p className="font-medium text-[10px]">Vision</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Vision capability (image input)</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-        {model.isOpenSource && (
-          <TooltipProvider>
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger>
-                <div className="flex cursor-pointer items-center gap-1 rounded-md border border-orange-600/20 bg-orange-600/10 px-2 py-0.5 text-orange-600 transition-all duration-200 hover:border-orange-600/30 hover:bg-orange-600/20">
-                  <Code className="size-3" />
-                  <p className="font-medium text-[10px]">Open Source</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The model is open source and available for anyone to use.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
-      </div>
-
-      <SwitchModelButton
-        model={model}
-        currentModel={currentModel}
-        workflowId={workflowId}
-      >
-        <Button
-          variant="outline"
-          className="w-full mt-2"
-          size="sm"
-          disabled={isCurrentModel}
-        >
-          {isCurrentModel ? (
-            <div className="flex gap-2 items-center">
-              <Check className="size-3" />
-              Current
-            </div>
-          ) : (
-            <div className="flex gap-2 items-center">
-              <Shuffle className="size-3" />
-              Switch
-            </div>
-          )}
-        </Button>
-      </SwitchModelButton>
-    </motion.div>
-  );
-}
-
-function EmptyModelCard() {
-  return (
-    <div className="border border-dashed border-border rounded-lg p-4 flex items-center justify-center">
-      <p className="text-muted-foreground text-xs flex items-center gap-2 text-center flex-col">
-        <Pin className="size-3 text-muted-foreground rotate-45" />
-        Add up to 4 pinned models
-      </p>
     </div>
   );
 }
@@ -622,22 +303,33 @@ function SwitchModelButton({
         tabIndex={-1}
       >
         <DialogHeader>
-          <DialogTitle>Save Model Settings</DialogTitle>
+          <DialogTitle>Switch Model</DialogTitle>
           <DialogDescription>
-            This will change the model for this workflow and reset the model
-            settings.
+            You are about to switch the live model for this workflow.
           </DialogDescription>
         </DialogHeader>
 
-        <p className="text-sm flex flex-row gap-1 items-center">
-          Model: <ModelIcon tag={currentModel.tag} size="xs" className="ml-1" />
-          {currentModel.name}
-          <ArrowRight className="size-3" />
-          <ModelIcon tag={model.tag} size="xs" className="ml-1" />
-          {model.name}
-        </p>
+        <div className="flex gap-4 items-center mt-2">
+          <Card className="p-3 w-full">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              From
+            </p>
+            <div className="flex items-center gap-2">
+              <ModelIcon tag={currentModel.tag} size="xs" />
+              <span className="text-sm font-medium">{currentModel.name}</span>
+            </div>
+          </Card>
+          <ArrowRight className="size-4 text-muted-foreground w-10" />
+          <Card className="p-3 w-full">
+            <p className="text-xs font-medium text-muted-foreground mb-1">To</p>
+            <div className="flex items-center gap-2">
+              <ModelIcon tag={model.tag} size="xs" />
+              <span className="text-sm font-medium">{model.name}</span>
+            </div>
+          </Card>
+        </div>
 
-        <DialogFooter className="pt-4">
+        <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} size="sm">
             Cancel
           </Button>
@@ -645,7 +337,7 @@ function SwitchModelButton({
             variant="primary"
             onClick={() => setNewModel(model)}
             size="sm"
-            className="w-20"
+            className="w-24"
             disabled={isLoading}
           >
             {isLoading ? (

@@ -1,12 +1,14 @@
 import { openai } from "@ai-sdk/openai";
 import { embed } from "ai";
-import { and, cosineDistance, desc, eq, gt, inArray, sql } from "drizzle-orm";
+import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "../db";
-import { workflowChunks, workflows } from "../db/schema";
+import { chunks } from "../db/schema";
 
 const EMBEDDING_MODEL = openai.embedding("text-embedding-3-small");
 const CHUNKS_RETRIEVE_LIMIT = 4;
 const SIMILARITY_THRESHOLD = 0.4;
+
+export type Chunk = typeof chunks.$inferSelect;
 
 // SINGLE EMBEDDING (for user prompt)
 export const generateEmbedding = async (value: string): Promise<number[]> => {

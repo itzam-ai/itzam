@@ -24,7 +24,6 @@
         "NEXT_PUBLIC_APP_URL",
         "NEXT_PUBLIC_STATSIG_CLIENT_KEY",
         "OPEN_AI_API_KEY",
-        "TRIGGER_SECRET_KEY",
         "OPENAI_API_KEY",
         "POSTGRES_URL",
         "STRIPE_ITZAM_PRO_PRODUCT_ID",
@@ -41,7 +40,8 @@
         "SUPABASE_SERVICE_ROLE_KEY",
         "SUPABASE_URL",
         "SUPABASE_ANON_KEY",
-        "PYTHON_KNOWLEDGE_API_URL"
+        "PYTHON_KNOWLEDGE_API_URL",
+        "RESCRAPE_CRON_SECRET"
       ],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]

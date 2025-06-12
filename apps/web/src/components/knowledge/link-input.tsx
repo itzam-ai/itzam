@@ -2,15 +2,23 @@
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import {
+<<<<<<< HEAD
   ResourceUpdatePayload,
   subscribeToResourceUpdates,
+=======
+  subscribeToResourceUpdates,
+  ResourceUpdatePayload,
+>>>>>>> origin/main
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
+<<<<<<< HEAD
 import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
+=======
+>>>>>>> origin/main
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -25,10 +33,20 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { KnowledgeItem } from "./knowledge-item";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 
 type LinkToAdd = {
   id: string;
   url: string;
+  scrapeFrequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY";
 };
 
 const isValidUrl = (url: string) => {
@@ -60,6 +78,7 @@ export const LinkInput = ({
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & {
+<<<<<<< HEAD
       chunksLength?: number;
       processedChunks?: number;
       totalChunks?: number;
@@ -70,8 +89,25 @@ export const LinkInput = ({
   const [processedChunksMap, setProcessedChunksMap] = useState<
     Record<string, number>
   >({});
+=======
+      processedChunks?: number;
+      totalChunks?: number;
+    })[]
+  >(
+    knowledge?.resources
+      .filter((resource) => resource.type === "LINK")
+      .map((resource) => ({
+        ...resource,
+        processedChunks: resource.chunks.length ?? 0,
+        totalChunks: resource.totalChunks ?? 0,
+      })) ?? []
+  );
+>>>>>>> origin/main
 
   const [link, setLink] = useState<string>("");
+  const [scrapeFrequency, setScrapeFrequency] = useState<
+    "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+  >("NEVER");
   const [linkError, setLinkError] = useState<string>("");
   const [linksToAdd, setLinksToAdd] = useState<LinkToAdd[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -104,8 +140,9 @@ export const LinkInput = ({
       return;
     }
 
-    setLinksToAdd([...linksToAdd, { id: v7(), url: link }]);
+    setLinksToAdd([...linksToAdd, { id: v7(), url: link, scrapeFrequency }]);
     setLink("");
+    setScrapeFrequency("NEVER");
     setIsDialogOpen(false);
   };
 
@@ -127,12 +164,15 @@ export const LinkInput = ({
       knowledgeId: contextId ? null : (knowledge?.id ?? null),
       workflowId,
       active: true,
+      totalChunks: 0,
       chunks: [],
+      scrapeFrequency: link.scrapeFrequency,
+      lastScrapedAt: null,
+      totalBatches: 0,
+      processedBatches: 0,
     }));
 
-    setWorkflowLinks((prevLinks) => {
-      return prevLinks.concat(resourcesToAdd);
-    });
+    setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
 
     try {
       await createResourceAndSendToAPI({
@@ -169,6 +209,7 @@ export const LinkInput = ({
               // Only update fields that are present in the payload (partial updates)
               const updatedLink = { ...link };
 
+<<<<<<< HEAD
               if (payload.status !== undefined)
                 updatedLink.status = payload.status;
               if (payload.title !== undefined)
@@ -185,13 +226,39 @@ export const LinkInput = ({
               ) {
                 updatedLink.processedChunks = payload.processedChunks;
                 updatedLink.totalChunks = payload.totalChunks;
+=======
+              if (
+                payload.status !== undefined &&
+                payload.status !== "PROCESSED"
+              ) {
+                updatedLink.status = payload.status;
+>>>>>>> origin/main
               }
+              if (payload.title !== undefined)
+                updatedLink.title = payload.title;
+              if (payload.fileSize !== undefined)
+                updatedLink.fileSize = payload.fileSize;
+              if (payload.processedChunks !== undefined) {
+                updatedLink.processedChunks =
+                  (updatedLink.processedChunks ?? 0) + payload.processedChunks;
+                if (
+                  (updatedLink.processedChunks ?? 0) >=
+                  (updatedLink.totalChunks ?? 1)
+                )
+                  updatedLink.status = "PROCESSED";
+              }
+              if (
+                payload.totalChunks !== undefined &&
+                payload.totalChunks !== 0
+              )
+                updatedLink.totalChunks = payload.totalChunks;
 
               return updatedLink;
             }
             return link;
           });
         });
+<<<<<<< HEAD
       },
       (progressPayload) => {
         // Handle processed-chunks events to accumulate progress
@@ -201,6 +268,8 @@ export const LinkInput = ({
             (prev[progressPayload.resourceId] || 0) +
             progressPayload.processedChunks,
         }));
+=======
+>>>>>>> origin/main
       }
     );
 
@@ -232,29 +301,60 @@ export const LinkInput = ({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add links</DialogTitle>
+                <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge base
+                  Add URLs to the model&apos;s knowledge.
                 </DialogDescription>
               </DialogHeader>
 
-              <Input
-                type="url"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddLink();
-                  }
-                }}
-                className={cn(linkError ? "ring-1 ring-red-500" : "")}
-                placeholder="https://"
-                value={linkError ? linkError : link}
-                onChange={(e) => {
-                  setLink(e.target.value);
-                  setLinkError("");
-                }}
-              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="ml-0.5">
+                    URL
+                  </Label>
+                  <Input
+                    type="url"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddLink();
+                      }
+                    }}
+                    className={cn(linkError ? "ring-1 ring-red-500" : "")}
+                    placeholder="https://"
+                    value={linkError ? linkError : link}
+                    onChange={(e) => {
+                      setLink(e.target.value);
+                      setLinkError("");
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scrape-frequency" className="ml-0.5">
+                    Scrape frequency
+                  </Label>
+                  <Select
+                    value={scrapeFrequency}
+                    onValueChange={(value) =>
+                      setScrapeFrequency(
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEVER">Never</SelectItem>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <DialogFooter>
                 <Button
@@ -272,6 +372,7 @@ export const LinkInput = ({
                   type="submit"
                   variant="primary"
                   size="sm"
+                  className="w-20"
                   onClick={handleAddLink}
                   disabled={!link}
                 >
@@ -322,12 +423,12 @@ export const LinkInput = ({
                       link.url ? "opacity-100" : "opacity-50"
                     }`}
                   >
-                    <Globe className="size-3" />
-                    <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-48">
+                    <Globe className="size-3 text-muted-foreground" />
+                    <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-48 mr-0.5">
                       {link.url}
                     </p>
                     <X
-                      className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-red-500"
+                      className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
                       onClick={() =>
                         setLinksToAdd(linksToAdd.filter((l) => l !== link))
                       }
@@ -374,29 +475,60 @@ export const LinkInput = ({
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add links</DialogTitle>
+                <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge base
+                  Add URLs to the model&apos;s knowledge.
                 </DialogDescription>
               </DialogHeader>
 
-              <Input
-                type="url"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddLink();
-                  }
-                }}
-                className={cn(linkError ? "ring-1 ring-red-500" : "")}
-                placeholder="https://"
-                value={linkError ? linkError : link}
-                onChange={(e) => {
-                  setLink(e.target.value);
-                  setLinkError("");
-                }}
-              />
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="url" className="ml-0.5">
+                    URL
+                  </Label>
+                  <Input
+                    type="url"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddLink();
+                      }
+                    }}
+                    className={cn(linkError ? "ring-1 ring-red-500" : "")}
+                    placeholder="https://"
+                    value={linkError ? linkError : link}
+                    onChange={(e) => {
+                      setLink(e.target.value);
+                      setLinkError("");
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="scrape-frequency" className="ml-0.5">
+                    Scrape frequency
+                  </Label>
+                  <Select
+                    value={scrapeFrequency}
+                    onValueChange={(value) =>
+                      setScrapeFrequency(
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                      )
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="NEVER">Never</SelectItem>
+                      <SelectItem value="HOURLY">Hourly</SelectItem>
+                      <SelectItem value="DAILY">Daily</SelectItem>
+                      <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
               <DialogFooter>
                 <Button
@@ -414,6 +546,7 @@ export const LinkInput = ({
                   type="submit"
                   variant="primary"
                   size="sm"
+                  className="w-20"
                   onClick={handleAddLink}
                   disabled={!link}
                 >
@@ -430,10 +563,13 @@ export const LinkInput = ({
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}
+<<<<<<< HEAD
               processedChunks={processedChunksMap[resource.id]}
               workflowId={workflowId}
               contextId={contextId}
               contexts={contexts}
+=======
+>>>>>>> origin/main
             />
           ))}
         </motion.div>

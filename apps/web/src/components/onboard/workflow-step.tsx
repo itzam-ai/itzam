@@ -6,13 +6,20 @@ import { ProviderKey } from "@itzam/server/db/provider-keys/actions";
 import { createWorkflow } from "@itzam/server/db/workflow/actions";
 import { generatePrompt } from "@itzam/server/itzam/prompt-generator";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Info, Loader2 } from "lucide-react";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useEffect, useState } from "react";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { generateSlug } from "../workflows/create-workflow-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+
 export type MiniWorkflow = {
   id: string;
   name: string;
@@ -91,7 +98,19 @@ export const WorkflowDetailsStep = ({
 
   return (
     <div className="max-w-xl w-full">
-      <h2 className="text-xl font-medium flex items-center gap-2">Workflow</h2>
+      <h2 className="text-lg font-medium flex items-center gap-2 select-none">
+        Workflow{" "}
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="size-3 text-muted-foreground/60 mt-0.5 cursor-pointer hover:text-muted-foreground transition-colors duration-200" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>A workflow is a task that you want to do with AI.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </h2>
       <p className="text-muted-foreground mt-1 text-sm">
         Now, let&apos;s create you first workflow.
       </p>
@@ -132,7 +151,7 @@ export const WorkflowDetailsStep = ({
                 transition={{
                   duration: 0.3,
                 }}
-                className="text-muted-foreground text-xs"
+                className="text-muted-foreground text-xs pl-1"
               >
                 Slug:{" "}
                 <span className="font-mono text-foreground select-none pointer-events-none">
@@ -164,7 +183,7 @@ export const WorkflowDetailsStep = ({
                 key={model.id}
                 onClick={() => handleSetModel(model)}
                 className={cn(
-                  "flex flex-col gap-0.5 border rounded-lg p-3 px-3 shadow-sm cursor-pointer hover:bg-accent transition-colors duration-200",
+                  "flex flex-col gap-0.5 border rounded-lg p-3 active:scale-[0.98] active:duration-75 active:ease-in-out px-3 shadow-sm cursor-pointer hover:bg-accent transition-all duration-200",
                   model.id === selectedModel?.id && "bg-muted"
                 )}
               >

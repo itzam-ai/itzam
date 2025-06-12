@@ -49,17 +49,31 @@ export async function POST(request: NextRequest) {
       run,
     });
 
-    const response = await generateTextOrObjectStream(
-      aiParams,
-      run,
-      model,
-      new Date().getTime(),
-      undefined,
-      "text"
-    );
+    try {
+      const response = await generateTextOrObjectStream(
+        aiParams,
+        run,
+        model,
+        new Date().getTime(),
+        undefined,
+        "text"
+      );
 
-    // Return the response directly since it's now a proper text stream
-    return response;
+      // Return the response directly since it's now a proper text stream
+      return response;
+    } catch (streamError) {
+      console.error("Error during text generation streaming:", streamError);
+      return Response.json(
+        {
+          error:
+            streamError instanceof Error
+              ? streamError.message
+              : "Streaming error occurred",
+          type: "streaming_error",
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error in text generation:", error);
     return Response.json(

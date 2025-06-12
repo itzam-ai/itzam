@@ -25,6 +25,13 @@ class CreateResourceRequest(BaseModel):
     workflow_id: str = Field(..., alias="workflowId")
     user_id: str = Field(..., alias="userId")
 
+class RescrapeRequest(BaseModel):
+    resources: List[ResourceBase]
+    knowledge_id: str = Field(..., alias="knowledgeId")
+    workflow_id: str = Field(..., alias="workflowId")
+    user_id: str = Field(..., alias="userId")
+    rescrape_secret: str = Field(..., alias="rescrapeSecret")
+
 class ChunkRequest(BaseModel):
     resource: Union[FileResource, LinkResource]
     generate_embeddings: bool = Field(False, alias="generateEmbeddings")

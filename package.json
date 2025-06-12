@@ -9,7 +9,7 @@
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "postinstall": "manypkg check && pnpm install-python",
+    "postinstall": "manypkg check",
     "clear-env": "tsx scripts/clear-env.ts",
     "copy-env": "tsx scripts/copy-env.ts",
     "install-python": "cd apps/python && pip install -r requirements.txt && cd ../..",

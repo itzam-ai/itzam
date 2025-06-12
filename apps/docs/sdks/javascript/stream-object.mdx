@@ -1,12 +1,9 @@
 ---
 title: "Stream Object"
-description: "Learn how to stream structured objects using the JavaScript SDK."
-icon: "brackets-curly"
+description: "Stream structured objects based on a schema for your workflows."
+icon: "braces"
+keywords: ["stream", "object", "JavaScript", "SDK", "structured", "real-time"]
 ---
-
-## Overview
-
-The `streamObject` method allows you to stream structured objects from your workflows using a Zod or JSON schema. This is useful when you want to consume structured data as it is being generated, providing a more interactive user experience.
 
 ## Usage
 
@@ -19,22 +16,14 @@ const itzam = new Itzam("YOUR_API_KEY");
 const schema = z.array(
   z.object({
     name: z.string(),
-    age: z.number(),
-    profession: z.string(),
     description: z.string(),
   })
 );
 
 const response = await itzam.streamObject({
-  input: "tell me who are the characters in atlas shrugged",
-  workflowSlug: "code-assistant",
+  input: "List the characters in Atlas Shrugged",
+  workflowSlug: "atlas-shrugged",
   schema,
-  attachments: [
-    {
-      file: "https://example.com/book-cover.jpg",
-      mimeType: "image/jpeg"
-    }
-  ]
 });
 
 for await (const chunk of response.stream) {
@@ -47,13 +36,13 @@ console.log(metadata); // Metadata about the run
 
 ### Parameters
 
-| Parameter      | Type                   | Description                                                                                     |
-| -------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `workflowSlug` | `string`               | The slug of the workflow to use for generation.                                                |
-| `input`        | `string`               | The input text to generate a response for.                                                     |
-| `schema`       | `object`               | The JSON schema that defines the structure of the expected response.                           |
-| `attachments`  | `Attachment[]`         | Optional. Array of attachments to include in the generation.                                   |
-| `threadId`     | `string`               | Optional. Identifier for associating runs with a conversation thread.                          |
+| Parameter      | Type           | Required | Description                                                                               |
+| -------------- | -------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `input`        | `string`       | **Yes**  | The input text to generate a response for.                                                |
+| `schema`       | `object`       | **Yes**  | The JSON schema that defines the structure of the expected response.                      |
+| `workflowSlug` | `string`       | No       | The slug of the workflow to use for generation (not required if you're using a threadId). |
+| `threadId`     | `string`       | No       | Identifier for associating runs with a conversation thread.                               |
+| `attachments`  | `Attachment[]` | No       | Array of attachments to include in the generation.                                        |
 
 ### Return Value
 
@@ -75,11 +64,3 @@ type StreamObjectResponse<T> = {
   }>;
 };
 ```
-
-### Error Handling
-
-All errors thrown by the SDK extend from the base `ItzamError` class. See [Error Handling](/sdks/javascript/errors) for details.
-
-### Inspecting Runs
-
-You can use the `runId` from the response metadata to fetch more details about the run using [`getRunById`](/sdks/javascript/get-run-by-id).

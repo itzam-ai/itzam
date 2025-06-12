@@ -1,25 +1,40 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "maple",
   "name": "Itzam",
+  "description": "Itzam is the open-source platform for AI integration.",
   "colors": {
     "primary": "#ea580c",
     "light": "#ea580c",
     "dark": "#ea580c"
   },
+  "icons": {
+    "library": "lucide"
+  },
+  "fonts": {
+    "family": "Figtree"
+  },
   "favicon": "/favicon.ico",
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude"]
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Getting Started",
+        "tab": "Get Started",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Get Started",
             "pages": [
-              "getting-started/introduction",
-              "getting-started/getting-started",
-              "getting-started/glossary"
+              "get-started/overview",
+              "get-started/authentication",
+              "get-started/threads",
+              "get-started/glossary"
             ]
+          },
+          {
+            "group": "Guides",
+            "pages": ["guides/chatbot"]
           }
         ]
       },
@@ -27,24 +42,29 @@
         "tab": "SDKs",
         "groups": [
           {
-            "group": "SDKs",
+            "group": "JavaScript & TypeScript",
+            "icon": "js",
             "pages": [
+              "sdks/javascript",
+              "sdks/javascript/generate-text",
+              "sdks/javascript/stream-text",
+              "sdks/javascript/generate-object",
+              "sdks/javascript/stream-object",
+              "sdks/javascript/attachments",
               {
-                "group": "JavaScript & TypeScript",
-                "icon": "js",
+                "group": "Threads",
+                "icon": "messages-square",
                 "pages": [
-                  "sdks/javascript",
-                  "sdks/javascript/generate-text",
-                  "sdks/javascript/stream-text",
-                  "sdks/javascript/generate-object",
-                  "sdks/javascript/stream-object",
-                  "sdks/javascript/threads",
-                  "sdks/javascript/attachments",
-                  "sdks/javascript/get-run-by-id",
-                  "sdks/javascript/get-models",
-                  "sdks/javascript/errors"
+                  "sdks/javascript/threads/overview",
+                  "sdks/javascript/threads/create",
+                  "sdks/javascript/threads/get-by-id",
+                  "sdks/javascript/threads/list-by-workflow",
+                  "sdks/javascript/threads/list-runs-by-thread"
                 ]
-              }
+              },
+              "sdks/javascript/get-run-by-id",
+              "sdks/javascript/get-models",
+              "sdks/javascript/errors"
             ]
           }
         ]
@@ -55,16 +75,41 @@
           {
             "group": "Endpoints",
             "pages": [
-              "api-reference/endpoints/generate-text",
-              "api-reference/endpoints/stream-text",
-              "api-reference/endpoints/generate-object",
-              "api-reference/endpoints/stream-object",
-              "api-reference/endpoints/get-run-by-id",
-              "api-reference/endpoints/get-models",
-              "api-reference/endpoints/create-thread",
-              "api-reference/endpoints/get-thread-by-id",
-              "api-reference/endpoints/get-threads-by-workflow",
-              "api-reference/endpoints/get-runs-by-thread"
+              {
+                "group": "Text",
+                "pages": [
+                  "api-reference/endpoints/generate-text",
+                  "api-reference/endpoints/stream-text"
+                ]
+              },
+              {
+                "group": "Object",
+                "pages": [
+                  "api-reference/endpoints/generate-object",
+                  "api-reference/endpoints/stream-object"
+                ]
+              },
+              {
+                "group": "Threads",
+                "pages": [
+                  "api-reference/endpoints/create-thread",
+                  "api-reference/endpoints/get-thread-by-id",
+                  "api-reference/endpoints/get-threads-by-workflow",
+                  "api-reference/endpoints/get-runs-by-thread"
+                ]
+              },
+              {
+                "group": "Runs",
+                "pages": ["api-reference/endpoints/get-run-by-id"]
+              },
+              {
+                "group": "Models",
+                "pages": ["api-reference/endpoints/get-models"]
+              },
+              {
+                "group": "Errors",
+                "pages": ["api-reference/errors"]
+              }
             ]
           }
         ]
@@ -78,14 +123,14 @@
           "icon": "video"
         },
         {
+          "anchor": "Join the Discord",
+          "href": "https://discord.gg/27RpTZpN",
+          "icon": "discord"
+        },
+        {
           "anchor": "Support",
           "href": "mailto:support@itz.am",
           "icon": "hand"
-        },
-        {
-          "anchor": "Dashboard",
-          "href": "https://itz.am/dashboard",
-          "icon": "table-columns"
         }
       ]
     }
@@ -94,17 +139,21 @@
     "light": "/logo/logotype-light.png",
     "dark": "/logo/logotype-dark.png"
   },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/itzam_ai",
+      "discord": "https://discord.gg/27RpTZpN",
+      "github": "https://github.com/itzam-ai/itzam"
+    }
+  },
   "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:support@itz.am"
-      }
-    ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
       "href": "https://itz.am/dashboard"
     }
+  },
+  "search": {
+    "prompt": "Search..."
   }
 }

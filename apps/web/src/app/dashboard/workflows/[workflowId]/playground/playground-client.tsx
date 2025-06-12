@@ -72,6 +72,7 @@ export default function PlaygroundClient({
     }
 
     setIsPending(true);
+    setStreamStatus(null);
     setOutput("");
     setMetadata(null);
 
@@ -91,6 +92,7 @@ export default function PlaygroundClient({
       });
 
       if (!response.ok) {
+        console.error("Failed to generate content", response);
         throw new Error("Failed to generate content");
       }
 
@@ -117,6 +119,17 @@ export default function PlaygroundClient({
           } catch (error) {
             console.error("Error parsing metadata:", error);
           }
+        }
+
+        // error handling
+        const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
+
+        if (errorMatch && errorMatch[1]) {
+          console.error("Error during streaming:", errorMatch[1]);
+          setStreamStatus("error");
+          setOutput(errorMatch[1]);
+          setIsPending(false);
+          return;
         }
 
         // Filter out metadata comments and only append actual text content

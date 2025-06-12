@@ -240,7 +240,7 @@ export async function handleRunCompletion({
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
 
-  void createRunWithCost({
+  await createRunWithCost({
     ...run,
     model: model,
     status,

@@ -1,12 +1,9 @@
 ---
 title: "Get Run By Id"
-description: "Learn how to get a run by its ID using the JavaScript SDK."
-icon: "list-ul"
+description: "Get a run by its ID."
+icon: "list"
+keywords: ["run", "ID", "JavaScript", "SDK", "execution", "retrieve"]
 ---
-
-## Overview
-
-The `getRunById` method allows you to get a run by its ID.
 
 ## Usage
 
@@ -20,9 +17,9 @@ const response = await itzam.getRunById(runId);
 
 ### Parameters
 
-| Parameter      | Type     | Description                                     |
-| -------------- | -------- | ----------------------------------------------- |
-| `runId`        | `string` | The ID of the run to get.      |
+| Parameter | Type     | Required | Description               |
+| --------- | -------- | -------- | ------------------------- |
+| `runId`   | `string` | **Yes**  | The ID of the run to get. |
 
 ### Return Value
 
@@ -30,7 +27,7 @@ The `getRunById` method returns the following object:
 
 ```typescript
 type GetRunByIdResponse = {
-  origin: string; // Origin of the run (WEB | SDK)
+  origin: string; // Origin of the run (WEB is it's from Playground, SDK is it's from the SDK)
   status: string; // Status of the run (RUNNING | COMPLETED | FAILED)
   input: string; // The user's input
   output: string | null; // The model's output
@@ -47,4 +44,4 @@ type GetRunByIdResponse = {
   workflowId: string; // The ID of the workflow
   createdAt: string; // The date and time the run was created/executed
 };
-``` 
+```

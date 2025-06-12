@@ -351,6 +351,13 @@ export const resourceStatusEnum = pgEnum("resource_status", [
   "FAILED",
 ]);
 
+export const resourceScrapeFrequencyEnum = pgEnum("resource_scrape_frequency", [
+  "NEVER",
+  "HOURLY",
+  "DAILY",
+  "WEEKLY",
+]);
+
 export const resources = createTable(
   "resource",
   {
@@ -360,7 +367,13 @@ export const resources = createTable(
     fileSize: integer("file_size"),
     active: boolean("active").notNull().default(true),
     status: resourceStatusEnum("status").notNull().default("PENDING"),
+    scrapeFrequency: resourceScrapeFrequencyEnum("scrape_frequency")
+      .notNull()
+      .default("NEVER"),
     url: varchar("url", { length: 1024 }).notNull(),
+    totalChunks: integer("total_chunks").notNull().default(0),
+    totalBatches: integer("total_batches").notNull().default(0),
+    processedBatches: integer("processed_batches").notNull().default(0),
     type: resourceTypeEnum("type").notNull(),
     mimeType: varchar("mime_type", { length: 256 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -369,6 +382,7 @@ export const resources = createTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
+    lastScrapedAt: timestamp("last_scraped_at", { withTimezone: true }),
     knowledgeId: varchar("knowledge_id", { length: 256 }).references(
       () => knowledge.id
     ),
@@ -647,8 +661,12 @@ export const attachmentRelations = relations(attachments, ({ one }) => ({
 }));
 
 // -------- Knowledge --------
-export const knowledgeRelations = relations(knowledge, ({ many }) => ({
+export const knowledgeRelations = relations(knowledge, ({ many, one }) => ({
   resources: many(resources),
+  workflow: one(workflows, {
+    fields: [knowledge.id],
+    references: [workflows.knowledgeId],
+  }),
 }));
 
 // -------- Resource --------

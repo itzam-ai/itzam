@@ -1,7 +1,9 @@
 ---
-title: 'Error Handling'
-description: 'Learn how to handle errors in the Itzam SDK'
-icon: 'xmark'
+title: "Error Handling"
+description: "Handle errors in the Itzam SDK."
+icon: "triangle-alert"
+keywords:
+  ["errors", "error handling", "JavaScript", "SDK", "debugging", "exceptions"]
 ---
 
 # Error Handling
@@ -16,9 +18,9 @@ The base error class that all other error types extend from. Contains common pro
 
 ```typescript
 class ItzamError extends Error {
-  code: number;      // HTTP status code
-  type: string;      // Error type name (e.g., "ItzamAuthenticationError")
-  timestamp: Date;   // When the error occurred
+  code: number; // HTTP status code
+  type: string; // Error type name (e.g., "ItzamAuthenticationError")
+  timestamp: Date; // When the error occurred
 }
 ```
 
@@ -31,8 +33,8 @@ try {
   await itzam.getModels();
 } catch (error) {
   if (error instanceof ItzamAuthenticationError) {
-    console.log('Authentication failed:', error.message);
-    console.log('Status code:', error.code); // 401
+    console.log("Authentication failed:", error.message);
+    console.log("Status code:", error.code); // 401
   }
 }
 ```
@@ -43,11 +45,13 @@ Thrown when the request is invalid (HTTP 400).
 
 ```typescript
 try {
-  await itzam.generateText({ /* invalid params */ });
+  await itzam.generateText({
+    /* invalid params */
+  });
 } catch (error) {
   if (error instanceof ItzamValidationError) {
-    console.log('Invalid request:', error.message);
-    console.log('Status code:', error.code); // 400
+    console.log("Invalid request:", error.message);
+    console.log("Status code:", error.code); // 400
   }
 }
 ```
@@ -58,11 +62,11 @@ Thrown when a requested resource is not found (HTTP 404).
 
 ```typescript
 try {
-  await itzam.getRunById('non-existent-id');
+  await itzam.getRunById("non-existent-id");
 } catch (error) {
   if (error instanceof ItzamNotFoundError) {
-    console.log('Resource not found:', error.message);
-    console.log('Status code:', error.code); // 404
+    console.log("Resource not found:", error.message);
+    console.log("Status code:", error.code); // 404
   }
 }
 ```
@@ -73,11 +77,13 @@ Thrown when there's a server-side error (HTTP 500).
 
 ```typescript
 try {
-  await itzam.streamText({ /* params */ });
+  await itzam.streamText({
+    /* params */
+  });
 } catch (error) {
   if (error instanceof ItzamServerError) {
-    console.log('Server error:', error.message);
-    console.log('Status code:', error.code); // 500
+    console.log("Server error:", error.message);
+    console.log("Status code:", error.code); // 500
   }
 }
 ```
@@ -93,23 +99,24 @@ try {
 } catch (error) {
   if (error instanceof ItzamAuthenticationError) {
     // Handle authentication errors
-    console.log('Authentication failed:', error.message);
+    console.log("Authentication failed:", error.message);
   } else if (error instanceof ItzamValidationError) {
     // Handle validation errors
-    console.log('Invalid request:', error.message);
+    console.log("Invalid request:", error.message);
   } else if (error instanceof ItzamNotFoundError) {
     // Handle not found errors
-    console.log('Resource not found:', error.message);
+    console.log("Resource not found:", error.message);
   } else if (error instanceof ItzamServerError) {
     // Handle server errors
-    console.log('Server error:', error.message);
+    console.log("Server error:", error.message);
   } else {
     // Handle unknown errors
-    console.log('Unknown error:', error.message);
+    console.log("Unknown error:", error.message);
   }
-  
+
   // All errors have these properties
-  console.log('Error code:', error.code);
-  console.log('Error type:', error.type);
-  console.log('Error timestamp:', error.timestamp);
-} 
+  console.log("Error code:", error.code);
+  console.log("Error type:", error.type);
+  console.log("Error timestamp:", error.timestamp);
+}
+```

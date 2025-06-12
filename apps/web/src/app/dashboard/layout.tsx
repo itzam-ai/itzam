@@ -36,7 +36,7 @@ export default async function AppLayout({
       />
       <SidebarInset>
         <div className="w-full">
-          <div className="relative mx-auto w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl px-4 py-12">
+          <div className="relative mx-auto w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl px-4 2xl:py-12 py-8">
             <div className="absolute top-0 left-0 block md:hidden">
               <SidebarTrigger />
             </div>

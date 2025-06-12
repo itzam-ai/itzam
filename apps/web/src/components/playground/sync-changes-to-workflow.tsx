@@ -70,6 +70,7 @@ export function SyncChangesToWorkflow({
                   filter: "blur(4px)",
                   width: 0,
                   x: -10,
+                  scale: 0.8,
                   marginRight: 0,
                 }}
                 animate={{
@@ -77,6 +78,7 @@ export function SyncChangesToWorkflow({
                   filter: "blur(0px)",
                   width: "auto",
                   x: 0,
+                  scale: 1,
                   marginRight: "8px",
                 }}
                 exit={{
@@ -84,6 +86,7 @@ export function SyncChangesToWorkflow({
                   filter: "blur(4px)",
                   width: 0,
                   x: -10,
+                  scale: 0.8,
                   marginRight: 0,
                 }}
                 transition={{ duration: 0.3 }}

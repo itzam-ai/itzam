@@ -1,5 +1,4 @@
 import logging
-import asyncio
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 
 from ..dependencies import verify_auth_token

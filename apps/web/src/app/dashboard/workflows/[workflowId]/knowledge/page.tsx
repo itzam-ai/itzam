@@ -31,8 +31,6 @@ export default async function KnowledgePage({
     0
   );
 
-  const percentage = totalSize ? Math.min(totalSize / availableStorage, 1) : 0;
-
   if (!knowledge || "error" in knowledge) {
     return <div>Error: {JSON.stringify(knowledge?.error)}</div>;
   }

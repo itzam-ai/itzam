@@ -62,9 +62,9 @@ export const Onboard = ({
   };
 
   return (
-    <div className="bg-sidebar dark:bg-card relative">
-      <div className="absolute top-8 left-1/2 -translate-x-1/2">
-        <div className="flex items-center gap-2 ">
+    <div className="bg-sidebar dark:bg-card min-h-screen flex flex-col">
+      <div className="flex justify-center pt-8 pb-16">
+        <div className="flex items-center gap-2">
           <Image
             src="/logo.svg"
             alt="Logo"
@@ -76,13 +76,7 @@ export const Onboard = ({
         </div>
       </div>
 
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <Button variant="ghost" size="sm" onClick={handleFinishOnboarding}>
-          Skip onboarding <ChevronRight className="size-3" strokeWidth={2.5} />
-        </Button>
-      </div>
-
-      <div className="flex min-h-screen justify-center items-center h-full">
+      <div className="flex-1 flex justify-center items-center px-4">
         <AnimatePresence mode="wait">
           {step === "provider-keys" && (
             <motion.div
@@ -132,6 +126,12 @@ export const Onboard = ({
             </motion.div>
           )}
         </AnimatePresence>
+      </div>
+
+      <div className="flex justify-center pb-8 pt-16">
+        <Button variant="ghost" size="sm" onClick={handleFinishOnboarding}>
+          Skip onboarding <ChevronRight className="size-3" strokeWidth={2.5} />
+        </Button>
       </div>
     </div>
   );

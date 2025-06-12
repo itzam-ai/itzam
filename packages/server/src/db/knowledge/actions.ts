@@ -111,7 +111,10 @@ export async function checkPlanLimits(workflowId: string) {
     0
   );
 
-  const maxSize = isSubscribedToItzamPro ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+  // check if the user has reached the limit in this workflow (50MB or 500MB)
+  const maxSize = isSubscribedToItzamPro.isSubscribed
+    ? 500 * 1024 * 1024
+    : 50 * 1024 * 1024;
 
   if (totalSize > maxSize) {
     throw new Error(`Your plan has a limit of ${maxSize / 1024 / 1024}MB.`);
@@ -135,22 +138,15 @@ export async function getMaxLimit() {
 }
 
 export async function deleteResource(resourceId: string) {
+  // delete the resource
   await db
     .update(resources)
     .set({ active: false })
     .where(eq(resources.id, resourceId));
 
-  const chunksToDelete = await db.query.chunks.findMany({
-    where: eq(chunks.resourceId, resourceId),
-  });
-
+  // delete the chunks
   await db
     .update(chunks)
     .set({ active: false })
-    .where(
-      inArray(
-        chunks.id,
-        chunksToDelete.map((chunk) => chunk.id)
-      )
-    );
+    .where(eq(chunks.resourceId, resourceId));
 }

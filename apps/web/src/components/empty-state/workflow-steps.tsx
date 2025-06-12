@@ -82,7 +82,7 @@ interface WorkflowStepProps {
   icon: React.ReactNode;
 }
 
-const WorkflowStep = ({
+export const WorkflowStep = ({
   step,
   isActive,
   title,

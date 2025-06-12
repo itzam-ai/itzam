@@ -3,7 +3,11 @@
 import { env } from "@itzam/utils";
 import { cache } from "react";
 import { sendDiscordNotification } from "../../discord/actions";
-import { getStripeData, stripe } from "../../stripe/stripe";
+import {
+  getStripeData,
+  getStripeDataForUserId,
+  stripe,
+} from "../../stripe/stripe";
 import { getUser } from "../auth/actions";
 
 // ---------------------------- STRIPE ----------------------------
@@ -74,6 +78,31 @@ export const customerIsSubscribedToItzamPro = cache(async () => {
     priceId: stripeData.priceId,
   };
 });
+
+export const customerIsSubscribedToItzamProForUserId = cache(
+  async (userId: string) => {
+    const stripeData = await getStripeDataForUserId(userId);
+
+    if ("error" in stripeData) {
+      return {
+        isSubscribed: false,
+        priceId: null,
+      };
+    }
+
+    if (stripeData.status === "none") {
+      return {
+        isSubscribed: false,
+        priceId: null,
+      };
+    }
+
+    return {
+      isSubscribed: stripeData.status === "active",
+      priceId: stripeData.priceId,
+    };
+  }
+);
 
 export const getItzamProProduct = cache(async () => {
   try {

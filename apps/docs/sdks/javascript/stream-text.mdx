@@ -1,12 +1,9 @@
 ---
 title: "Stream Text"
-description: "Learn how to stream text responses using the JavaScript SDK."
-icon: "font"
+description: "Stream text responses for your workflows."
+icon: "type"
+keywords: ["stream", "text", "JavaScript", "SDK", "real-time", "progressive"]
 ---
-
-## Overview
-
-The `streamText` method allows you to stream text responses from your workflows. This is useful when you want to show the response as it's being generated, providing a better user experience.
 
 ## Usage
 
@@ -18,14 +15,7 @@ const itzam = new Itzam("YOUR_API_KEY");
 const response = await itzam.streamText({
   input: "Hello, world!",
   workflowSlug: "my_great_workflow",
-  // Optional parameters
   threadId: "my-thread-id",
-  attachments: [
-    {
-      file: "https://example.com/image.jpg",
-      mimeType: "image/jpeg"
-    }
-  ]
 });
 ```
 
@@ -45,12 +35,12 @@ const metadata = await response.metadata;
 
 ### Parameters
 
-| Parameter      | Type           | Description                                                                                     |
-| -------------- | -------------- | ----------------------------------------------------------------------------------------------- |
-| `workflowSlug` | `string`       | The slug of the workflow to use for generation.                                                |
-| `input`        | `string`       | The input text to generate a response for.                                                     |
-| `attachments`  | `Attachment[]` | Optional. Array of attachments to include in the generation.                                   |
-| `threadId`     | `string`       | Optional. Identifier for associating runs with a conversation thread.                          |
+| Parameter      | Type           | Required | Description                                                                               |
+| -------------- | -------------- | -------- | ----------------------------------------------------------------------------------------- |
+| `input`        | `string`       | **Yes**  | The input text to generate a response for.                                                |
+| `workflowSlug` | `string`       | No       | The slug of the workflow to use for generation (not required if you're using a threadId). |
+| `threadId`     | `string`       | No       | Identifier for associating runs with a conversation thread.                               |
+| `attachments`  | `Attachment[]` | No       | Array of attachments to include in the generation.                                        |
 
 ### Return Value
 
@@ -71,4 +61,4 @@ type StreamTextResponse = {
     outputTokens: number; // The number of output tokens used for this generation
   }>;
 };
-``` 
+```

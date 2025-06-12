@@ -131,3 +131,21 @@ export async function getStripeData() {
 
   return stripeData as STRIPE_DATA;
 }
+
+export async function getStripeDataForUserId(userId: string) {
+  const supabaseAdmin = await createAdminAuthClient();
+
+  const userData = await supabaseAdmin.getUserById(userId);
+
+  if (userData.error || !userData.data.user) {
+    return { error: "Unauthorized" };
+  }
+
+  const stripeData = userData.data.user.user_metadata.stripeData;
+
+  if (!stripeData) {
+    return { error: "No stripe data found" };
+  }
+
+  return stripeData as STRIPE_DATA;
+}

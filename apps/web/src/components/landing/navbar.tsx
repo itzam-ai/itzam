@@ -123,7 +123,11 @@ export function NavBar() {
             </div>
 
             <div className="flex gap-2 items-center justify-end">
-              <Link href="https://github.com/itzam-ai/itzam" target="_blank">
+              <Link
+                href="https://github.com/itzam-ai/itzam"
+                target="_blank"
+                className="hidden md:block"
+              >
                 <Button
                   variant="ghost"
                   size="sm"

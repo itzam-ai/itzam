@@ -1,14 +1,14 @@
 "use client";
 
 import { sendDiscordNotification } from "@itzam/server/discord/actions";
-import { Check, Smile, X } from "lucide-react";
+import { Smile, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { Button } from "../ui/button";
 import { Spinner } from "../ui/spinner";
 import { Textarea } from "../ui/textarea";
-import { useCurrentUser } from "~/hooks/useCurrentUser";
 
 const TRANSITION_CONTENT = {
   ease: "easeOut",

@@ -2,18 +2,35 @@
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import {
+<<<<<<< HEAD
   ResourceUpdatePayload,
   subscribeToResourceUpdates,
   supabase,
+=======
+  subscribeToResourceUpdates,
+  supabase,
+  ResourceUpdatePayload,
+>>>>>>> origin/main
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, FileIcon, FileUpIcon, PlusIcon, X } from "lucide-react";
+import {
+  ArrowDown,
+  FileIcon,
+  FileUpIcon,
+  Loader2,
+  PlusIcon,
+  X,
+} from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
+<<<<<<< HEAD
 import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
+=======
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
+>>>>>>> origin/main
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -70,6 +87,7 @@ export const FileInput = ({
 }) => {
   const [workflowFiles, setWorkflowFiles] = useState<
     (Knowledge["resources"][number] & {
+<<<<<<< HEAD
       chunksLength?: number;
       processedChunks?: number;
       totalChunks?: number;
@@ -81,6 +99,21 @@ export const FileInput = ({
     Record<string, number>
   >({});
 
+=======
+      processedChunks?: number;
+      totalChunks?: number;
+    })[]
+  >(
+    knowledge?.resources
+      .filter((resource) => resource.type === "FILE")
+      .map((resource) => ({
+        ...resource,
+        processedChunks: resource.chunks.length ?? 0,
+        totalChunks: resource.totalChunks ?? 0,
+      })) ?? []
+  );
+
+>>>>>>> origin/main
   const { user } = useCurrentUser();
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,7 +140,7 @@ export const FileInput = ({
       return extendedFile;
     });
 
-    setFiles((prevFiles) => [...prevFiles, ...filesWithIds]);
+    setFiles((prevFiles) => [...filesWithIds, ...prevFiles]);
 
     startTransition(async () => {
       // upload the files using Supabase function
@@ -115,6 +148,7 @@ export const FileInput = ({
         filesWithIds.map(async (file) => {
           try {
             const result = await uploadFileToSupabase(file, user?.id ?? "");
+
             return {
               ...result,
               id: file.id, // Keep the original file ID
@@ -167,11 +201,16 @@ export const FileInput = ({
       knowledgeId: contextId ? null : (knowledge?.id ?? null),
       workflowId,
       active: true,
+      totalChunks: 0,
       chunks: [],
+      scrapeFrequency: "NEVER" as const,
+      lastScrapedAt: null,
+      totalBatches: 0,
+      processedBatches: 0,
     }));
 
     setWorkflowFiles((prevFiles) => {
-      return prevFiles.concat(resourcesToAdd);
+      return [...resourcesToAdd, ...prevFiles];
     });
 
     try {
@@ -210,6 +249,7 @@ export const FileInput = ({
               // Only update fields that are present in the payload (partial updates)
               const updatedFile = { ...file };
 
+<<<<<<< HEAD
               if (payload.status !== undefined)
                 updatedFile.status = payload.status;
               if (payload.title !== undefined)
@@ -226,13 +266,38 @@ export const FileInput = ({
               ) {
                 updatedFile.processedChunks = payload.processedChunks;
                 updatedFile.totalChunks = payload.totalChunks;
+=======
+              if (
+                payload.status !== undefined &&
+                payload.status !== "PROCESSED"
+              )
+                updatedFile.status = payload.status;
+              if (payload.title !== undefined)
+                updatedFile.title = payload.title;
+              if (payload.fileSize !== undefined)
+                updatedFile.fileSize = payload.fileSize;
+              if (payload.processedChunks !== undefined) {
+                updatedFile.processedChunks =
+                  (updatedFile.processedChunks ?? 0) + payload.processedChunks;
+                if (
+                  (updatedFile.processedChunks ?? 0) >=
+                  (updatedFile.totalChunks ?? 1)
+                )
+                  updatedFile.status = "PROCESSED";
+>>>>>>> origin/main
               }
+              if (
+                payload.totalChunks !== undefined &&
+                payload.totalChunks !== 0
+              )
+                updatedFile.totalChunks = payload.totalChunks;
 
               return updatedFile;
             }
             return file;
           });
         });
+<<<<<<< HEAD
       },
       (progressPayload) => {
         // Handle processed-chunks events to accumulate progress
@@ -242,6 +307,8 @@ export const FileInput = ({
             (prev[progressPayload.resourceId] || 0) +
             progressPayload.processedChunks,
         }));
+=======
+>>>>>>> origin/main
       }
     );
 
@@ -315,34 +382,65 @@ export const FileInput = ({
             >
               <div className="flex gap-2 items-center p-2 justify-between">
                 <div className="flex gap-2 items-center flex-wrap">
-                  {files.map((file) => (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                      key={file.id}
-                      className={`flex gap-2 items-center bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10 ${
-                        file.url ? "opacity-100" : "opacity-50"
-                      }`}
-                    >
-                      <FileUpIcon className="size-3" />
-                      <p className="text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32">
-                        {file.name}
-                      </p>
-                      <X
-                        className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-red-500"
-                        onClick={() =>
-                          setFiles((prevFiles) =>
-                            prevFiles.filter((f) => f.id !== file.id)
-                          )
-                        }
-                      />
-                    </motion.div>
-                  ))}
+                  {files.map((file) => {
+                    const isUploaded = file.url !== null;
+
+                    console.log("file:", file);
+                    console.log("isUploaded:", isUploaded);
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        key={file.id}
+                        className={`flex gap-2 items-center bg-muted-foreground/20 rounded-sm px-2 py-1.5 border border-muted-foreground/10`}
+                      >
+                        <FileUpIcon
+                          className={`size-3 ${isUploaded ? "text-muted-foreground" : "text-muted-foreground/50"}`}
+                        />
+                        <p
+                          className={`text-xs whitespace-nowrap overflow-hidden text-ellipsis max-w-32 ${isUploaded ? "text-primary" : "text-muted-foreground"} mr-1`}
+                        >
+                          {file.name}
+                        </p>
+                        <AnimatePresence mode="wait" initial={false}>
+                          {isUploaded ? (
+                            <motion.div
+                              key="remove-file"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              <X
+                                className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
+                                onClick={() =>
+                                  setFiles((prevFiles) =>
+                                    prevFiles.filter((f) => f.id !== file.id)
+                                  )
+                                }
+                              />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key="uploading-file"
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.15 }}
+                            >
+                              <Loader2 className="size-3 text-yellow-500 animate-spin" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
+                    );
+                  })}
                 </div>
 
                 <Button
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                   onClick={handleSubmit}
                   disabled={isUploading || isSubmitting || files.length === 0}
@@ -362,10 +460,13 @@ export const FileInput = ({
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}
+<<<<<<< HEAD
                 processedChunks={processedChunksMap[resource.id]}
                 workflowId={workflowId}
                 contextId={contextId}
                 contexts={contexts}
+=======
+>>>>>>> origin/main
               />
             ))}
           </motion.div>

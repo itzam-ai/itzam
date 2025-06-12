@@ -2,7 +2,7 @@
 
 import { getRunById, RunWithModel } from "@itzam/server/db/run/actions";
 import NumberFlow from "@number-flow/react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { File, Globe } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -89,30 +89,36 @@ export function DetailsCard({
           <div className="flex flex-col gap-1">
             <h4 className="text-muted-foreground text-sm">Knowledge</h4>
             <div className="mt-1 text-sm flex flex-col gap-1">
-              {run && run?.runResources.length > 0 ? (
-                run?.runResources.map((resource) => (
-                  <div
-                    key={resource.resource.id}
-                    className="flex gap-1.5 items-center text-sm text-muted-foreground cursor-pointer hover:opacity-80 transition-opacity duration-200"
-                  >
-                    {resource.resource.type === "LINK" ? (
-                      <Globe className="size-3" />
-                    ) : (
-                      <File className="size-3" />
-                    )}
-                    <Link
-                      href={resource.resource.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary truncate"
+              <AnimatePresence>
+                {run && run?.runResources.length > 0 ? (
+                  run?.runResources.map((resource) => (
+                    <motion.div
+                      key={resource.resource.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex gap-1.5 items-center text-sm text-muted-foreground cursor-pointer hover:opacity-80 transition-opacity duration-200"
                     >
-                      {resource.resource.title}
-                    </Link>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm">-</p>
-              )}
+                      {resource.resource.type === "LINK" ? (
+                        <Globe className="size-3" />
+                      ) : (
+                        <File className="size-3" />
+                      )}
+                      <Link
+                        href={resource.resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-primary truncate"
+                      >
+                        {resource.resource.title}
+                      </Link>
+                    </motion.div>
+                  ))
+                ) : (
+                  <p className="text-sm">-</p>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>

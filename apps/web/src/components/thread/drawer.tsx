@@ -1,7 +1,12 @@
 "use client";
 
 import { RunWithModelAndResourcesAndAttachmentsAndThreads } from "@itzam/server/db/run/actions";
+import { getThreadRunsHistory } from "@itzam/server/db/thread/actions";
 import { FileIcon, MessagesSquare } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Dialog, DialogContent } from "../ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -10,10 +15,6 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
-import { useEffect, useState } from "react";
-import { getThreadRunsHistory } from "@itzam/server/db/thread/actions";
-import Link from "next/link";
-import Image from "next/image";
 
 export function ThreadDrawer({
   run,
@@ -55,25 +56,26 @@ export function ThreadDrawer({
                     {run.attachments && run.attachments.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {run.attachments.map((attachment) => (
-                          <Link
-                            href={attachment.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <div
                             key={attachment.url}
-                            className="flex size-12 items-center justify-center rounded-lg border border-muted transition-all hover:border-muted-foreground/50"
+                            className="flex size-12 items-center justify-center rounded-lg border cursor-pointer border-muted transition-all hover:border-muted-foreground/50 hover:opacity-80"
                           >
                             {attachment.mimeType.startsWith("image/") ? (
-                              <Image
-                                src={attachment.url}
-                                alt={attachment.mimeType}
-                                width={1920}
-                                height={1080}
-                                className="size-12 rounded-lg object-cover"
+                              <ImageAttachment
+                                mimeType={attachment.mimeType}
+                                url={attachment.url}
                               />
                             ) : (
-                              <FileIcon className="size-4" />
+                              <Link
+                                href={attachment.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                key={attachment.url}
+                              >
+                                <FileIcon className="size-4" />
+                              </Link>
                             )}
-                          </Link>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -100,3 +102,39 @@ export function ThreadDrawer({
     </Drawer>
   );
 }
+
+export const ImageAttachment = ({
+  mimeType,
+  url,
+}: {
+  mimeType: string;
+  url: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      <Image
+        src={url}
+        alt={mimeType}
+        className="rounded-lg size-12 object-cover"
+        width={240}
+        height={240}
+        onClick={() => setIsOpen(true)}
+      />
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="min-w-[60vw] min-h-[60vh]">
+          <div className="flex w-full h-full justify-center items-center p-4">
+            <Image
+              src={url}
+              alt={mimeType}
+              className="object-contain rounded-lg w-full h-full"
+              width={1920}
+              height={1080}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

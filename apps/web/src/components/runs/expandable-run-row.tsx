@@ -10,7 +10,6 @@ import {
   GlobeIcon,
   XIcon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
@@ -18,7 +17,7 @@ import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { RunOriginType } from "~/lib/mappers/run-origin";
 import { formatDate } from "~/lib/utils";
-import { ThreadDrawer } from "../thread/drawer";
+import { ImageAttachment, ThreadDrawer } from "../thread/drawer";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
 
@@ -187,25 +186,26 @@ export function ExpandableRunRow({
                         </h4>
                         <div className="mt-1 flex flex-wrap gap-1">
                           {run.attachments.map((attachment) => (
-                            <Link
-                              href={attachment.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <div
                               key={attachment.url}
-                              className="flex size-12 items-center justify-center rounded-lg border border-muted shadow-sm transition-all hover:border-muted-foreground/40"
+                              className="flex size-12 items-center justify-center rounded-lg border cursor-pointer border-muted shadow-sm transition-all hover:border-muted-foreground/40"
                             >
                               {attachment.mimeType.startsWith("image/") ? (
-                                <Image
-                                  src={attachment.url}
-                                  alt={attachment.mimeType}
-                                  width={1920}
-                                  height={1080}
-                                  className="size-12 rounded-lg object-cover"
+                                <ImageAttachment
+                                  mimeType={attachment.mimeType}
+                                  url={attachment.url}
                                 />
                               ) : (
-                                <FileIcon className="size-4" />
+                                <Link
+                                  href={attachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  key={attachment.url}
+                                >
+                                  <FileIcon className="size-4" />
+                                </Link>
                               )}
-                            </Link>
+                            </div>
                           ))}
                         </div>
                       </div>

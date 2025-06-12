@@ -1,7 +1,5 @@
 ### Now (23w · 2025)
 
-- [x] Threads docs (missed from 22w)
-
 - [ ] Context (segmented knowledge)
 
   - [ ] Docs
@@ -9,8 +7,6 @@
     - [ ] Glossary
   - [ ] CRUD (UI)
   - [ ] SDK (Integration with threads API)
-
-- [ ] Link rescrape (knowledge/context)
 
 ```ts
 // Context usage example
@@ -46,6 +42,11 @@ itzam.thread.create({
 - [ ] Tools · _Integrate tools to your workflow._
 
 ### Other improvements
+
+- [ ] Docs
+
+  - [ ] Improve clarity
+  - [ ] Add tutorials & guides
 
 - [ ] UI
 
@@ -92,6 +93,16 @@ itzam.thread.create({
 
 ### Past (Done)
 
+#### 23w 2025
+
+- [x] Threads docs (missed from 22w)
+
+- [x] Link rescrape (knowledge/context)
+
+- Model tab
+
+  - [x] Improve switch modal
+
 #### 22w 2025
 
 Attachments
@@ -125,4 +136,3 @@ Knowledge
   - [x] 50MB free tier
 - [x] Fix big files upload [A]
 - [x] Improve chunking (must work with pdf, json, xml, html, csv, raw (txt))
-

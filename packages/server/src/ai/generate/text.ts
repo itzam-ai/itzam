@@ -21,13 +21,46 @@ export async function generateTextOrObjectStream(
   let durationInMs = 0;
   let metadata = {};
 
-  const response =
-    type === "object"
-      ? streamObject({
-          ...aiParams,
-          output: aiParams.output ?? "no-schema",
-          onFinish: async ({ object, usage }) => {
-            if (!object) {
+  try {
+    const response =
+      type === "object"
+        ? streamObject({
+            ...aiParams,
+            output: aiParams.output ?? "no-schema",
+            onFinish: async ({ object, usage }) => {
+              if (!object) {
+                await handleRunCompletion({
+                  run,
+                  model,
+                  text: "",
+                  inputTokens: 0,
+                  outputTokens: 0,
+                  startTime,
+                  status: "FAILED",
+                  fullResponse: response,
+                  metadata: { error: "No object returned" },
+                });
+                return;
+              }
+
+              inputTokens = usage?.promptTokens || 0;
+              outputTokens = usage?.completionTokens || 0;
+              durationInMs = Date.now() - startTime;
+
+              await handleRunCompletion({
+                run,
+                model,
+                text: JSON.stringify(object),
+                inputTokens: usage?.promptTokens || 0,
+                outputTokens: usage?.completionTokens || 0,
+                startTime,
+                status: "COMPLETED",
+                fullResponse: response,
+                metadata,
+              });
+            },
+            onError: async ({ error }) => {
+              console.error("Error during streaming:", error);
               await handleRunCompletion({
                 run,
                 model,
@@ -37,47 +70,47 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "FAILED",
                 fullResponse: response,
-                metadata: { error: "No object returned" },
+                metadata: { error },
+                error: error as string,
               });
-              return;
-            }
+            },
+          })
+        : streamText({
+            ...aiParams,
+            onFinish: async ({ text, usage }) => {
+              if (!text) {
+                await handleRunCompletion({
+                  run,
+                  model,
+                  text: "",
+                  inputTokens: 0,
+                  outputTokens: 0,
+                  startTime,
+                  status: "FAILED",
+                  fullResponse: response,
+                  metadata: { error: "No object returned" },
+                });
+                return;
+              }
 
-            inputTokens = usage?.promptTokens || 0;
-            outputTokens = usage?.completionTokens || 0;
-            durationInMs = Date.now() - startTime;
+              inputTokens = usage?.promptTokens || 0;
+              outputTokens = usage?.completionTokens || 0;
+              durationInMs = Date.now() - startTime;
 
-            await handleRunCompletion({
-              run,
-              model,
-              text: JSON.stringify(object),
-              inputTokens: usage?.promptTokens || 0,
-              outputTokens: usage?.completionTokens || 0,
-              startTime,
-              status: "COMPLETED",
-              fullResponse: response,
-              metadata,
-            });
-          },
-          onError: async ({ error }) => {
-            console.error("Error during streaming:", error);
-            await handleRunCompletion({
-              run,
-              model,
-              text: "",
-              inputTokens: 0,
-              outputTokens: 0,
-              startTime,
-              status: "FAILED",
-              fullResponse: response,
-              metadata: { error },
-              error: error as string,
-            });
-          },
-        })
-      : streamText({
-          ...aiParams,
-          onFinish: async ({ text, usage }) => {
-            if (!text) {
+              await handleRunCompletion({
+                run,
+                model,
+                text,
+                inputTokens: usage?.promptTokens || 0,
+                outputTokens: usage?.completionTokens || 0,
+                startTime,
+                status: "COMPLETED",
+                fullResponse: response,
+                metadata,
+              });
+            },
+            onError: async ({ error }) => {
+              console.error("Error during streaming:", error);
               await handleRunCompletion({
                 run,
                 model,
@@ -87,145 +120,150 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "FAILED",
                 fullResponse: response,
-                metadata: { error: "No object returned" },
+                metadata: { error },
+                error: error as string,
               });
-              return;
-            }
+            },
+          });
 
-            inputTokens = usage?.promptTokens || 0;
-            outputTokens = usage?.completionTokens || 0;
-            durationInMs = Date.now() - startTime;
+    if (streamSSE) {
+      for await (const event of response.fullStream) {
+        if (event.type === "finish") {
+          metadata = {
+            runId: run.id,
+            model: {
+              name: model.name,
+              tag: model.tag,
+            },
+            inputTokens: event.usage?.promptTokens || 0,
+            outputTokens: event.usage?.completionTokens || 0,
+            durationInMs: Date.now() - startTime,
+            cost: calculateRunCost(
+              model.inputPerMillionTokenCost ?? "0",
+              model.outputPerMillionTokenCost ?? "0",
+              event.usage?.promptTokens || 0,
+              event.usage?.completionTokens || 0
+            ).toString(),
+          };
+          delete (event as unknown as { response: unknown }).response;
+          (event as unknown as { metadata: unknown }).metadata = metadata;
+        }
 
-            await handleRunCompletion({
-              run,
-              model,
-              text,
-              inputTokens: usage?.promptTokens || 0,
-              outputTokens: usage?.completionTokens || 0,
-              startTime,
-              status: "COMPLETED",
-              fullResponse: response,
-              metadata,
-            });
-          },
-          onError: async ({ error }) => {
-            console.error("Error during streaming:", error);
-            await handleRunCompletion({
-              run,
-              model,
-              text: "",
-              inputTokens: 0,
-              outputTokens: 0,
-              startTime,
-              status: "FAILED",
-              fullResponse: response,
-              metadata: { error },
-              error: error as string,
-            });
-          },
+        await streamSSE?.writeSSE({
+          data: JSON.stringify(event),
+          event: event.type,
         });
 
-  if (streamSSE) {
-    for await (const event of response.fullStream) {
-      if (event.type === "finish") {
-        metadata = {
-          runId: run.id,
-          model: {
-            name: model.name,
-            tag: model.tag,
-          },
-          inputTokens: event.usage?.promptTokens || 0,
-          outputTokens: event.usage?.completionTokens || 0,
-          durationInMs: Date.now() - startTime,
-          cost: calculateRunCost(
-            model.inputPerMillionTokenCost ?? "0",
-            model.outputPerMillionTokenCost ?? "0",
-            event.usage?.promptTokens || 0,
-            event.usage?.completionTokens || 0
-          ).toString(),
-        };
-        delete (event as unknown as { response: unknown }).response;
-        (event as unknown as { metadata: unknown }).metadata = metadata;
+        if (event.type === "finish") {
+          streamSSE?.close();
+        }
       }
 
-      console.log("🔥 event", event);
-
-      await streamSSE?.writeSSE({
-        data: JSON.stringify(event),
-        event: event.type,
+      return new Response(undefined, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          Connection: "keep-alive",
+        },
       });
-
-      if (event.type === "finish") {
-        streamSSE?.close();
-      }
     }
 
-    return new Response(undefined, {
+    // Playground implementation
+    // --------------------------
+    // Create a readable stream from the object events, extracting only text content
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const event of response.fullStream) {
+            if (event.type === "error") {
+              console.error("Error during streaming:", event.error);
+
+              controller.enqueue(
+                encoder.encode(
+                  `\n\n<!-- ERROR: ${event.error || "Unknown streaming error"} -->`
+                )
+              );
+              controller.close();
+              return;
+            } else if (event.type === "finish") {
+              // Calculate final metadata
+              inputTokens = event.usage?.promptTokens || 0;
+              outputTokens = event.usage?.completionTokens || 0;
+              durationInMs = Date.now() - startTime;
+
+              const metadata = {
+                runId: run.id,
+                model: {
+                  name: model.name,
+                  tag: model.tag,
+                },
+                inputTokens,
+                outputTokens,
+                durationInMs,
+                cost: calculateRunCost(
+                  model.inputPerMillionTokenCost ?? "0",
+                  model.outputPerMillionTokenCost ?? "0",
+                  inputTokens,
+                  outputTokens
+                ).toString(),
+              };
+
+              // Send metadata as a special event (optional, for debugging)
+              controller.enqueue(
+                encoder.encode(
+                  `\n\n<!-- METADATA: ${JSON.stringify(metadata)} -->`
+                )
+              );
+            } else if (event.type === "text-delta") {
+              controller.enqueue(encoder.encode(event.textDelta));
+            }
+          }
+
+          controller.close();
+        } catch (error) {
+          console.error("Error during streaming:", error);
+          controller.enqueue(
+            encoder.encode(
+              `\n\nERROR: ${error instanceof Error ? error.message : "Unknown error"}`
+            )
+          );
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
       headers: {
-        "Content-Type": "text/event-stream",
+        "Content-Type": "text/plain",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
       },
     });
+  } catch (error) {
+    // Handle errors that occur before streaming starts
+    console.error("Error before streaming:", error);
+
+    await handleRunCompletion({
+      run,
+      model,
+      text: "",
+      inputTokens: 0,
+      outputTokens: 0,
+      startTime,
+      status: "FAILED",
+      fullResponse: null,
+      metadata: {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+
+    // Return an error response that can be caught by the API route
+    throw new Error(
+      error instanceof Error ? error.message : "Unknown error occurred"
+    );
   }
-
-  // Playground implementation
-  // --------------------------
-  // Create a readable stream from the object events, extracting only text content
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        for await (const event of response.fullStream) {
-          if (event.type === "finish") {
-            // Calculate final metadata
-            inputTokens = event.usage?.promptTokens || 0;
-            outputTokens = event.usage?.completionTokens || 0;
-            durationInMs = Date.now() - startTime;
-
-            const metadata = {
-              runId: run.id,
-              model: {
-                name: model.name,
-                tag: model.tag,
-              },
-              inputTokens,
-              outputTokens,
-              durationInMs,
-              cost: calculateRunCost(
-                model.inputPerMillionTokenCost ?? "0",
-                model.outputPerMillionTokenCost ?? "0",
-                inputTokens,
-                outputTokens
-              ).toString(),
-            };
-
-            // Send metadata as a special event (optional, for debugging)
-            controller.enqueue(
-              encoder.encode(
-                `\n\n<!-- METADATA: ${JSON.stringify(metadata)} -->`
-              )
-            );
-          } else if (event.type === "text-delta") {
-            controller.enqueue(encoder.encode(event.textDelta));
-          }
-        }
-
-        controller.close();
-      } catch (error) {
-        console.error("Error during streaming:", error);
-        controller.error(error);
-      }
-    },
-  });
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/plain",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  });
 }
 
 export async function generateTextResponse(
@@ -258,7 +296,7 @@ export async function generateTextResponse(
     runId: run.id,
   };
 
-  void createRunWithCost({
+  await createRunWithCost({
     ...run,
     metadata: { metadata, aiParams },
     model: model,

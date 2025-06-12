@@ -138,6 +138,7 @@ function useTextStream({
         onError?.(error);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const markComplete = useCallback(() => {
