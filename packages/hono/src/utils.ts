@@ -43,8 +43,17 @@ export type StatusCode = 200 | 400 | 401 | 404 | 500;
 type ValidationResult = ValidationError | ValidationSuccess;
 
 // Common error response function
-export const createErrorResponse = (error: unknown) => {
+export const createErrorResponse = (error: unknown, context?: { userId?: string; workflowSlug?: string; endpoint?: string }) => {
   console.error("Error in endpoint:", error);
+  
+  // Send Discord notification for production errors
+  if (error instanceof Error && process.env.NODE_ENV === "production") {
+    // Use dynamic import to avoid circular dependencies
+    import("./utils/discord-notifier").then(({ notifyDiscordError }) => {
+      notifyDiscordError(error, context).catch(console.error);
+    });
+  }
+  
   const errorMessage =
     error instanceof Error
       ? `${error.name}: ${error.message}`
