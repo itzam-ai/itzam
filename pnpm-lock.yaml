@@ -1014,8 +1014,8 @@ importers:
         specifier: ^4.7.4
         version: 4.7.10
       itzam:
-        specifier: ^2.1.16
-        version: 2.1.16(zod@3.25.28)
+        specifier: ^2.1.21
+        version: 2.1.21(zod@3.25.28)
       json-schema:
         specifier: ^0.4.0
         version: 0.4.0
@@ -6092,6 +6092,11 @@ packages:
 
   itzam@2.1.16:
     resolution: {integrity: sha512-Aib7kU/Jm5jPrf1en/TKOijI1u3nLIMqLWjerd+2QqnKNYyqbVITf3XOsWKaE9VFLqvcxmAp3EEIMNdf9yEgTw==}
+    peerDependencies:
+      zod: ^3.24.2
+
+  itzam@2.1.21:
+    resolution: {integrity: sha512-r9fAxI4CuwGPjpoUW3HBjlXrAd0RAhULy5AYkrIYik5Z8cLNQj1JDspZ00QSL9V3SgDK6N9EkBbDjVlJ7p75Kw==}
     peerDependencies:
       zod: ^3.24.2
 
@@ -14285,6 +14290,13 @@ snapshots:
       set-function-name: 2.0.2
 
   itzam@2.1.16(zod@3.25.28):
+    dependencies:
+      hono: 4.7.10
+      json-schema: 0.4.0
+      zod: 3.25.28
+      zod-to-json-schema: 3.24.5(zod@3.25.28)
+
+  itzam@2.1.21(zod@3.25.28):
     dependencies:
       hono: 4.7.10
       json-schema: 0.4.0

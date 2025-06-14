@@ -68,7 +68,13 @@ export function PromptCard({
 
     setPrompt("");
 
+    console.log("Response ⬇️");
+    console.log(response);
+
     for await (const chunk of response.stream) {
+      console.log("Chunk ⬇️");
+      console.log(chunk);
+
       setPrompt((prev) => prev + chunk);
     }
 
