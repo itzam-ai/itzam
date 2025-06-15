@@ -5,7 +5,7 @@ from ..schemas import (
     CreateResourceResponse, 
     RescrapeRequest,
 )
-from ..services import process_resource_embeddings
+from ..services import rescrape_resource_embeddings
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
         # Queue background tasks for embedding generation
         for resource in request.resources:
             logger.info(f"Queuing embedding generation for resource {resource.id}")
-            background_tasks.add_task(process_resource_embeddings, background_tasks=background_tasks, resource=resource, knowledge_id=request.knowledge_id, workflow_id=request.workflow_id, save_to_db=True)
+            background_tasks.add_task(rescrape_resource_embeddings, background_tasks=background_tasks, resource=resource, knowledge_id=request.knowledge_id, workflow_id=request.workflow_id, save_to_db=True)
         
         logger.info(f"Queued {len(request.resources)} embedding tasks for background processing")
 

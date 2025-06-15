@@ -1,14 +1,17 @@
 import logging
 from typing import Dict, Any, List, Union
+from datetime import datetime
 import aiohttp
 import tiktoken
 import json
 import xxhash
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
+from sqlalchemy import update
 
 from .config import settings
-from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches
+from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches, get_resource_by_id, get_db_session
+from .models import Resource
 from .supabase import send_update, send_usage_update
 from .schemas import LinkResource, FileResource, ResourceBase
 
@@ -365,4 +368,76 @@ async def process_resource_embeddings(
 
     except Exception as e:
         logger.error(f"Error processing resource embeddings for {resource.id}: {str(e)}")
+        raise
+
+async def rescrape_resource_embeddings(
+    background_tasks: BackgroundTasks,
+    resource: ResourceBase,
+    workflow_id: str,
+    knowledge_id: str,
+    save_to_db: bool = False
+) -> Dict[str, Any]:
+    """Rescrape pipeline: check if content has changed before processing."""
+    try:
+        # Get existing resource from database
+        existing_resource = get_resource_by_id(resource.id)
+        if not existing_resource:
+            logger.error(f"Resource {resource.id} not found in database")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Resource {resource.id} not found"
+            )
+        
+        # Extract text content to check hash
+        text_content, file_size = await get_text_from_tika(str(resource.url))
+        
+        # Compute new content hash
+        new_content_hash = xxhash.xxh64(text_content.encode('utf-8')).hexdigest()
+        
+        # Check if content has changed
+        if existing_resource.content_hash == new_content_hash:
+            logger.info(f"Content hash unchanged for resource {resource.id}, skipping rescrape")
+            
+            # Update last_scraped_at even if content hasn't changed
+            update_resource_status(resource.id, existing_resource.status)
+            
+            # Also update last_scraped_at in a separate call
+            session = get_db_session()
+            stmt = update(Resource).where(Resource.id == resource.id).values(
+                last_scraped_at=datetime.utcnow()
+            )
+            session.execute(stmt)
+            session.commit()
+            session.close()
+            
+            # Send update that rescrape was skipped
+            await send_update(resource, {
+                "status": "SKIPPED",
+                "title": existing_resource.title or "",
+                "fileSize": existing_resource.file_size or 0,
+                "totalChunks": existing_resource.total_chunks,
+                "resourceId": resource.id,
+                "knowledgeId": knowledge_id,
+                "message": "Content unchanged, skipping rescrape"
+            })
+            
+            return {
+                "status": "skipped",
+                "reason": "content_unchanged",
+                "content_hash": new_content_hash
+            }
+        
+        logger.info(f"Content hash changed for resource {resource.id}, processing rescrape")
+        
+        # If content has changed, process normally
+        return await process_resource_embeddings(
+            background_tasks,
+            resource,
+            workflow_id,
+            knowledge_id,
+            save_to_db
+        )
+        
+    except Exception as e:
+        logger.error(f"Error rescraping resource {resource.id}: {str(e)}")
         raise
