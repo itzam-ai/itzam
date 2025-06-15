@@ -1,6 +1,6 @@
 "use server";
 import { env } from "@itzam/utils/env";
-import { addDays, addHours, isAfter, isBefore } from "date-fns";
+import { addDays, addHours, isBefore } from "date-fns";
 import { and, eq, not } from "drizzle-orm";
 import { groupBy } from "lodash";
 import { db } from "..";
@@ -193,6 +193,7 @@ export async function rescrapeResources(
               type: resource.type,
               id: resource.id,
               url: resource.url,
+              title: resource.title,
             },
           ],
           userId: resource.knowledge?.workflow.userId,
