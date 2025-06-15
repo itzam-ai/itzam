@@ -3,6 +3,7 @@ import { env } from "@itzam/utils/env";
 import { addDays, addHours, isBefore } from "date-fns";
 import { and, eq, not } from "drizzle-orm";
 import { groupBy } from "lodash";
+import { revalidatePath } from "next/cache";
 import { db } from "..";
 import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
@@ -324,4 +325,53 @@ async function fileSizeExceedsPlanLimit(
   }
 
   return false;
+}
+
+export async function rescrapeResource(resourceId: string) {
+  const userResponse = await getUser();
+  if (!userResponse.data.user) {
+    throw new Error("Unauthorized");
+  }
+  const user = userResponse.data.user;
+
+  // Get the resource with its knowledge and workflow
+  const resource = await db.query.resources.findFirst({
+    where: and(
+      eq(resources.id, resourceId),
+      eq(resources.type, "LINK"),
+      eq(resources.active, true)
+    ),
+    with: {
+      knowledge: {
+        with: {
+          workflow: true,
+        },
+      },
+    },
+  });
+
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Check if user owns the workflow
+  if (resource.knowledge?.workflow?.userId !== user.id) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check if resource is a link
+  if (resource.type !== "LINK") {
+    throw new Error("Only links can be rescraped");
+  }
+
+  // Use the existing rescrapeResources function
+  await rescrapeResources([resource as ResourceWithKnowledgeAndWorkflow]);
+  revalidatePath(
+    `/dashboard/workflows/${resource.knowledge.workflow.id}/knowledge`
+  );
+
+  return {
+    success: true,
+    message: "Resource rescraped successfully",
+  };
 }

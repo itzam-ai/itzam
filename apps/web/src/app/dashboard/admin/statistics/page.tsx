@@ -1,7 +1,7 @@
+import { getTokenUsage } from "~/app/dashboard/admin/statistics/statistics";
 import UsageChart, {
   CostDistributionChart,
 } from "~/app/dashboard/admin/statistics/client";
-import { getTokenUsage } from "~/app/dashboard/admin/statistics/statistics";
 import {
   Card,
   CardContent,

@@ -1,9 +1,10 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 import {
-  subscribeToResourceUpdates,
   ResourceUpdatePayload,
+  subscribeToResourceUpdates,
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
@@ -23,7 +24,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { KnowledgeItem } from "./knowledge-item";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
+import { KnowledgeItem } from "./knowledge-item";
 
 type LinkToAdd = {
   id: string;

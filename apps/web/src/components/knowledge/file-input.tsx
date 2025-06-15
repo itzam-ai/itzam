@@ -2,9 +2,9 @@
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import {
+  ResourceUpdatePayload,
   subscribeToResourceUpdates,
   supabase,
-  ResourceUpdatePayload,
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import {
