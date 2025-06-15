@@ -55,16 +55,19 @@ export async function POST(req: Request) {
         throw new Error("Failed to send Discord message");
       }
     } else {
-      // Handle regular Discord message
-      const body = JSON.parse(rawBody) as { content: string };
+      // Handle regular Discord message with full webhook support
+      const body = JSON.parse(rawBody);
+      
+      // Forward the entire payload to Discord webhook
       const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: body.content }),
+        body: JSON.stringify(body),
       });
 
       if (!discordResponse.ok) {
-        throw new Error("Failed to send Discord message");
+        const errorText = await discordResponse.text();
+        throw new Error(`Failed to send Discord message: ${errorText}`);
       }
     }
 
