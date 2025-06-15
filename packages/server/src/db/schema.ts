@@ -335,6 +335,7 @@ export const resources = createTable(
     processedBatches: integer("processed_batches").notNull().default(0),
     type: resourceTypeEnum("type").notNull(),
     mimeType: varchar("mime_type", { length: 256 }).notNull(),
+    contentHash: varchar("content_hash", { length: 256 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),

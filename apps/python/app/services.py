@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Union
 import aiohttp
 import tiktoken
 import json
+import xxhash
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
 
@@ -103,6 +104,9 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No text content extracted from the provided URL"
             )
+        
+        # Compute content hash using xxhash
+        content_hash = xxhash.xxh64(text_content.encode('utf-8')).hexdigest()
 
         # Send initial update with file size
         await send_update(resource, {
@@ -135,8 +139,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "knowledgeId": knowledge_id
         })
         
-        # Update resource with title and file size
-        update_resource_status(resource.id, "PENDING", title, file_size)
+        # Update resource with title, file size and content hash
+        update_resource_status(resource.id, "PENDING", title, file_size, content_hash=content_hash)
         
         # Initialize tokenizer and chunker
         chunker = TokenChunker(tokenizer, chunk_size=chunk_size)
@@ -146,7 +150,7 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         chunk_length = len(chunks)
 
         # Update resource with total chunks
-        update_resource_status(resource.id, "PENDING", title, file_size, chunk_length)
+        update_resource_status(resource.id, "PENDING", title, file_size, chunk_length, content_hash)
 
         # Send update with total chunks
         await send_update(resource, {
@@ -164,7 +168,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "chunks": chunks,
             "title": title,
             "file_size": file_size,
-            "text_content": text_content
+            "text_content": text_content,
+            "content_hash": content_hash
         }
         
     except Exception as e:

@@ -336,6 +336,7 @@ class Resource(Base):
     file_size: Mapped[Optional[int]] = mapped_column(Integer)
     knowledge_id: Mapped[Optional[str]] = mapped_column(String(256))
     last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
+    content_hash: Mapped[Optional[str]] = mapped_column(String(256))
 
     knowledge: Mapped[Optional['Knowledge']] = relationship('Knowledge', back_populates='resource')
     chunks: Mapped[List['Chunks']] = relationship('Chunks', back_populates='resource')
