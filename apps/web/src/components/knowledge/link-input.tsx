@@ -137,6 +137,7 @@ export const LinkInput = ({
       lastScrapedAt: null,
       totalBatches: 0,
       processedBatches: 0,
+      contentHash: null,
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);

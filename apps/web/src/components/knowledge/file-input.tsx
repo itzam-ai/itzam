@@ -172,6 +172,7 @@ export const FileInput = ({
       lastScrapedAt: null,
       totalBatches: 0,
       processedBatches: 0,
+      contentHash: null,
     }));
 
     setWorkflowFiles((prevFiles) => {
