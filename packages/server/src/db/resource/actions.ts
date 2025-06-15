@@ -104,6 +104,8 @@ export async function createResourceAndSendoToAPI({
 // TODO: Improve error handling to user (send email when rescrape fails -- saying if it was because of the size)
 // Also, send discord notification for everything
 
+// This function is used by the cron job to rescrape resources
+// The Python service handles chunk management based on content changes
 export async function rescrapeResources(
   resources: ResourceWithKnowledgeAndWorkflow[]
 ) {
@@ -116,9 +118,6 @@ export async function rescrapeResources(
   // This will be sent to the python API
   const resourcesToRescrape = [];
   
-  // Track cache hits and regenerations
-  let cacheHits = 0;
-  let regenerated = 0;
 
   const resourcesGroupedByUserId = groupBy(
     resources,
@@ -178,14 +177,6 @@ export async function rescrapeResources(
   }
 
   for (const resource of resourcesToRescrape) {
-    // Set old chunks to inactive to delete later
-    await db
-      .update(chunks)
-      .set({
-        active: false,
-      })
-      .where(eq(chunks.resourceId, resource.id));
-
     console.log(`🐛 Sending resource ${resource.id} to Python API`);
 
     const response = await fetch(
@@ -216,42 +207,13 @@ export async function rescrapeResources(
       console.log(
         `🐛 Failed to rescrape resource ${resource.id} (status: ${response.status})`
       );
-
-      // Update chunks back to active
-      await db
-        .update(chunks)
-        .set({
-          active: true,
-        })
-        .where(eq(chunks.resourceId, resource.id));
       continue;
     }
 
-    // Parse response to check if it was a cache hit
-    const responseData = await response.json();
-    
-    // Check if the response indicates a cache hit (content unchanged)
-    // The Python API returns status: "skipped" when content hash is unchanged
-    if (responseData.status === "skipped" || responseData.success === false) {
-      console.log(`🐛 Cache hit ✅ for resource ${resource.id} - content unchanged`);
-      cacheHits++;
-      
-      // Update chunks back to active since we're not replacing them
-      await db
-        .update(chunks)
-        .set({
-          active: true,
-        })
-        .where(eq(chunks.resourceId, resource.id));
-    } else {
-      console.log(`🐛 Successfully ✅ regenerated resource ${resource.id}`);
-      regenerated++;
-      
-      // Delete old chunks only if content was regenerated
-      await db
-        .delete(chunks)
-        .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
-    }
+    // The Python service will handle chunks appropriately:
+    // - If content unchanged (cache hit), chunks remain untouched
+    // - If content changed, old chunks are deleted and new ones created
+    console.log(`🐛 Successfully initiated rescrape for resource ${resource.id}`);
 
     // Update resource lastScrapedAt regardless of cache hit or regeneration
     await db
@@ -263,11 +225,11 @@ export async function rescrapeResources(
   }
 
   console.log(
-    `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources (${cacheHits} cache hits, ${regenerated} regenerated)`
+    `🐛 Successfully ✅ initiated rescrape for ${resourcesToRescrape.length} resources`
   );
 
   void sendDiscordNotification({
-    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ rescraped ${resourcesToRescrape.length} resources\n📊 Cache hits: ${cacheHits} (content unchanged)\n🔄 Regenerated: ${regenerated} (content updated)`,
+    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ initiated rescrape for ${resourcesToRescrape.length} resources`,
   });
 }
 
@@ -391,14 +353,44 @@ export async function rescrapeResource(resourceId: string) {
     throw new Error("Only links can be rescraped");
   }
 
-  // Use the existing rescrapeResources function
-  await rescrapeResources([resource as ResourceWithKnowledgeAndWorkflow]);
+  // For manual rescrapes, we don't want to set chunks to inactive
+  // The Python service will handle this appropriately based on whether content changed
+  console.log(`🐛 Manual rescrape initiated for resource ${resource.id}`);
+
+  const response = await fetch(
+    `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        knowledgeId: resource.knowledge?.id,
+        resources: [
+          {
+            type: resource.type,
+            id: resource.id,
+            url: resource.url,
+            title: resource.title,
+          },
+        ],
+        userId: resource.knowledge?.workflow.userId,
+        workflowId: resource.knowledge?.workflow.id,
+        rescrapeSecret: env.RESCRAPE_CRON_SECRET,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to initiate rescrape");
+  }
+
   revalidatePath(
     `/dashboard/workflows/${resource.knowledge.workflow.id}/knowledge`
   );
 
   return {
     success: true,
-    message: "Resource rescraped successfully",
+    message: "Resource rescrape initiated",
   };
 }

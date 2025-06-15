@@ -10,7 +10,7 @@ from fastapi import BackgroundTasks, HTTPException, status
 from sqlalchemy import update
 
 from .config import settings
-from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches, get_resource_by_id, get_db_session
+from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches, get_resource_by_id, get_db_session, delete_chunks_for_resource
 from .models import Resource
 from .supabase import send_update, send_usage_update
 from .schemas import LinkResource, FileResource, ResourceBase
@@ -428,6 +428,9 @@ async def rescrape_resource_embeddings(
             }
         
         logger.info(f"Content hash changed for resource {resource.id}, processing rescrape")
+        
+        delete_chunks_for_resource(resource.id)
+        logger.info(f"Deleted old chunks for resource {resource.id}")
         
         # If content has changed, process normally
         return await process_resource_embeddings(
