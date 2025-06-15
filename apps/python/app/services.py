@@ -117,9 +117,13 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         # Send usage update
         await send_usage_update(workflow_id, file_size)
         
-        # Generate title using Itzam API or fallback
-        original_filename = resource.url
-        title = await generate_file_title(text_content, original_filename)
+        if hasattr(resource, 'title') and resource.title:
+            title = resource.title
+            logger.info(f"Using existing title for resource {resource.id}: {title}")
+        else:
+            original_filename = resource.url
+            title = await generate_file_title(text_content, original_filename)
+            logger.info(f"Generated new title for resource {resource.id}: {title}")
 
         # Send update with title
         await send_update(resource, {
