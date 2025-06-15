@@ -115,6 +115,10 @@ export async function rescrapeResources(
 
   // This will be sent to the python API
   const resourcesToRescrape = [];
+  
+  // Track cache hits and regenerations
+  let cacheHits = 0;
+  let regenerated = 0;
 
   const resourcesGroupedByUserId = groupBy(
     resources,
@@ -223,14 +227,33 @@ export async function rescrapeResources(
       continue;
     }
 
-    console.log(`🐛 Successfully ✅ rescraped resource ${resource.id}`);
+    // Parse response to check if it was a cache hit
+    const responseData = await response.json();
+    
+    // Check if the response indicates a cache hit (content unchanged)
+    // The Python API returns status: "skipped" when content hash is unchanged
+    if (responseData.status === "skipped" || responseData.success === false) {
+      console.log(`🐛 Cache hit ✅ for resource ${resource.id} - content unchanged`);
+      cacheHits++;
+      
+      // Update chunks back to active since we're not replacing them
+      await db
+        .update(chunks)
+        .set({
+          active: true,
+        })
+        .where(eq(chunks.resourceId, resource.id));
+    } else {
+      console.log(`🐛 Successfully ✅ regenerated resource ${resource.id}`);
+      regenerated++;
+      
+      // Delete old chunks only if content was regenerated
+      await db
+        .delete(chunks)
+        .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
+    }
 
-    // Delete old chunks
-    await db
-      .delete(chunks)
-      .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
-
-    // Update resource lastScrapedAt
+    // Update resource lastScrapedAt regardless of cache hit or regeneration
     await db
       .update(resourcesTable)
       .set({
@@ -240,11 +263,11 @@ export async function rescrapeResources(
   }
 
   console.log(
-    `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`
+    `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources (${cacheHits} cache hits, ${regenerated} regenerated)`
   );
 
   void sendDiscordNotification({
-    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ rescraped ${resourcesToRescrape.length} resources`,
+    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ rescraped ${resourcesToRescrape.length} resources\n📊 Cache hits: ${cacheHits} (content unchanged)\n🔄 Regenerated: ${regenerated} (content updated)`,
   });
 }
 
