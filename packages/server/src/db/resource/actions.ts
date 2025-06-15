@@ -70,6 +70,10 @@ export async function createResourceAndSendoToAPI({
     .values(resources)
     .returning();
 
+  await sendDiscordNotification({
+    content: `🏗️ **NEW RESOURCES:**\n${createdResources.map((resource) => resource.fileName).join(", ")}`,
+  });
+
   const resourcesToSend = createdResources.map((resource) => ({
     type: resource.type,
     id: resource.id,
@@ -152,7 +156,7 @@ export async function rescrapeResources(
         );
 
         void sendDiscordNotification({
-          content: `🐛 Skipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users). 🗣️ Talk to user: ${userId}`,
+          content: `🐛 **RESCRAPE:**\nSkipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users). 🗣️ Talk to user: ${userId}`,
         });
 
         continue;
@@ -238,7 +242,7 @@ export async function rescrapeResources(
   );
 
   void sendDiscordNotification({
-    content: `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`,
+    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ rescraped ${resourcesToRescrape.length} resources`,
   });
 }
 

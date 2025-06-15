@@ -211,7 +211,7 @@ export const createWorkflow = protectedProcedure(
       .returning();
 
     await sendDiscordNotification({
-      content: `🏗️ - Created new workflow: ${workflow?.name} for user ${user.email}`,
+      content: `🏗️ **NEW WORKFLOW:**\n${user.email} - ${workflow?.name}`,
     });
 
     return workflow;
@@ -277,7 +277,7 @@ export const deleteWorkflow = protectedProcedure(
       .where(and(eq(workflows.id, workflowId), eq(workflows.userId, user.id)));
 
     await sendDiscordNotification({
-      content: `🏗️ - Deleted workflow: ${workflowId} for user ${user.email}`,
+      content: `🏗️ **DELETED WORKFLOW:**\n${user.email} - ${workflowId}`,
     });
 
     revalidatePath(`/dashboard/workflows`);
