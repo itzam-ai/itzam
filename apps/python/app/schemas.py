@@ -6,6 +6,7 @@ class ResourceBase(BaseModel):
     url: HttpUrl
     type: str = Field(..., pattern="^(LINK|FILE)$")
     id: Optional[str] = None
+    title: Optional[str] = None
 
 class FileResource(ResourceBase):
     type: str = Field("FILE", pattern="^FILE$")
