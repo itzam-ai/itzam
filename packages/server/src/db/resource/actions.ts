@@ -71,7 +71,7 @@ export async function createResourceAndSendoToAPI({
     .returning();
 
   await sendDiscordNotification({
-    content: `🏗️ **NEW RESOURCES:**\n${createdResources.map((resource) => resource.fileName).join(", ")}`,
+    content: `🏗️ **NEW RESOURCES:**\n${createdResources.map((resource) => `${resource.fileName} - ${resource.url} (${resource.scrapeFrequency})`).join("\n")}`,
   });
 
   const resourcesToSend = createdResources.map((resource) => ({
