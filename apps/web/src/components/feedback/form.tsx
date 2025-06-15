@@ -46,7 +46,7 @@ export function FeedbackForm({ onClose }: FeedbackFormProps) {
 
     try {
       await sendDiscordNotification({
-        content: `New feedback submitted by ${user?.email}: ${feedback}`,
+        content: `🗣️ **FEEDBACK:**\n${user?.email} - ${feedback}`,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1200));
