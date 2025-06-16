@@ -4,7 +4,7 @@ import { WorkflowWithModelSettingsAndModelAndProvider } from "@itzam/server/db/m
 import { getEnhancePromptUsage } from "@itzam/server/db/prompt/actions";
 import { updateWorkflowPrompt } from "@itzam/server/db/workflow/actions";
 import { enhancePrompt } from "@itzam/server/itzam/prompt-enhancer";
-import { ArrowDown, Save, Sparkle } from "lucide-react";
+import { ArrowDown, Save, Sparkle, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -174,19 +174,29 @@ export function PromptSettings({
           >
             <h2 className="text-sm font-medium">New Prompt</h2>
             <Textarea value={newPrompt} rows={10} />
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute bottom-4 right-4"
-              onClick={() => {
-                setPrompt(newPrompt);
-                setNewPrompt("");
-                handleSave();
-              }}
-            >
-              <ArrowDown className="size-3" />
-              <p className="text-xs">Use new prompt</p>
-            </Button>
+            <div className="flex justify-end gap-2 absolute bottom-4 right-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-24"
+                onClick={() => setNewPrompt("")}
+              >
+                <X className="size-3" />
+                <p className="text-xs">Discard</p>
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setPrompt(newPrompt);
+                  setNewPrompt("");
+                  handleSave();
+                }}
+              >
+                <ArrowDown className="size-3" />
+                <p className="text-xs">Use new prompt</p>
+              </Button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
