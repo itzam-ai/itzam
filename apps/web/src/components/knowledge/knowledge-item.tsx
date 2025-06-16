@@ -299,12 +299,12 @@ export const KnowledgeItem = ({
                   >
                     {isRescraping ? (
                       <>
-                        <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        <Loader2 className="h-3 w-3 animate-spin" />
                         Rescraping...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="mr-2 h-3 w-3" />
+                        <RefreshCw className="h-3 w-3" />
                         Rescrape Now
                       </>
                     )}
