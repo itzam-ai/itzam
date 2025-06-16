@@ -132,14 +132,14 @@ export const CTA = () => {
         {isSignedIn ? (
           <Link href="/dashboard">
             <Button size="lg" variant="primary" className="w-48">
-              Integrate now
+              Start Building
               <ArrowRight className="size-4" />
             </Button>
           </Link>
         ) : (
           <Link href="/auth/login" prefetch={true}>
             <Button size="lg" variant="primary" className="w-48">
-              Integrate now
+              Start Building
               <ArrowRight className="size-4" />
             </Button>
           </Link>

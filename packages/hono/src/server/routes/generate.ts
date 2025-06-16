@@ -119,7 +119,8 @@ export const generateRoute = new Hono()
           aiParams,
           run,
           workflow.model,
-          startTime
+          startTime,
+          "object"
         );
 
         return c.json({

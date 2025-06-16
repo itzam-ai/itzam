@@ -26,7 +26,7 @@ export const createStripeCustomer = async (
   });
 
   await sendDiscordNotification({
-    content: `💰 - Created new stripe customer: ${stripeCustomer.id} (name: ${name}, email: ${email})`,
+    content: `💰 **NEW STRIPE CUSTOMER:**\n${stripeCustomer.id} - ${name} - ${email}`,
   });
 
   return stripeCustomer;

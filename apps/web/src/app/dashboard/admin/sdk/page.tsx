@@ -35,7 +35,7 @@ const abdulLocalKey =
   "itzam_61b01ef4-bbaf-47ac-a1e2-580c33921e83_czzo14zxl7smr9y4ahqunreqy7hh52z";
 
 const gustavoLocalKey =
-  "itzam_1346408f-2401-4fea-8545-bd816776fbc4_xamqeu207qpk54xvf6btp1s6sajtfn57";
+  "itzam_1346408f-2401-4fea-8545-bd816776fbc4_i5zgr14rwjru5z2lfv0x6roszruumlht";
 
 const slug = "code-assistant";
 

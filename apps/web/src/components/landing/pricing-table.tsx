@@ -58,7 +58,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
               ) : (
                 <Link href="/auth/login" className="block w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Integrate now
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>
@@ -98,14 +98,14 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
               isSignedIn ? (
                 <Link href="/dashboard/settings" className="w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Get started
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>
               ) : (
                 <Link href="/auth/login" className="w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Get started
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>

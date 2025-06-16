@@ -1,8 +1,9 @@
 "use server";
 import { env } from "@itzam/utils/env";
-import { addDays, addHours, isAfter, isBefore } from "date-fns";
+import { addDays, addHours, isBefore } from "date-fns";
 import { and, eq, not } from "drizzle-orm";
 import { groupBy } from "lodash";
+import { revalidatePath } from "next/cache";
 import { db } from "..";
 import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
@@ -70,6 +71,10 @@ export async function createResourceAndSendoToAPI({
     .values(resources)
     .returning();
 
+  await sendDiscordNotification({
+    content: `🏗️ **NEW RESOURCES:**\n${createdResources.map((resource) => `${resource.fileName} - ${resource.url} (${resource.scrapeFrequency})`).join("\n")}`,
+  });
+
   const resourcesToSend = createdResources.map((resource) => ({
     type: resource.type,
     id: resource.id,
@@ -99,6 +104,8 @@ export async function createResourceAndSendoToAPI({
 // TODO: Improve error handling to user (send email when rescrape fails -- saying if it was because of the size)
 // Also, send discord notification for everything
 
+// This function is used by the cron job to rescrape resources
+// The Python service handles chunk management based on content changes
 export async function rescrapeResources(
   resources: ResourceWithKnowledgeAndWorkflow[]
 ) {
@@ -110,6 +117,7 @@ export async function rescrapeResources(
 
   // This will be sent to the python API
   const resourcesToRescrape = [];
+  
 
   const resourcesGroupedByUserId = groupBy(
     resources,
@@ -152,7 +160,7 @@ export async function rescrapeResources(
         );
 
         void sendDiscordNotification({
-          content: `🐛 Skipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users). 🗣️ Talk to user: ${userId}`,
+          content: `🐛 **RESCRAPE:**\nSkipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users). 🗣️ Talk to user: ${userId}`,
         });
 
         continue;
@@ -169,14 +177,6 @@ export async function rescrapeResources(
   }
 
   for (const resource of resourcesToRescrape) {
-    // Set old chunks to inactive to delete later
-    await db
-      .update(chunks)
-      .set({
-        active: false,
-      })
-      .where(eq(chunks.resourceId, resource.id));
-
     console.log(`🐛 Sending resource ${resource.id} to Python API`);
 
     const response = await fetch(
@@ -193,6 +193,7 @@ export async function rescrapeResources(
               type: resource.type,
               id: resource.id,
               url: resource.url,
+              title: resource.title,
             },
           ],
           userId: resource.knowledge?.workflow.userId,
@@ -206,25 +207,15 @@ export async function rescrapeResources(
       console.log(
         `🐛 Failed to rescrape resource ${resource.id} (status: ${response.status})`
       );
-
-      // Update chunks back to active
-      await db
-        .update(chunks)
-        .set({
-          active: true,
-        })
-        .where(eq(chunks.resourceId, resource.id));
       continue;
     }
 
-    console.log(`🐛 Successfully ✅ rescraped resource ${resource.id}`);
+    // The Python service will handle chunks appropriately:
+    // - If content unchanged (cache hit), chunks remain untouched
+    // - If content changed, old chunks are deleted and new ones created
+    console.log(`🐛 Successfully initiated rescrape for resource ${resource.id}`);
 
-    // Delete old chunks
-    await db
-      .delete(chunks)
-      .where(and(eq(chunks.resourceId, resource.id), eq(chunks.active, false)));
-
-    // Update resource lastScrapedAt
+    // Update resource lastScrapedAt regardless of cache hit or regeneration
     await db
       .update(resourcesTable)
       .set({
@@ -234,11 +225,11 @@ export async function rescrapeResources(
   }
 
   console.log(
-    `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`
+    `🐛 Successfully ✅ initiated rescrape for ${resourcesToRescrape.length} resources`
   );
 
   void sendDiscordNotification({
-    content: `🐛 Successfully ✅ rescraped ${resourcesToRescrape.length} resources`,
+    content: `🐛 **RESCRAPE:**\nSuccessfully ✅ initiated rescrape for ${resourcesToRescrape.length} resources`,
   });
 }
 
@@ -323,4 +314,83 @@ async function fileSizeExceedsPlanLimit(
   }
 
   return false;
+}
+
+export async function rescrapeResource(resourceId: string) {
+  const userResponse = await getUser();
+  if (!userResponse.data.user) {
+    throw new Error("Unauthorized");
+  }
+  const user = userResponse.data.user;
+
+  // Get the resource with its knowledge and workflow
+  const resource = await db.query.resources.findFirst({
+    where: and(
+      eq(resources.id, resourceId),
+      eq(resources.type, "LINK"),
+      eq(resources.active, true)
+    ),
+    with: {
+      knowledge: {
+        with: {
+          workflow: true,
+        },
+      },
+    },
+  });
+
+  if (!resource) {
+    throw new Error("Resource not found");
+  }
+
+  // Check if user owns the workflow
+  if (resource.knowledge?.workflow?.userId !== user.id) {
+    throw new Error("Unauthorized");
+  }
+
+  // Check if resource is a link
+  if (resource.type !== "LINK") {
+    throw new Error("Only links can be rescraped");
+  }
+
+  // For manual rescrapes, we don't want to set chunks to inactive
+  // The Python service will handle this appropriately based on whether content changed
+  console.log(`🐛 Manual rescrape initiated for resource ${resource.id}`);
+
+  const response = await fetch(
+    `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        knowledgeId: resource.knowledge?.id,
+        resources: [
+          {
+            type: resource.type,
+            id: resource.id,
+            url: resource.url,
+            title: resource.title,
+          },
+        ],
+        userId: resource.knowledge?.workflow.userId,
+        workflowId: resource.knowledge?.workflow.id,
+        rescrapeSecret: env.RESCRAPE_CRON_SECRET,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to initiate rescrape");
+  }
+
+  revalidatePath(
+    `/dashboard/workflows/${resource.knowledge.workflow.id}/knowledge`
+  );
+
+  return {
+    success: true,
+    message: "Resource rescrape initiated",
+  };
 }

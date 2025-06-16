@@ -155,14 +155,14 @@ export function Hero() {
             {isSignedIn ? (
               <Link href="/dashboard">
                 <Button variant="primary" className="w-40">
-                  Integrate now
+                  Start Building
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>
             ) : (
               <Link href="/auth/login" prefetch={true}>
                 <Button variant="primary" className="w-40">
-                  Integrate now
+                  Start Building
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>

@@ -79,7 +79,7 @@ export async function createApiKey(name: string) {
     .returning();
 
   await sendDiscordNotification({
-    content: `🔑 - Created new API key: ${hashedKey} for user ${user.data.user.email}`,
+    content: `🔑 **NEW API KEY:**\n${hashedKey} - ${user.data.user.email}`,
   });
 
   return {
@@ -103,6 +103,6 @@ export async function deleteApiKey(id: string) {
     .where(and(eq(apiKeys.id, id), eq(apiKeys.userId, userId)));
 
   await sendDiscordNotification({
-    content: `🔑 - Deleted API key: ${id} for user ${user.data.user.email}`,
+    content: `🔑 **DELETED API KEY:**\n${id} - ${user.data.user.email}`,
   });
 }

@@ -501,6 +501,7 @@ export type Database = {
       resource: {
         Row: {
           active: boolean
+          content_hash: string | null
           created_at: string
           file_name: string | null
           file_size: number | null
@@ -520,6 +521,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          content_hash?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -539,6 +541,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          content_hash?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null

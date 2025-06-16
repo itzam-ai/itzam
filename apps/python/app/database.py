@@ -65,7 +65,7 @@ def save_chunks_to_db(chunks_data: List[Dict[str, Any]], resource_id: str, workf
             "chunks_saved": 0
         }
 
-def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None, total_chunks: Optional[int] = None):
+def update_resource_status(resource_id: str, status: str, title: Optional[str] = None, file_size: Optional[int] = None, total_chunks: Optional[int] = None, content_hash: Optional[str] = None):
     """Update resource status in the database using SQLAlchemy."""
     try:
         session = get_db_session()
@@ -81,6 +81,8 @@ def update_resource_status(resource_id: str, status: str, title: Optional[str] =
             update_data["file_size"] = file_size
         if total_chunks is not None:
             update_data["total_chunks"] = total_chunks
+        if content_hash is not None:
+            update_data["content_hash"] = content_hash
         
         # Update resource
         stmt = update(Resource).where(Resource.id == resource_id).values(**update_data)
@@ -131,6 +133,26 @@ def update_resource_total_batches(resource_id: str, total_batches: int):
         if 'session' in locals():
             session.rollback()
             session.close()
+
+def delete_chunks_for_resource(resource_id: str) -> bool:
+    """Delete all chunks for a resource."""
+    try:
+        session = get_db_session()
+        
+        # Delete all chunks for this resource
+        session.query(Chunks).filter(Chunks.resource_id == resource_id).delete()
+        session.commit()
+        session.close()
+        
+        logger.info(f"Deleted all chunks for resource {resource_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to delete chunks for resource {resource_id}: {str(e)}")
+        if 'session' in locals():
+            session.rollback()
+            session.close()
+        return False
 
 def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
     """
