@@ -6,9 +6,7 @@ import { getUser } from "../db/auth/actions";
 import { createAdminAuthClient } from "../db/supabase/server";
 import { customerIsSubscribedToItzamPro } from "../db/billing/actions";
 
-const itzam = new Itzam(env.ITZAM_API_KEY, {
-  basePath: "http://localhost:3000",
-});
+const itzam = new Itzam(env.ITZAM_API_KEY);
 
 export async function enhancePrompt(currentPrompt: string) {
   const user = await getUser();
