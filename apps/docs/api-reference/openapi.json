@@ -56,10 +56,7 @@
                     "description": "The tag of the model used for this generation"
                   }
                 },
-                "required": [
-                  "name",
-                  "tag"
-                ]
+                "required": ["name", "tag"]
               },
               "durationInMs": {
                 "type": "number",
@@ -87,10 +84,7 @@
             ]
           }
         },
-        "required": [
-          "text",
-          "metadata"
-        ]
+        "required": ["text", "metadata"]
       },
       "TextCompletionInput": {
         "type": "object",
@@ -124,9 +118,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "file"
-              ]
+              "required": ["file"]
             },
             "example": [
               {
@@ -154,9 +146,7 @@
             "description": "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)"
           }
         },
-        "required": [
-          "input"
-        ]
+        "required": ["input"]
       },
       "GenerateObjectResponse": {
         "type": "object",
@@ -191,10 +181,7 @@
                     "description": "The tag of the model used for this generation"
                   }
                 },
-                "required": [
-                  "name",
-                  "tag"
-                ]
+                "required": ["name", "tag"]
               },
               "durationInMs": {
                 "type": "number",
@@ -222,9 +209,7 @@
             ]
           }
         },
-        "required": [
-          "metadata"
-        ]
+        "required": ["metadata"]
       },
       "ObjectCompletionInput": {
         "type": "object",
@@ -258,9 +243,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "file"
-              ]
+              "required": ["file"]
             },
             "example": [
               {
@@ -296,10 +279,7 @@
             "description": "The schema of the response, JSON Schema"
           }
         },
-        "required": [
-          "input",
-          "schema"
-        ]
+        "required": ["input", "schema"]
       },
       "StreamTextEvent": {
         "oneOf": [
@@ -340,15 +320,10 @@
                 "type": "string"
               }
             },
-            "required": [
-              "output"
-            ]
+            "required": ["output"]
           }
         },
-        "required": [
-          "type",
-          "object"
-        ]
+        "required": ["type", "object"]
       },
       "StreamTextEventTextDelta": {
         "type": "object",
@@ -361,10 +336,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "textDelta"
-        ]
+        "required": ["type", "textDelta"]
       },
       "StreamTextEventError": {
         "type": "object",
@@ -375,9 +347,7 @@
           },
           "error": {}
         },
-        "required": [
-          "type"
-        ]
+        "required": ["type"]
       },
       "StreamTextEventFinish": {
         "type": "object",
@@ -411,18 +381,10 @@
                 "type": "number"
               }
             },
-            "required": [
-              "promptTokens",
-              "completionTokens",
-              "totalTokens"
-            ]
+            "required": ["promptTokens", "completionTokens", "totalTokens"]
           }
         },
-        "required": [
-          "type",
-          "finishReason",
-          "usage"
-        ]
+        "required": ["type", "finishReason", "usage"]
       },
       "StreamEvent": {
         "oneOf": [
@@ -467,10 +429,7 @@
             ]
           }
         },
-        "required": [
-          "type",
-          "object"
-        ]
+        "required": ["type", "object"]
       },
       "StreamEventObjectText": {
         "type": "object",
@@ -479,9 +438,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "text"
-        ]
+        "required": ["text"]
       },
       "StreamEventObjectUnknown": {
         "type": "object",
@@ -501,10 +458,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "type",
-          "textDelta"
-        ]
+        "required": ["type", "textDelta"]
       },
       "StreamEventError": {
         "type": "object",
@@ -515,9 +469,7 @@
           },
           "error": {}
         },
-        "required": [
-          "type"
-        ]
+        "required": ["type"]
       },
       "StreamEventFinish": {
         "type": "object",
@@ -551,18 +503,10 @@
                 "type": "number"
               }
             },
-            "required": [
-              "promptTokens",
-              "completionTokens",
-              "totalTokens"
-            ]
+            "required": ["promptTokens", "completionTokens", "totalTokens"]
           }
         },
-        "required": [
-          "type",
-          "finishReason",
-          "usage"
-        ]
+        "required": ["type", "finishReason", "usage"]
       },
       "GetRunByIdResponse": {
         "type": "object",
@@ -613,10 +557,7 @@
             "description": "The duration of the run in milliseconds"
           },
           "threadId": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "example": "thread_1234567890",
             "description": "The thread ID of the run"
           },
@@ -634,16 +575,10 @@
                 "description": "The tag of the model"
               }
             },
-            "required": [
-              "name",
-              "tag"
-            ]
+            "required": ["name", "tag"]
           },
           "schema": {
-            "type": [
-              "string",
-              "null"
-            ],
+            "type": ["string", "null"],
             "example": "{}",
             "description": "The schema used to generate the object"
           },
@@ -737,9 +672,7 @@
                       "description": "The name of the provider"
                     }
                   },
-                  "required": [
-                    "name"
-                  ]
+                  "required": ["name"]
                 }
               },
               "required": [
@@ -757,9 +690,7 @@
             }
           }
         },
-        "required": [
-          "models"
-        ]
+        "required": ["models"]
       },
       "CreateThreadResponse": {
         "type": "object",
@@ -774,13 +705,13 @@
             "example": "My Thread",
             "description": "The name of the thread"
           },
-          "lookupKey": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "example": "user-123-session",
-            "description": "The lookup key of the thread"
+          "lookupKeys": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string"
+            },
+            "example": ["user-123", "platform-web-app"],
+            "description": "The lookup keys of the thread"
           },
           "createdAt": {
             "type": "string",
@@ -793,13 +724,7 @@
             "description": "The last update date of the thread"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "lookupKey",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "name", "lookupKeys", "createdAt", "updatedAt"]
       },
       "CreateThreadInput": {
         "type": "object",
@@ -809,10 +734,13 @@
             "example": "My Thread",
             "description": "The name of the thread (optional, will auto-generate if not provided)"
           },
-          "lookupKey": {
-            "type": "string",
-            "example": "user-123-session",
-            "description": "Optional lookup key for finding the thread later"
+          "lookupKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["user-123", "platform-web-app"],
+            "description": "Optional lookup keys for finding the thread later"
           },
           "workflowSlug": {
             "type": "string",
@@ -821,9 +749,7 @@
             "description": "The slug of the workflow this thread belongs to"
           }
         },
-        "required": [
-          "workflowSlug"
-        ]
+        "required": ["workflowSlug"]
       },
       "GetThreadsByWorkflowResponse": {
         "type": "object",
@@ -836,9 +762,7 @@
             "description": "Array of threads for the workflow"
           }
         },
-        "required": [
-          "threads"
-        ]
+        "required": ["threads"]
       },
       "GetThreadResponse": {
         "type": "object",
@@ -853,13 +777,13 @@
             "example": "My Thread",
             "description": "The name of the thread"
           },
-          "lookupKey": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "example": "user-123-session",
-            "description": "The lookup key of the thread"
+          "lookupKeys": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string"
+            },
+            "example": ["user-123-session"],
+            "description": "The lookup keys of the thread"
           },
           "createdAt": {
             "type": "string",
@@ -872,13 +796,7 @@
             "description": "The last update date of the thread"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "lookupKey",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "name", "lookupKeys", "createdAt", "updatedAt"]
       },
       "GetRunsByThreadResponse": {
         "type": "object",
@@ -891,9 +809,7 @@
             "description": "Array of runs in the thread"
           }
         },
-        "required": [
-          "runs"
-        ]
+        "required": ["runs"]
       },
       "ThreadRun": {
         "type": "object",
@@ -932,19 +848,10 @@
                 "description": "The tag of the model"
               }
             },
-            "required": [
-              "name",
-              "tag"
-            ]
+            "required": ["name", "tag"]
           }
         },
-        "required": [
-          "id",
-          "input",
-          "output",
-          "createdAt",
-          "model"
-        ]
+        "required": ["id", "input", "output", "createdAt", "model"]
       }
     }
   },
@@ -1295,12 +1202,26 @@
         "operationId": "getThreadsByWorkflow",
         "parameters": [
           {
-            "schema": {
-              "type": "string"
-            },
             "in": "path",
             "name": "workflowSlug",
+            "schema": {
+              "type": "string",
+              "example": "my_great_workflow",
+              "description": "The slug of the workflow to get threads for"
+            },
             "required": true
+          },
+          {
+            "in": "query",
+            "name": "lookupKeys",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": ["user-123-session"],
+              "description": "Optional lookup keys to filter threads"
+            }
           }
         ],
         "summary": "Get threads by workflow",
@@ -1339,11 +1260,13 @@
         "operationId": "getRunsByThread",
         "parameters": [
           {
-            "schema": {
-              "type": "string"
-            },
             "in": "path",
             "name": "threadId",
+            "schema": {
+              "type": "string",
+              "example": "thread_1234567890",
+              "description": "The ID of the thread to get runs for"
+            },
             "required": true
           }
         ],

@@ -463,9 +463,7 @@ class Thread(Base):
     __table_args__ = (
         ForeignKeyConstraint(['workflow_id'], ['workflow.id'], name='thread_workflow_id_workflow_id_fk'),
         PrimaryKeyConstraint('id', name='thread_pkey'),
-        UniqueConstraint('lookup_key', name='thread_lookup_key_unique'),
         Index('thread_created_at_idx', 'created_at'),
-        Index('thread_lookup_key_idx', 'lookup_key'),
         Index('thread_workflow_id_idx', 'workflow_id')
     )
 
@@ -474,10 +472,10 @@ class Thread(Base):
     workflow_id: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
-    lookup_key: Mapped[Optional[str]] = mapped_column(String(256))
 
     workflow: Mapped['Workflow'] = relationship('Workflow', back_populates='thread')
     run: Mapped[List['Run']] = relationship('Run', back_populates='thread')
+    thread_lookup_key: Mapped[List['ThreadLookupKey']] = relationship('ThreadLookupKey', back_populates='thread')
 
 
 class MessageFile(Base):
@@ -535,6 +533,23 @@ class Run(Base):
     workflow: Mapped[Optional['Workflow']] = relationship('Workflow', back_populates='run')
     attachment: Mapped[List['Attachment']] = relationship('Attachment', back_populates='run')
     run_resource: Mapped[List['RunResource']] = relationship('RunResource', back_populates='run')
+
+
+class ThreadLookupKey(Base):
+    __tablename__ = 'thread_lookup_key'
+    __table_args__ = (
+        ForeignKeyConstraint(['thread_id'], ['thread.id'], name='thread_lookup_key_thread_id_thread_id_fk'),
+        PrimaryKeyConstraint('id', name='thread_lookup_key_pkey'),
+        Index('thread_lookup_key_lookup_key_idx', 'lookup_key'),
+        Index('thread_lookup_key_thread_id_idx', 'thread_id')
+    )
+
+    id: Mapped[str] = mapped_column(String(256), primary_key=True)
+    lookup_key: Mapped[str] = mapped_column(String(256))
+    thread_id: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    thread: Mapped['Thread'] = relationship('Thread', back_populates='thread_lookup_key')
 
 
 class Attachment(Base):
