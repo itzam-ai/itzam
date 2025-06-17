@@ -14,7 +14,7 @@ const itzam = new Itzam("YOUR_API_KEY");
 const thread = await itzam.threads.create({
   workflowSlug: "customer-support",
   name: "Chat for user 123",
-  lookupKey: "user-123",
+  lookupKeys: ["user-123", "platform-web-app"],
 });
 
 console.log(thread.id); // Use this ID for subsequent messages
@@ -22,11 +22,11 @@ console.log(thread.id); // Use this ID for subsequent messages
 
 ### Parameters
 
-| Parameter      | Type     | Required | Description                                             |
-| -------------- | -------- | -------- | ------------------------------------------------------- |
-| `workflowSlug` | `string` | **Yes**  | The slug of the workflow this thread belongs to.        |
-| `name`         | `string` | No       | The name of the thread. Auto-generated if not provided. |
-| `lookupKey`    | `string` | No       | A custom lookup key for finding the thread later.       |
+| Parameter      | Type       | Required | Description                                             |
+| -------------- | ---------- | -------- | ------------------------------------------------------- |
+| `workflowSlug` | `string`   | **Yes**  | The slug of the workflow this thread belongs to.        |
+| `name`         | `string`   | No       | The name of the thread. Auto-generated if not provided. |
+| `lookupKeys`   | `string[]` | No       | A custom lookup key for finding the thread later.       |
 
 ### Return Value
 
@@ -34,7 +34,7 @@ console.log(thread.id); // Use this ID for subsequent messages
 type Thread = {
   id: string; // The unique thread ID
   name: string; // The thread name
-  lookupKey: string | null; // The lookup key if provided
+  lookupKeys: string[]; // The lookup keys if provided
   createdAt: string; // ISO 8601 timestamp
   updatedAt: string; // ISO 8601 timestamp
 };

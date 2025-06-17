@@ -45,7 +45,9 @@ export function ThreadDrawer({
         <div className="p-6">
           <DrawerHeader>
             <DrawerTitle className="text-base">{run.thread?.name}</DrawerTitle>
-            <DrawerDescription>{run.thread?.lookupKey}</DrawerDescription>
+            <DrawerDescription>
+              {run.thread?.lookupKeys?.map((key) => key.lookupKey).join(", ")}
+            </DrawerDescription>{" "}
           </DrawerHeader>
           <div className="flex flex-col gap-4 mt-4 max-h-[calc(100vh-10rem)] overflow-y-auto">
             {runs.map((run) => (

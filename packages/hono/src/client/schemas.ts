@@ -431,10 +431,13 @@ export const CreateThreadInputSchema = z
       description:
         "The name of the thread (optional, will auto-generate if not provided)",
     }),
-    lookupKey: z.string().optional().openapi({
-      example: "user-123-session",
-      description: "Optional lookup key for finding the thread later",
-    }),
+    lookupKeys: z
+      .array(z.string())
+      .optional()
+      .openapi({
+        example: ["user-123", "platform-web-app"],
+        description: "Optional lookup keys for finding the thread later",
+      }),
     workflowSlug: z.string().min(1).openapi({
       example: "my_great_workflow",
       description: "The slug of the workflow this thread belongs to",
@@ -452,10 +455,13 @@ export const CreateThreadResponseSchema = z
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKey: z.string().nullable().openapi({
-      example: "user-123-session",
-      description: "The lookup key of the thread",
-    }),
+    lookupKeys: z
+      .array(z.string())
+      .nullable()
+      .openapi({
+        example: ["user-123", "platform-web-app"],
+        description: "The lookup keys of the thread",
+      }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -467,20 +473,6 @@ export const CreateThreadResponseSchema = z
   })
   .openapi({ ref: "CreateThreadResponse" });
 
-export const GetThreadByIdParamsSchema = z.object({
-  id: z.string().openapi({
-    example: "thread_1234567890",
-    description: "The ID of the thread to retrieve",
-  }),
-});
-
-export const GetThreadByLookupKeyParamsSchema = z.object({
-  lookupKey: z.string().openapi({
-    example: "user-123-session",
-    description: "The lookup key of the thread to retrieve",
-  }),
-});
-
 export const GetThreadResponseSchema = z
   .object({
     id: z.string().openapi({
@@ -491,10 +483,13 @@ export const GetThreadResponseSchema = z
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKey: z.string().nullable().openapi({
-      example: "user-123-session",
-      description: "The lookup key of the thread",
-    }),
+    lookupKeys: z
+      .array(z.string())
+      .nullable()
+      .openapi({
+        example: ["user-123-session"],
+        description: "The lookup keys of the thread",
+      }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -514,10 +509,13 @@ export const GetThreadsByWorkflowParamsSchema = z.object({
 });
 
 export const GetThreadsByWorkflowQuerySchema = z.object({
-  lookupKey: z.string().optional().openapi({
-    example: "user-123-session",
-    description: "Optional lookup key to filter threads",
-  }),
+  lookupKeys: z
+    .array(z.string())
+    .optional()
+    .openapi({
+      example: ["user-123-session"],
+      description: "Optional lookup keys to filter threads",
+    }),
 });
 
 export const GetThreadsByWorkflowResponseSchema = z

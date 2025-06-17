@@ -5,6 +5,9 @@ import { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   CreateThreadInputSchema,
+  GetRunsByThreadParamsSchema,
+  GetThreadsByWorkflowParamsSchema,
+  GetThreadsByWorkflowQuerySchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
 } from "../../client/schemas";
@@ -76,4 +79,19 @@ export const objectCompletionValidator = zValidator(
 export const createThreadValidator = zValidator(
   "json",
   CreateThreadInputSchema
+);
+
+export const getThreadsByWorkflowParamsValidator = zValidator(
+  "param",
+  GetThreadsByWorkflowParamsSchema
+);
+
+export const getThreadsByWorkflowQueryValidator = zValidator(
+  "query",
+  GetThreadsByWorkflowQuerySchema
+);
+
+export const getRunsByThreadParamsValidator = zValidator(
+  "param",
+  GetRunsByThreadParamsSchema
 );

@@ -58,7 +58,7 @@ type Thread = {
   name: string;
   createdAt: string;
   updatedAt: string;
-  lookupKey: string | null;
+  lookupKeys: string[];
 };
 
 type ThreadRun = {

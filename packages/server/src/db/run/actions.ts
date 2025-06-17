@@ -64,7 +64,11 @@ export async function getLast30RunsInTheLast30Days(workflowId: string) {
           resource: true,
         },
       },
-      thread: true,
+      thread: {
+        with: {
+          lookupKeys: true,
+        },
+      },
       attachments: true,
     },
     limit: 30,
@@ -154,7 +158,11 @@ export async function getRunsByWorkflowId(
           resource: true,
         },
       },
-      thread: true,
+      thread: {
+        with: {
+          lookupKeys: true,
+        },
+      },
       attachments: true,
     },
     orderBy: (runs, { desc, asc }) => [

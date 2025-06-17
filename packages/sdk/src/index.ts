@@ -120,7 +120,10 @@ class Itzam {
       return createThread(this.client, this.apiKey, createThreadRequest);
     },
 
-    list: async (workflowSlug: string, options?: { lookupKey?: string }) => {
+    list: async (
+      workflowSlug: string,
+      options?: { lookupKeys?: string | string[] }
+    ) => {
       return getThreadsByWorkflow(
         this.client,
         this.apiKey,

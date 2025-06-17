@@ -9,21 +9,23 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
-import { validator } from "hono/validator";
 import { v7 } from "uuid";
-import { z } from "zod";
+import { createThread } from "@itzam/server/db/thread/actions";
 import {
   CreateThreadResponseSchema,
-  GetRunsByThreadParamsSchema,
   GetRunsByThreadResponseSchema,
   GetThreadResponseSchema,
-  GetThreadsByWorkflowParamsSchema,
   GetThreadsByWorkflowResponseSchema,
 } from "../../client/schemas";
 import { createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
-import { createThreadValidator } from "../validators";
+import {
+  createThreadValidator,
+  getRunsByThreadParamsValidator,
+  getThreadsByWorkflowParamsValidator,
+  getThreadsByWorkflowQueryValidator,
+} from "../validators";
 
 export const threadsRoute = new Hono()
   .use(apiKeyMiddleware)
@@ -46,7 +48,7 @@ export const threadsRoute = new Hono()
     createThreadValidator,
     async (c) => {
       try {
-        const { name, lookupKey, workflowSlug } = c.req.valid("json");
+        const { name, lookupKeys, workflowSlug } = c.req.valid("json");
 
         // Find the workflow by slug and userId
         const workflow = await db.query.workflows.findFirst({
@@ -60,18 +62,11 @@ export const threadsRoute = new Hono()
           );
         }
 
-        const threadId = `thread_${v7()}`;
-        const threadName = name || `Thread ${threadId.slice(-10)}`;
-
-        const [thread] = await db
-          .insert(threads)
-          .values({
-            id: threadId,
-            name: threadName,
-            lookupKey: lookupKey || null,
-            workflowId: workflow.id,
-          })
-          .returning();
+        const thread = await createThread({
+          workflowId: workflow.id,
+          lookupKeys,
+          name,
+        });
 
         if (!thread) {
           return c.json(
@@ -83,7 +78,7 @@ export const threadsRoute = new Hono()
         return c.json({
           id: thread.id,
           name: thread.name,
-          lookupKey: thread.lookupKey,
+          lookupKeys: thread.lookupKeys,
           createdAt: thread.createdAt.toISOString(),
           updatedAt: thread.updatedAt.toISOString(),
         });
@@ -109,38 +104,23 @@ export const threadsRoute = new Hono()
         description: "Successfully retrieved threads",
       }),
     }),
-    validator("param", (value, c) => {
-      const parsed = GetThreadsByWorkflowParamsSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid parameters", 400);
-      }
-      return parsed.data;
-    }),
-    validator("query", (value, c) => {
-      const querySchema = z.object({
-        lookupKey: z.string().optional(),
-      });
-      const parsed = querySchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid query parameters", 400);
-      }
-      return parsed.data;
-    }),
+    getThreadsByWorkflowParamsValidator,
+    getThreadsByWorkflowQueryValidator,
     async (c) => {
       try {
         const userId = c.get("userId");
         const { workflowSlug } = c.req.valid("param");
-        const { lookupKey } = c.req.valid("query");
+        const { lookupKeys } = c.req.valid("query");
 
         const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
-          lookupKey,
+          lookupKeys,
         });
 
         return c.json({
           threads: threads.map((thread) => ({
             id: thread.id,
             name: thread.name,
-            lookupKey: thread.lookupKey,
+            lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
             createdAt: thread.createdAt.toISOString(),
             updatedAt: thread.updatedAt.toISOString(),
           })),
@@ -166,13 +146,7 @@ export const threadsRoute = new Hono()
         description: "Successfully retrieved thread runs",
       }),
     }),
-    validator("param", (value, c) => {
-      const parsed = GetRunsByThreadParamsSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid parameters", 400);
-      }
-      return parsed.data;
-    }),
+    getRunsByThreadParamsValidator,
     async (c) => {
       try {
         const userId = c.get("userId");

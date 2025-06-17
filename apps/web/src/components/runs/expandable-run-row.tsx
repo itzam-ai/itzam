@@ -31,6 +31,7 @@ export function ExpandableRunRow({
   if (!run) {
     return null;
   }
+
   return (
     <>
       <TableRow

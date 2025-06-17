@@ -30,7 +30,7 @@ First of all, you need to create a thread (think of it as a chat session).
 const thread = await itzam.threads.create({
   workflowSlug: "customer-support",
   name: "Chat for user 123", // optional
-  lookupKey: "user-123", // optional
+  lookupKeys: ["user-123", "platform-web-app"], // optional
 });
 
 console.log(thread.id); // "thread_424242" (save this ID in your database)
@@ -42,7 +42,7 @@ console.log(thread.id); // "thread_424242" (save this ID in your database)
 curl -X POST https://itz.am/api/v1/threads \
   -H "Authorization: Bearer $ITZAM_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"workflowSlug": "customer-support", "name": "Chat for user 123", "lookupKey": "user-123"}'
+  -d '{"workflowSlug": "customer-support", "name": "Chat for user 123", "lookupKeys": ["user-123", "platform-web-app"]}'
 ```
 
 ## Send messages
@@ -58,9 +58,8 @@ const message = await itzam.generateText({
 });
 
 console.log(message.content); // "I'm doing well, thank you!"
-```
 
-```javascript
+// If you use the same thread ID, the AI will continue the conversation
 const message = await itzam.generateText({
   threadId: "thread_424242",
   input: "What's my name?",

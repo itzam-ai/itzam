@@ -431,7 +431,6 @@ export const threads = createTable(
   {
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
     name: varchar("name", { length: 256 }).notNull(),
-    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
     workflowId: varchar("workflow_id", { length: 256 })
       .notNull()
       .references(() => workflows.id),
@@ -443,9 +442,29 @@ export const threads = createTable(
       .notNull(),
   },
   (table) => ({
-    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
     createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
     workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
+  })
+);
+
+// -------- THREAD LOOKUP KEYS --------
+export const threadLookupKeys = createTable(
+  "thread_lookup_key",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    lookupKey: varchar("lookup_key", { length: 256 }).notNull(),
+    threadId: varchar("thread_id", { length: 256 })
+      .notNull()
+      .references(() => threads.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    lookupKeyIndex: index("thread_lookup_key_lookup_key_idx").on(
+      table.lookupKey
+    ),
+    threadIdIndex: index("thread_lookup_key_thread_id_idx").on(table.threadId),
   })
 );
 
@@ -698,4 +717,15 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
     fields: [threads.workflowId],
     references: [workflows.id],
   }),
+  lookupKeys: many(threadLookupKeys),
 }));
+
+export const threadLookupKeyRelations = relations(
+  threadLookupKeys,
+  ({ one }) => ({
+    thread: one(threads, {
+      fields: [threadLookupKeys.threadId],
+      references: [threads.id],
+    }),
+  })
+);

@@ -9,26 +9,26 @@ async function getThreadsByWorkflow(
   client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   workflowSlug: string,
-  options?: { lookupKey?: string }
+  options?: { lookupKeys?: string | string[] }
 ) {
   try {
-    // For now, we'll use a direct fetch approach since the Hono client doesn't support query params easily
-    const baseUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : process.env.NEXT_PUBLIC_APP_URL;
-    const url = new URL(`/api/v1/threads/workflow/${workflowSlug}`, baseUrl);
-
-    if (options?.lookupKey) {
-      url.searchParams.set("lookupKey", options.lookupKey);
-    }
-
-    const response = await fetch(url.toString(), {
-      method: "GET",
-      headers: {
-        "Api-Key": apiKey,
+    const response = await client.api.v1.threads.workflow[":workflowSlug"].$get(
+      {
+        param: { workflowSlug },
+        query: {
+          lookupKeys: options?.lookupKeys
+            ? Array.isArray(options.lookupKeys)
+              ? options.lookupKeys
+              : [options.lookupKeys]
+            : undefined,
+        },
       },
-    });
+      {
+        headers: {
+          "Api-Key": apiKey,
+        },
+      }
+    );
 
     if (!response.ok) throw createItzamError(response);
 
