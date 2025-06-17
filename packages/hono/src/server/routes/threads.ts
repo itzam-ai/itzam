@@ -5,7 +5,7 @@ import {
   getThreadRunsHistory,
   getThreadsByWorkflowSlug,
 } from "@itzam/server/db/thread/actions";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -48,11 +48,16 @@ export const threadsRoute = new Hono()
     createThreadValidator,
     async (c) => {
       try {
+        const userId = c.get("userId");
         const { name, lookupKeys, workflowSlug } = c.req.valid("json");
 
         // Find the workflow by slug and userId
         const workflow = await db.query.workflows.findFirst({
-          where: eq(workflows.slug, workflowSlug),
+          where: and(
+            eq(workflows.slug, workflowSlug),
+            eq(workflows.userId, userId),
+            eq(workflows.isActive, true)
+          ),
         });
 
         if (!workflow) {

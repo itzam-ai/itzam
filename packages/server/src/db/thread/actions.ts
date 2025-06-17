@@ -12,16 +12,10 @@ export async function getThreadsByWorkflowSlug(
   userId: string,
   options?: { lookupKeys?: string[] }
 ) {
-  console.log(workflowSlug);
-  console.log(userId);
-  console.log(options);
-
   // First find the workflow by slug and userId
   const workflow = await db.query.workflows.findFirst({
     where: and(eq(workflows.slug, workflowSlug), eq(workflows.userId, userId)),
   });
-
-  console.log(workflow);
 
   if (!workflow) {
     return [];
@@ -33,8 +27,6 @@ export async function getThreadsByWorkflowSlug(
     options.lookupKeys === undefined ||
     options.lookupKeys.length === 0
   ) {
-    console.log("no lookup keys");
-
     return await db.query.threads.findMany({
       where: eq(threads.workflowId, workflow.id),
       with: {
