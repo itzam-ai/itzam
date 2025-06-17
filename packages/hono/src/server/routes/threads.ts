@@ -112,6 +112,9 @@ export const threadsRoute = new Hono()
         const { workflowSlug } = c.req.valid("param");
         const { lookupKeys } = c.req.valid("query");
 
+        console.log(workflowSlug);
+        console.log(lookupKeys);
+
         const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
           lookupKeys,
         });

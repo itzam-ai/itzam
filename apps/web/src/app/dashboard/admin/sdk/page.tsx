@@ -37,7 +37,7 @@ const abdulLocalKey =
 const gustavoLocalKey =
   "itzam_1346408f-2401-4fea-8545-bd816776fbc4_i5zgr14rwjru5z2lfv0x6roszruumlht";
 
-const slug = "code-assistant";
+const slug = "test-sdk";
 
 type Metadata = {
   runId: string;
@@ -135,6 +135,7 @@ export default function AdminSdkPage() {
     setIsLoadingThreads(true);
     try {
       const response = await itzam.threads.list(slug);
+      console.log(response);
       setThreads(response.threads);
     } catch (error) {
       toast.error("Failed to fetch threads");

@@ -510,10 +510,10 @@ export const GetThreadsByWorkflowParamsSchema = z.object({
 
 export const GetThreadsByWorkflowQuerySchema = z.object({
   lookupKeys: z
-    .array(z.string())
+    .union([z.string().transform((val) => [val]), z.array(z.string())])
     .optional()
     .openapi({
-      example: ["user-123-session"],
+      example: ["user-123", "platform-web-app"],
       description: "Optional lookup keys to filter threads",
     }),
 });
