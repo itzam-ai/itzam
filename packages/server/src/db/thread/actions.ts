@@ -14,7 +14,11 @@ export async function getThreadsByWorkflowSlug(
 ) {
   // First find the workflow by slug and userId
   const workflow = await db.query.workflows.findFirst({
-    where: and(eq(workflows.slug, workflowSlug), eq(workflows.userId, userId)),
+    where: and(
+      eq(workflows.slug, workflowSlug),
+      eq(workflows.userId, userId),
+      eq(workflows.isActive, true)
+    ),
   });
 
   if (!workflow) {
