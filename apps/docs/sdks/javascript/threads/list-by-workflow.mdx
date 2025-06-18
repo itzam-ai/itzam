@@ -11,16 +11,19 @@ import Itzam from "itzam";
 
 const itzam = new Itzam("YOUR_API_KEY");
 
-const threads = await itzam.threads.list("customer-support");
+const threads = await itzam.threads.list("customer-support", {
+  lookupKeys: ["user-123", "platform-web-app"],
+});
 
 console.log(threads);
 ```
 
 ### Parameters
 
-| Parameter      | Type     | Description                             |
-| -------------- | -------- | --------------------------------------- |
-| `workflowSlug` | `string` | **Required**. The slug of the workflow. |
+| Parameter      | Type       | Description                             |
+| -------------- | ---------- | --------------------------------------- | -------------------------------------- |
+| `workflowSlug` | `string`   | **Required**. The slug of the workflow. |
+| `lookupKeys`   | `string[]` | No                                      | A custom list of lookup keys to match. |
 
 ### Return Value
 

@@ -9,6 +9,10 @@
 
 [Itzam](https://itz.am) is an open source platform for integrating AI.
 
+## Demo
+
+[![Demo](https://i.ytimg.com/an_webp/gfLG2YmzH4c/mqdefault_6s.webp?du=3000&sqp=CLzNysIG&rs=AOn4CLBltC1LWmkeqKqqeC5hjFV5uLlVSQ)](https://www.youtube.com/watch?v=gfLG2YmzH4c)
+
 ## What we do?
 
 We help you **create AI applications**. Itzam’s purpose is to give developers the best possible experience when developing AI apps.
