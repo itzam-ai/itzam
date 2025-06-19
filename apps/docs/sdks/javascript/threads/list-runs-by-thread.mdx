@@ -31,6 +31,7 @@ runs.forEach((run) => {
 ```typescript
 type RunsResponse = {
   runs: Array<{
+    id: string; // The ID of the run
     origin: string; // Origin of the run (WEB is it's from Playground, SDK is it's from the SDK)
     status: string; // Status of the run (RUNNING | COMPLETED | FAILED)
     input: string; // The user's input

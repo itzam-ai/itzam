@@ -39,6 +39,7 @@ export const runsRoute = new Hono().use(apiKeyMiddleware).get(
       }
 
       const response: z.infer<typeof GetRunByIdResponseSchema> = {
+        id: run.id,
         origin: run.origin,
         status: run.status,
         input: run.input,

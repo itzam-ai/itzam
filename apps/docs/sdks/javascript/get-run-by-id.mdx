@@ -27,6 +27,7 @@ The `getRunById` method returns the following object:
 
 ```typescript
 type GetRunByIdResponse = {
+  id: string; // The ID of the run
   origin: string; // Origin of the run (WEB is it's from Playground, SDK is it's from the SDK)
   status: string; // Status of the run (RUNNING | COMPLETED | FAILED)
   input: string; // The user's input

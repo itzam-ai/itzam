@@ -351,6 +351,10 @@ export const StreamTextEventSchema = z
 
 export const GetRunByIdResponseSchema = z
   .object({
+    id: z.string().openapi({
+      example: "run_1234567890",
+      description: "The ID of the run",
+    }),
     origin: z.string().openapi({
       example: "SDK",
       description: "The origin of the run",

@@ -416,6 +416,11 @@
       "GetRunByIdResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "example": "run_1234567890",
+            "description": "The ID of the run"
+          },
           "origin": {
             "type": "string",
             "example": "SDK",
@@ -547,6 +552,7 @@
           }
         },
         "required": [
+          "id",
           "origin",
           "status",
           "input",

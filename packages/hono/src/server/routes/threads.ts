@@ -161,6 +161,7 @@ export const threadsRoute = new Hono()
 
         const response = {
           runs: runs.map((run) => ({
+            id: run.id,
             origin: run.origin,
             status: run.status,
             input: run.input,
