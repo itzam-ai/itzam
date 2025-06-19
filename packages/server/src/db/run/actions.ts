@@ -40,6 +40,12 @@ export async function getRunByIdAndUserId(runId: string, userId: string) {
     with: {
       model: true,
       workflow: true,
+      attachments: true,
+      runResources: {
+        with: {
+          resource: true,
+        },
+      },
     },
   });
 
@@ -350,7 +356,22 @@ export async function addResourcesToRun(runId: string, resourceIds: string[]) {
   );
 }
 
-export async function getRunsByThreadId(threadId: string) {
+export async function getRunsForContextByThreadId(threadId: string) {
+  return await db.query.runs.findMany({
+    where: and(
+      eq(runs.threadId, threadId),
+      eq(runs.status, "COMPLETED") // Only get completed runs for conversation history
+    ),
+    orderBy: (runs, { asc }) => [asc(runs.createdAt)],
+    with: {
+      attachments: true,
+    },
+  });
+}
+
+export async function getRunsByThreadIdWithResourcesAndAttachments(
+  threadId: string
+) {
   return await db.query.runs.findMany({
     where: and(
       eq(runs.threadId, threadId),
@@ -360,6 +381,19 @@ export async function getRunsByThreadId(threadId: string) {
     with: {
       model: true,
       attachments: true,
+      runResources: {
+        with: {
+          resource: {
+            columns: {
+              id: true,
+              title: true,
+              fileName: true,
+              url: true,
+              type: true,
+            },
+          },
+        },
+      },
     },
   });
 }

@@ -3,14 +3,16 @@ import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
 import { z } from "zod";
 import type { Model } from "../db/model/actions";
-import { createRunWithCost, getRunsByThreadId } from "../db/run/actions";
+import {
+  createRunWithCost,
+  getRunsForContextByThreadId,
+} from "../db/run/actions";
 import { runs } from "../db/schema";
 import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
-import type { AttachmentWithUrl, CreateAiParamsFn } from "./types";
-import type { Attachment } from "./types";
+import type { Attachment, AttachmentWithUrl, CreateAiParamsFn } from "./types";
 
 const defaultSchema = z.object({
   text: z.string().describe("The generated output text"),
@@ -159,7 +161,7 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   // If threadId is provided, get conversation history and prepend to messages
   if (run.threadId) {
-    const threadRuns = await getRunsByThreadId(run.threadId);
+    const threadRuns = await getRunsForContextByThreadId(run.threadId);
 
     // Convert thread runs to messages format and prepend to current messages
     const conversationHistory: {

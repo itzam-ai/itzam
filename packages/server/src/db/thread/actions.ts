@@ -2,7 +2,7 @@
 
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
-import { getRunsByThreadId } from "../run/actions";
+import { getRunsByThreadIdWithResourcesAndAttachments } from "../run/actions";
 import { threadLookupKeys, threads, workflows } from "../schema";
 import { getUser } from "../auth/actions";
 import { v7 } from "uuid";
@@ -126,7 +126,7 @@ export async function getThreadRunsHistory(threadId: string, userId?: string) {
   }
 
   // Get runs for this thread
-  return await getRunsByThreadId(threadId);
+  return await getRunsByThreadIdWithResourcesAndAttachments(threadId);
 }
 
 export async function createThread({

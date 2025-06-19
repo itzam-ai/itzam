@@ -352,23 +352,23 @@ export const StreamTextEventSchema = z
 export const GetRunByIdResponseSchema = z
   .object({
     origin: z.string().openapi({
-      example: "sdk",
+      example: "SDK",
       description: "The origin of the run",
     }),
     status: z.string().openapi({
-      example: "completed",
+      example: "COMPLETED",
       description: "The status of the run",
     }),
     input: z.string().openapi({
-      example: "Hello, world!",
+      example: "Who are you?",
       description: "The input of the run",
     }),
     output: z.string().openapi({
-      example: "Hello, world!",
+      example: "I'm a helpful assistant",
       description: "The output of the run",
     }),
     prompt: z.string().openapi({
-      example: "Hello, world!",
+      example: "Be friendly and helpful",
       description: "The prompt of the run",
     }),
     inputTokens: z.number().openapi({
@@ -393,18 +393,54 @@ export const GetRunByIdResponseSchema = z
     }),
     model: z.object({
       name: z.string().openapi({
-        example: "gpt-4o",
+        example: "GPT-4o",
         description: "The name of the model",
       }),
       tag: z.string().openapi({
-        example: "gpt-4o",
+        example: "openai:gpt-4o",
         description: "The tag of the model",
       }),
     }),
-    schema: z.string().nullable().openapi({
-      example: "{}",
-      description: "The schema used to generate the object",
-    }),
+    attachments: z
+      .array(
+        z.object({
+          url: z.string().openapi({
+            example: "https://example.com/image.jpg",
+            description: "The URL of the attachment",
+          }),
+          mimeType: z.string().openapi({
+            example: "image/jpeg",
+            description: "The MIME type of the attachment",
+          }),
+          id: z.string().openapi({
+            example: "attachment_1234567890",
+            description: "The ID of the attachment",
+          }),
+        })
+      )
+      .nullable(),
+    knowledge: z
+      .array(
+        z.object({
+          id: z.string().openapi({
+            example: "1353151353531",
+            description: "The ID of the knowledge",
+          }),
+          title: z.string().nullable().openapi({
+            example: "My Resource",
+            description: "The title of the knowledge",
+          }),
+          url: z.string().openapi({
+            example: "https://example.com/resource.pdf",
+            description: "The URL of the knowledge",
+          }),
+          type: z.string().openapi({
+            example: "file",
+            description: "The type of the knowledge",
+          }),
+        })
+      )
+      .nullable(),
     workflowId: z.string().openapi({
       example: "workflow_1234567890",
       description: "The ID of the workflow",
@@ -533,40 +569,9 @@ export const GetRunsByThreadParamsSchema = z.object({
   }),
 });
 
-export const ThreadRunSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "run_1234567890",
-      description: "The ID of the run",
-    }),
-    input: z.string().openapi({
-      example: "What is React?",
-      description: "The input of the run",
-    }),
-    output: z.string().openapi({
-      example: "React is a JavaScript library...",
-      description: "The output of the run",
-    }),
-    createdAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The creation date of the run",
-    }),
-    model: z.object({
-      name: z.string().openapi({
-        example: "gpt-4o",
-        description: "The name of the model",
-      }),
-      tag: z.string().openapi({
-        example: "openai:gpt-4o",
-        description: "The tag of the model",
-      }),
-    }),
-  })
-  .openapi({ ref: "ThreadRun" });
-
 export const GetRunsByThreadResponseSchema = z
   .object({
-    runs: z.array(ThreadRunSchema).openapi({
+    runs: z.array(GetRunByIdResponseSchema).openapi({
       description: "Array of runs in the thread",
     }),
   })

@@ -1,11 +1,6 @@
 {
   "openapi": "3.1.0",
-  "servers": [
-    {
-      "url": "https://itz.am",
-      "description": "Itzam Live API"
-    }
-  ],
+  "servers": [{ "url": "https://itz.am", "description": "Itzam Live API" }],
   "info": {
     "title": "Itzam API",
     "description": "Development documentation",
@@ -114,24 +109,14 @@
                     }
                   ]
                 },
-                "mimeType": {
-                  "type": "string"
-                }
+                "mimeType": { "type": "string" }
               },
               "required": ["file"]
             },
             "example": [
-              {
-                "file": "file_data",
-                "mimeType": "application/pdf"
-              },
-              {
-                "file": "image_data",
-                "mimeType": "image/png"
-              },
-              {
-                "file": "https://example.com/image.jpg"
-              }
+              { "file": "file_data", "mimeType": "application/pdf" },
+              { "file": "image_data", "mimeType": "image/png" },
+              { "file": "https://example.com/image.jpg" }
             ],
             "description": "Optional attachments to include in the generation"
           },
@@ -239,24 +224,14 @@
                     }
                   ]
                 },
-                "mimeType": {
-                  "type": "string"
-                }
+                "mimeType": { "type": "string" }
               },
               "required": ["file"]
             },
             "example": [
-              {
-                "file": "file_data",
-                "mimeType": "application/pdf"
-              },
-              {
-                "file": "image_data",
-                "mimeType": "image/png"
-              },
-              {
-                "file": "https://example.com/image.jpg"
-              }
+              { "file": "file_data", "mimeType": "application/pdf" },
+              { "file": "image_data", "mimeType": "image/png" },
+              { "file": "https://example.com/image.jpg" }
             ],
             "description": "Optional attachments to include in the generation"
           },
@@ -283,18 +258,10 @@
       },
       "StreamTextEvent": {
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/StreamTextEventObject"
-          },
-          {
-            "$ref": "#/components/schemas/StreamTextEventTextDelta"
-          },
-          {
-            "$ref": "#/components/schemas/StreamTextEventError"
-          },
-          {
-            "$ref": "#/components/schemas/StreamTextEventFinish"
-          }
+          { "$ref": "#/components/schemas/StreamTextEventObject" },
+          { "$ref": "#/components/schemas/StreamTextEventTextDelta" },
+          { "$ref": "#/components/schemas/StreamTextEventError" },
+          { "$ref": "#/components/schemas/StreamTextEventFinish" }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -309,17 +276,10 @@
       "StreamTextEventObject": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "object"
-          },
+          "type": { "type": "string", "const": "object" },
           "object": {
             "type": "object",
-            "properties": {
-              "output": {
-                "type": "string"
-              }
-            },
+            "properties": { "output": { "type": "string" } },
             "required": ["output"]
           }
         },
@@ -328,23 +288,15 @@
       "StreamTextEventTextDelta": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "text-delta"
-          },
-          "textDelta": {
-            "type": "string"
-          }
+          "type": { "type": "string", "const": "text-delta" },
+          "textDelta": { "type": "string" }
         },
         "required": ["type", "textDelta"]
       },
       "StreamTextEventError": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "error"
-          },
+          "type": { "type": "string", "const": "error" },
           "error": {}
         },
         "required": ["type"]
@@ -352,10 +304,7 @@
       "StreamTextEventFinish": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "finish"
-          },
+          "type": { "type": "string", "const": "finish" },
           "finishReason": {
             "type": "string",
             "enum": [
@@ -371,15 +320,9 @@
           "usage": {
             "type": "object",
             "properties": {
-              "promptTokens": {
-                "type": "number"
-              },
-              "completionTokens": {
-                "type": "number"
-              },
-              "totalTokens": {
-                "type": "number"
-              }
+              "promptTokens": { "type": "number" },
+              "completionTokens": { "type": "number" },
+              "totalTokens": { "type": "number" }
             },
             "required": ["promptTokens", "completionTokens", "totalTokens"]
           }
@@ -388,18 +331,10 @@
       },
       "StreamEvent": {
         "oneOf": [
-          {
-            "$ref": "#/components/schemas/StreamEventObject"
-          },
-          {
-            "$ref": "#/components/schemas/StreamEventTextDelta"
-          },
-          {
-            "$ref": "#/components/schemas/StreamEventError"
-          },
-          {
-            "$ref": "#/components/schemas/StreamEventFinish"
-          }
+          { "$ref": "#/components/schemas/StreamEventObject" },
+          { "$ref": "#/components/schemas/StreamEventTextDelta" },
+          { "$ref": "#/components/schemas/StreamEventError" },
+          { "$ref": "#/components/schemas/StreamEventFinish" }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -414,18 +349,11 @@
       "StreamEventObject": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "object"
-          },
+          "type": { "type": "string", "const": "object" },
           "object": {
             "anyOf": [
-              {
-                "$ref": "#/components/schemas/StreamEventObjectText"
-              },
-              {
-                "$ref": "#/components/schemas/StreamEventObjectUnknown"
-              }
+              { "$ref": "#/components/schemas/StreamEventObjectText" },
+              { "$ref": "#/components/schemas/StreamEventObjectUnknown" }
             ]
           }
         },
@@ -433,40 +361,26 @@
       },
       "StreamEventObjectText": {
         "type": "object",
-        "properties": {
-          "text": {
-            "type": "string"
-          }
-        },
+        "properties": { "text": { "type": "string" } },
         "required": ["text"]
       },
       "StreamEventObjectUnknown": {
         "type": "object",
-        "properties": {
-          "object": {}
-        },
+        "properties": { "object": {} },
         "description": "Used for structured responses, based on the schema"
       },
       "StreamEventTextDelta": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "text-delta"
-          },
-          "textDelta": {
-            "type": "string"
-          }
+          "type": { "type": "string", "const": "text-delta" },
+          "textDelta": { "type": "string" }
         },
         "required": ["type", "textDelta"]
       },
       "StreamEventError": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "error"
-          },
+          "type": { "type": "string", "const": "error" },
           "error": {}
         },
         "required": ["type"]
@@ -474,10 +388,7 @@
       "StreamEventFinish": {
         "type": "object",
         "properties": {
-          "type": {
-            "type": "string",
-            "const": "finish"
-          },
+          "type": { "type": "string", "const": "finish" },
           "finishReason": {
             "type": "string",
             "enum": [
@@ -493,15 +404,9 @@
           "usage": {
             "type": "object",
             "properties": {
-              "promptTokens": {
-                "type": "number"
-              },
-              "completionTokens": {
-                "type": "number"
-              },
-              "totalTokens": {
-                "type": "number"
-              }
+              "promptTokens": { "type": "number" },
+              "completionTokens": { "type": "number" },
+              "totalTokens": { "type": "number" }
             },
             "required": ["promptTokens", "completionTokens", "totalTokens"]
           }
@@ -513,27 +418,27 @@
         "properties": {
           "origin": {
             "type": "string",
-            "example": "sdk",
+            "example": "SDK",
             "description": "The origin of the run"
           },
           "status": {
             "type": "string",
-            "example": "completed",
+            "example": "COMPLETED",
             "description": "The status of the run"
           },
           "input": {
             "type": "string",
-            "example": "Hello, world!",
+            "example": "Who are you?",
             "description": "The input of the run"
           },
           "output": {
             "type": "string",
-            "example": "Hello, world!",
+            "example": "I'm a helpful assistant",
             "description": "The output of the run"
           },
           "prompt": {
             "type": "string",
-            "example": "Hello, world!",
+            "example": "Be friendly and helpful",
             "description": "The prompt of the run"
           },
           "inputTokens": {
@@ -566,21 +471,69 @@
             "properties": {
               "name": {
                 "type": "string",
-                "example": "gpt-4o",
+                "example": "GPT-4o",
                 "description": "The name of the model"
               },
               "tag": {
                 "type": "string",
-                "example": "gpt-4o",
+                "example": "openai:gpt-4o",
                 "description": "The tag of the model"
               }
             },
             "required": ["name", "tag"]
           },
-          "schema": {
-            "type": ["string", "null"],
-            "example": "{}",
-            "description": "The schema used to generate the object"
+          "attachments": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "example": "https://example.com/image.jpg",
+                  "description": "The URL of the attachment"
+                },
+                "mimeType": {
+                  "type": "string",
+                  "example": "image/jpeg",
+                  "description": "The MIME type of the attachment"
+                },
+                "id": {
+                  "type": "string",
+                  "example": "attachment_1234567890",
+                  "description": "The ID of the attachment"
+                }
+              },
+              "required": ["url", "mimeType", "id"]
+            }
+          },
+          "knowledge": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "1353151353531",
+                  "description": "The ID of the knowledge"
+                },
+                "title": {
+                  "type": ["string", "null"],
+                  "example": "My Resource",
+                  "description": "The title of the knowledge"
+                },
+                "url": {
+                  "type": "string",
+                  "example": "https://example.com/resource.pdf",
+                  "description": "The URL of the knowledge"
+                },
+                "type": {
+                  "type": "string",
+                  "example": "file",
+                  "description": "The type of the knowledge"
+                }
+              },
+              "required": ["id", "title", "url", "type"]
+            }
           },
           "workflowId": {
             "type": "string",
@@ -605,7 +558,8 @@
           "durationInMs",
           "threadId",
           "model",
-          "schema",
+          "attachments",
+          "knowledge",
           "workflowId",
           "createdAt"
         ]
@@ -707,9 +661,7 @@
           },
           "lookupKeys": {
             "type": ["array", "null"],
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "example": ["user-123", "platform-web-app"],
             "description": "The lookup keys of the thread"
           },
@@ -736,9 +688,7 @@
           },
           "lookupKeys": {
             "type": "array",
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "example": ["user-123", "platform-web-app"],
             "description": "Optional lookup keys for finding the thread later"
           },
@@ -756,9 +706,7 @@
         "properties": {
           "threads": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GetThreadResponse"
-            },
+            "items": { "$ref": "#/components/schemas/GetThreadResponse" },
             "description": "Array of threads for the workflow"
           }
         },
@@ -779,9 +727,7 @@
           },
           "lookupKeys": {
             "type": ["array", "null"],
-            "items": {
-              "type": "string"
-            },
+            "items": { "type": "string" },
             "example": ["user-123-session"],
             "description": "The lookup keys of the thread"
           },
@@ -803,63 +749,15 @@
         "properties": {
           "runs": {
             "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ThreadRun"
-            },
+            "items": { "$ref": "#/components/schemas/GetRunByIdResponse" },
             "description": "Array of runs in the thread"
           }
         },
         "required": ["runs"]
-      },
-      "ThreadRun": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "run_1234567890",
-            "description": "The ID of the run"
-          },
-          "input": {
-            "type": "string",
-            "example": "What is React?",
-            "description": "The input of the run"
-          },
-          "output": {
-            "type": "string",
-            "example": "React is a JavaScript library...",
-            "description": "The output of the run"
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2021-01-01T00:00:00.000Z",
-            "description": "The creation date of the run"
-          },
-          "model": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string",
-                "example": "gpt-4o",
-                "description": "The name of the model"
-              },
-              "tag": {
-                "type": "string",
-                "example": "openai:gpt-4o",
-                "description": "The tag of the model"
-              }
-            },
-            "required": ["name", "tag"]
-          }
-        },
-        "required": ["id", "input", "output", "createdAt", "model"]
       }
     }
   },
-  "security": [
-    {
-      "ApiKey": []
-    }
-  ],
+  "security": [{ "ApiKey": [] }],
   "paths": {
     "/api/v1/generate/text": {
       "post": {
@@ -874,21 +772,13 @@
             },
             "description": "Successfully generated content (we also return the run ID in the header X-Run-ID)"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "generateText",
         "parameters": [],
@@ -897,9 +787,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TextCompletionInput"
-              }
+              "schema": { "$ref": "#/components/schemas/TextCompletionInput" }
             }
           }
         }
@@ -918,21 +806,13 @@
             },
             "description": "Successfully generated object (we also return the run ID in the header X-Run-ID)"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "generateObject",
         "parameters": [],
@@ -941,9 +821,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ObjectCompletionInput"
-              }
+              "schema": { "$ref": "#/components/schemas/ObjectCompletionInput" }
             }
           }
         }
@@ -955,28 +833,18 @@
           "200": {
             "content": {
               "text/event-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/StreamTextEvent"
-                }
+                "schema": { "$ref": "#/components/schemas/StreamTextEvent" }
               }
             },
             "description": "Successfully streaming content"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "streamText",
         "parameters": [],
@@ -989,9 +857,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TextCompletionInput"
-              }
+              "schema": { "$ref": "#/components/schemas/TextCompletionInput" }
             }
           }
         }
@@ -1003,28 +869,18 @@
           "200": {
             "content": {
               "text/event-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/StreamEvent"
-                }
+                "schema": { "$ref": "#/components/schemas/StreamEvent" }
               }
             },
             "description": "Successfully streaming content"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "streamObject",
         "parameters": [],
@@ -1037,9 +893,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ObjectCompletionInput"
-              }
+              "schema": { "$ref": "#/components/schemas/ObjectCompletionInput" }
             }
           }
         }
@@ -1051,28 +905,18 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetRunByIdResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/GetRunByIdResponse" }
               }
             },
             "description": "Successfully retrieved run details"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "getRunById",
         "parameters": [
@@ -1097,28 +941,18 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetModelsResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/GetModelsResponse" }
               }
             },
             "description": "Successfully retrieved models"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "getModels",
         "parameters": [],
@@ -1139,21 +973,13 @@
             },
             "description": "Successfully created thread"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "createThread",
         "parameters": [],
@@ -1162,9 +988,7 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateThreadInput"
-              }
+              "schema": { "$ref": "#/components/schemas/CreateThreadInput" }
             }
           }
         }
@@ -1183,21 +1007,13 @@
             },
             "description": "Successfully retrieved threads"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "getThreadsByWorkflow",
         "parameters": [
@@ -1215,11 +1031,11 @@
             "in": "query",
             "name": "lookupKeys",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "example": ["user-123-session"],
+              "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } }
+              ],
+              "example": ["user-123", "platform-web-app"],
               "description": "Optional lookup keys to filter threads"
             }
           }
@@ -1241,21 +1057,13 @@
             },
             "description": "Successfully retrieved thread runs"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "getRunsByThread",
         "parameters": [
@@ -1280,35 +1088,23 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetThreadResponse"
-                }
+                "schema": { "$ref": "#/components/schemas/GetThreadResponse" }
               }
             },
             "description": "Successfully retrieved thread"
           },
-          "400": {
-            "description": "Bad request - invalid input"
-          },
-          "401": {
-            "description": "Unauthorized - invalid API key"
-          },
+          "400": { "description": "Bad request - invalid input" },
+          "401": { "description": "Unauthorized - invalid API key" },
           "403": {
             "description": "Forbidden - organization does not have an active subscription"
           },
-          "404": {
-            "description": "Not found - workflow not found"
-          },
-          "500": {
-            "description": "Server error during generation"
-          }
+          "404": { "description": "Not found - workflow not found" },
+          "500": { "description": "Server error during generation" }
         },
         "operationId": "getThreadById",
         "parameters": [
           {
-            "schema": {
-              "type": "string"
-            },
+            "schema": { "type": "string" },
             "in": "path",
             "name": "id",
             "required": true

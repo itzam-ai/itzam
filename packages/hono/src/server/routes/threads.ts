@@ -159,18 +159,40 @@ export const threadsRoute = new Hono()
 
         const runs = await getThreadRunsHistory(threadId, userId);
 
-        return c.json({
+        const response = {
           runs: runs.map((run) => ({
-            id: run.id,
+            origin: run.origin,
+            status: run.status,
             input: run.input,
-            output: run.output || "",
-            createdAt: run.createdAt.toISOString(),
+            output: run.output ?? "",
+            prompt: run.prompt,
+            inputTokens: run.inputTokens,
+            outputTokens: run.outputTokens,
+            cost: run.cost,
+            durationInMs: run.durationInMs,
+            threadId: run.threadId ?? null,
             model: {
-              name: run.model?.name || "",
-              tag: run.model?.tag || "",
+              name: run.model?.name ?? "",
+              tag: run.model?.tag ?? "",
             },
+            attachments: run.attachments.map((attachment) => ({
+              id: attachment.id,
+              url: attachment.url,
+              mimeType: attachment.mimeType,
+            })),
+            knowledge: run.runResources.map((resource) => ({
+              id: resource.resource.id,
+              title: resource.resource.title,
+              url: resource.resource.url,
+              type: resource.resource.type,
+              // In the future: context property -- null if no context, object if it's from context
+            })),
+            workflowId: run.workflowId ?? "",
+            createdAt: run.createdAt.toISOString(),
           })),
-        });
+        };
+
+        return c.json(response);
       } catch (error) {
         return c.json(createErrorResponse(error), 500);
       }
