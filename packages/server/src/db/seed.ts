@@ -480,6 +480,20 @@ async function seed() {
       maxTokens: 65536,
       providerId: "google",
     },
+    {
+      tag: "google:gemini-2.5-flash-lite-preview-06-17",
+      name: "Gemini 2.5 Flash Lite",
+      hasVision: true,
+      isOpenSource: false,
+      hasReasoningCapability: false,
+      contextWindowSize: 1048576,
+      inputPerMillionTokenCost: String(0.1),
+      outputPerMillionTokenCost: String(0.4),
+      maxTemperature: 2.0,
+      defaultTemperature: 1.0,
+      maxTokens: 65536,
+      providerId: "google",
+    },
     // MISTRAL
     {
       tag: "mistral:pixtral-large-latest",

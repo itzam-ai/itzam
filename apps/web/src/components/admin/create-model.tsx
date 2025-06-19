@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { createModel } from '@itzam/server/db/model/actions';
-import { Brain, Code, Eye, Plus } from 'lucide-react';
-import ProviderIcon from 'public/models/svgs/provider-icon';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { cn } from '~/lib/utils';
-import { Button } from '../ui/button';
+import { createModel } from "@itzam/server/db/model/actions";
+import { Brain, Code, Eye, Plus } from "lucide-react";
+import ProviderIcon from "public/models/svgs/provider-icon";
+import { useState } from "react";
+import { toast } from "sonner";
+import { cn } from "~/lib/utils";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Spinner } from '../ui/spinner';
-import { Switch } from '../ui/switch';
+} from "../ui/select";
+import { Spinner } from "../ui/spinner";
+import { Switch } from "../ui/switch";
 
 type Provider = {
   id: string;
@@ -34,19 +34,19 @@ type Provider = {
 export function CreateModel({ providers }: { providers: Provider[] }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [modelName, setModelName] = useState('');
-  const [modelTag, setModelTag] = useState('');
-  const [modelProviderId, setModelProviderId] = useState('');
-  const [modelInputCost, setModelInputCost] = useState('');
-  const [modelOutputCost, setModelOutputCost] = useState('');
+  const [modelName, setModelName] = useState("");
+  const [modelTag, setModelTag] = useState("");
+  const [modelProviderId, setModelProviderId] = useState("");
+  const [modelInputCost, setModelInputCost] = useState("");
+  const [modelOutputCost, setModelOutputCost] = useState("");
   const [modelContextWindow, setModelContextWindow] = useState(0);
   const [modelHasReasoningCapability, setModelHasReasoningCapability] =
     useState(false);
   const [modelHasVision, setModelHasVision] = useState(false);
   const [modelIsOpenSource, setModelIsOpenSource] = useState(false);
   const [modelDeprecated, setModelDeprecated] = useState(false);
-  const [modelMaxTemperature, setModelMaxTemperature] = useState('');
-  const [modelDefaultTemperature, setModelDefaultTemperature] = useState('');
+  const [modelMaxTemperature, setModelMaxTemperature] = useState("");
+  const [modelDefaultTemperature, setModelDefaultTemperature] = useState("");
   const [modelMaxTokens, setModelMaxTokens] = useState(0);
 
   const handleUpdateModel = async () => {
@@ -70,18 +70,18 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
 
     setIsLoading(false);
     setOpen(false);
-    setModelName('');
-    setModelTag('');
-    setModelProviderId('');
-    setModelInputCost('');
-    setModelOutputCost('');
+    setModelName("");
+    setModelTag("");
+    setModelProviderId("");
+    setModelInputCost("");
+    setModelOutputCost("");
     setModelContextWindow(0);
     setModelHasReasoningCapability(false);
     setModelHasVision(false);
     setModelIsOpenSource(false);
     setModelDeprecated(false);
-    setModelMaxTemperature('');
-    setModelDefaultTemperature('');
+    setModelMaxTemperature("");
+    setModelDefaultTemperature("");
     setModelMaxTokens(0);
     toast.success(`Model ${modelName} created`);
   };
@@ -149,9 +149,9 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             </SelectTrigger>
             <SelectContent>
               {providers.map((provider) => (
-                <SelectItem key={provider?.id} value={provider?.id ?? ''}>
+                <SelectItem key={provider?.id} value={provider?.id ?? ""}>
                   <div className="flex items-center gap-2">
-                    <ProviderIcon id={provider?.id ?? ''} size="xs" />
+                    <ProviderIcon id={provider?.id ?? ""} size="xs" />
                     {provider?.name}
                   </div>
                 </SelectItem>
@@ -163,24 +163,24 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>
-              Input Cost{' '}
+              Input Cost{" "}
               <span className="text-muted-foreground text-xs">(1M tokens)</span>
             </Label>
             <Input
               type="text"
-              value={modelInputCost ?? ''}
+              value={modelInputCost ?? ""}
               onChange={(e) => setModelInputCost(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>
-              Output Cost{' '}
+              Output Cost{" "}
               <span className="text-muted-foreground text-xs">(1M tokens)</span>
             </Label>
             <Input
               type="text"
-              value={modelOutputCost ?? ''}
+              value={modelOutputCost ?? ""}
               onChange={(e) => setModelOutputCost(e.target.value)}
             />
           </div>
@@ -200,7 +200,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             <Label>Max Temperature</Label>
             <Input
               type="text"
-              value={modelMaxTemperature ?? ''}
+              value={modelMaxTemperature ?? ""}
               onChange={(e) => setModelMaxTemperature(e.target.value)}
             />
           </div>
@@ -209,7 +209,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             <Label>Default Temperature</Label>
             <Input
               type="text"
-              value={modelDefaultTemperature ?? ''}
+              value={modelDefaultTemperature ?? ""}
               onChange={(e) => setModelDefaultTemperature(e.target.value)}
             />
           </div>
@@ -232,9 +232,9 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
                 setModelHasReasoningCapability(!modelHasReasoningCapability)
               }
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelHasReasoningCapability &&
-                  'border-green-600 bg-green-600/10 text-primary',
+                  "border-green-600 bg-green-600/10 text-primary"
               )}
             >
               <Brain className="inline-block size-3" /> Reasoning
@@ -243,8 +243,8 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             <div
               onClick={() => setModelHasVision(!modelHasVision)}
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
-                modelHasVision && 'border-sky-600 bg-sky-600/10 text-primary',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
+                modelHasVision && "border-sky-600 bg-sky-600/10 text-primary"
               )}
             >
               <Eye className="size-3" /> Vision
@@ -253,9 +253,9 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             <div
               onClick={() => setModelIsOpenSource(!modelIsOpenSource)}
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelIsOpenSource &&
-                  'border-orange-600 bg-orange-600/10 text-primary',
+                  "border-orange-600 bg-orange-600/10 text-primary"
               )}
             >
               <Code className="size-3" /> Open Source
@@ -279,7 +279,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
             className="w-40"
             disabled={isLoading || !isFormComplete}
           >
-            {isLoading ? <Spinner /> : 'Create'}
+            {isLoading ? <Spinner /> : "Create"}
           </Button>
         </div>
       </DialogContent>
