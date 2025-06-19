@@ -14,6 +14,7 @@ from .database import save_chunks_to_db, update_resource_status, update_resource
 from .models import Resource
 from .supabase import send_update, send_usage_update
 from .schemas import LinkResource, FileResource, ResourceBase
+from .discord import send_discord_notification
 
 logger = logging.getLogger(__name__)
 
@@ -421,6 +422,12 @@ async def rescrape_resource_embeddings(
                 "message": "Content unchanged, skipping rescrape"
             })
             
+            # Send Discord notification for cache hit
+            await send_discord_notification(
+                content=f"🎯 - cache hit for {resource.title} ({resource.id})",
+                username="Itzam Rescrape Bot"
+            )
+            
             return {
                 "status": "skipped",
                 "reason": "content_unchanged",
@@ -433,7 +440,7 @@ async def rescrape_resource_embeddings(
         logger.info(f"Deleted old chunks for resource {resource.id}")
         
         # If content has changed, process normally
-        return await process_resource_embeddings(
+        result = await process_resource_embeddings(
             background_tasks,
             resource,
             workflow_id,
@@ -441,6 +448,21 @@ async def rescrape_resource_embeddings(
             save_to_db
         )
         
+        # Send Discord notification for content refresh
+        await send_discord_notification(
+            content=f"🔄 - refreshed for {resource.title} ({resource.id})",
+            username="Itzam Rescrape Bot"
+        )
+        
+        return result
+        
     except Exception as e:
         logger.error(f"Error rescraping resource {resource.id}: {str(e)}")
+        
+        # Send Discord notification for failure
+        await send_discord_notification(
+            content=f"❌ - failed for {resource.title} ({resource.id})",
+            username="Itzam Rescrape Bot"
+        )
+        
         raise

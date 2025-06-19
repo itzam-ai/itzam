@@ -10,7 +10,6 @@ from ..schemas import (
 )
 from ..services import rescrape_resource_embeddings
 from ..config import settings
-from ..discord import send_discord_notification
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
         # Wait for all tasks to complete
         results = await asyncio.gather(*tasks)
         
-        # Calculate statistics
+        # Calculate statistics for logging
         total_resources = len(request.resources)
         cache_hits = sum(1 for r in results if r.get("was_cache_hit", False))
         regenerated = sum(1 for r in results if not r.get("was_cache_hit", False) and "error" not in r)
@@ -88,40 +87,7 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
         end_time = datetime.utcnow()
         duration = (end_time - start_time).total_seconds()
         
-        logger.info(f"Rescrape completed: {total_resources} total, {cache_hits} cache hits, {regenerated} regenerated, {failed} failed")
-        
-        # Calculate percentages safely
-        cache_hit_pct = (cache_hits / total_resources * 100) if total_resources > 0 else 0
-        regenerated_pct = (regenerated / total_resources * 100) if total_resources > 0 else 0
-        
-        # Send Discord notification
-        embed = {
-            "title": "📄 Rescrape Job Completed",
-            "color": 0x00FF00 if failed == 0 else 0xFFA500,  # Green if no failures, orange otherwise
-            "fields": [
-                {"name": "Total Resources", "value": str(total_resources), "inline": True},
-                {"name": "Cache Hits", "value": f"{cache_hits} ({cache_hit_pct:.1f}%)", "inline": True},
-                {"name": "Regenerated", "value": f"{regenerated} ({regenerated_pct:.1f}%)", "inline": True},
-                {"name": "Failed", "value": str(failed), "inline": True},
-                {"name": "Duration", "value": f"{duration:.2f}s", "inline": True}
-            ],
-            "timestamp": datetime.utcnow().isoformat() + "Z"
-        }
-        
-        # Add failed resources info if any
-        if failed > 0:
-            failed_resources = [r["resource_id"] for r in results if "error" in r]
-            embed["fields"].append({
-                "name": "Failed Resources",
-                "value": ", ".join(failed_resources[:10]) + ("..." if len(failed_resources) > 10 else ""),
-                "inline": False
-            })
-        
-        await send_discord_notification(
-            content=f"Rescrape job completed for {total_resources} resources",
-            username="Itzam Rescrape Bot",
-            embeds=[embed]
-        )
+        logger.info(f"Rescrape completed: {total_resources} total, {cache_hits} cache hits, {regenerated} regenerated, {failed} failed in {duration:.2f}s")
 
         return CreateResourceResponse(
             success=True,
@@ -130,23 +96,6 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
         
     except Exception as e:
         logger.error(f"Error in rescrape task: {str(e)}")
-        
-        # Send error notification
-        error_embed = {
-            "title": "❌ Rescrape Job Failed",
-            "description": f"Error: {str(e)}",
-            "color": 0xFF0000,  # Red
-            "fields": [
-                {"name": "Resources Count", "value": str(len(request.resources)), "inline": True}
-            ],
-            "timestamp": datetime.utcnow().isoformat() + "Z"
-        }
-        
-        await send_discord_notification(
-            content="Rescrape job failed",
-            username="Itzam Rescrape Bot",
-            embeds=[error_embed]
-        )
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
