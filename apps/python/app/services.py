@@ -404,6 +404,20 @@ async def rescrape_resource_embeddings(
                 detail=f"Resource {resource.id} not found"
             )
         
+        # Keep status as PENDING during processing
+        logger.info(f"Starting rescrape process for resource {resource.id}")
+        
+        # Send real-time update that processing has started
+        await send_update(resource.dict(), {
+            "status": "PENDING",
+            "title": existing_resource.title or "",
+            "fileSize": existing_resource.file_size or 0,
+            "totalChunks": existing_resource.total_chunks,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id,
+            "message": "Starting rescrape process"
+        })
+        
         # Extract text content to check hash
         text_content, file_size = await get_text_from_tika(str(resource.url))
         
@@ -414,18 +428,9 @@ async def rescrape_resource_embeddings(
         if existing_resource.content_hash == new_content_hash:
             logger.info(f"Content hash unchanged for resource {resource.id}, skipping rescrape")
             
-            # Update last_scraped_at even if content hasn't changed
+            # Update status back to PROCESSED (lastScrapedAt already updated by TypeScript)
             if resource.id:
-                update_resource_status(resource.id, existing_resource.status)
-            
-            # Also update last_scraped_at in a separate call
-            session = get_db_session()
-            stmt = update(Resource).where(Resource.id == resource.id).values(
-                last_scraped_at=datetime.utcnow()
-            )
-            session.execute(stmt)
-            session.commit()
-            session.close()
+                update_resource_status(resource.id, "PROCESSED")
             
             # Send update that rescrape was skipped
             await send_update(resource.dict(), {

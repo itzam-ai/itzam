@@ -1,7 +1,7 @@
 "use server";
 import { env } from "@itzam/utils/env";
 import { addDays, addHours, isBefore } from "date-fns";
-import { and, eq, not } from "drizzle-orm";
+import { and, eq, inArray, not } from "drizzle-orm";
 import { groupBy } from "lodash";
 import { revalidatePath } from "next/cache";
 import { db } from "..";
@@ -9,7 +9,7 @@ import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
 import { customerIsSubscribedToItzamProForUserId } from "../billing/actions";
 import { checkPlanLimits, Knowledge } from "../knowledge/actions";
-import { chunks, resources, resources as resourcesTable } from "../schema";
+import { resources, resources as resourcesTable } from "../schema";
 
 export type ResourceWithKnowledgeAndWorkflow = Awaited<
   ReturnType<typeof getResourcesToRescrape>
@@ -117,7 +117,6 @@ export async function rescrapeResources(
 
   // This will be sent to the python API
   const resourcesToRescrape = [];
-  
 
   const resourcesGroupedByUserId = groupBy(
     resources,
@@ -176,6 +175,17 @@ export async function rescrapeResources(
     return;
   }
 
+  // Update all lastScrapedAt timestamps in a single query to prevent duplicate processing
+  const resourceIds = resourcesToRescrape.map((r) => r.id);
+  const updateTimestamp = new Date();
+
+  await db
+    .update(resourcesTable)
+    .set({
+      lastScrapedAt: updateTimestamp,
+    })
+    .where(inArray(resourcesTable.id, resourceIds));
+
   for (const resource of resourcesToRescrape) {
     console.log(`🐛 Sending resource ${resource.id} to Python API`);
 
@@ -213,15 +223,9 @@ export async function rescrapeResources(
     // The Python service will handle chunks appropriately:
     // - If content unchanged (cache hit), chunks remain untouched
     // - If content changed, old chunks are deleted and new ones created
-    console.log(`🐛 Successfully initiated rescrape for resource ${resource.id}`);
-
-    // Update resource lastScrapedAt regardless of cache hit or regeneration
-    await db
-      .update(resourcesTable)
-      .set({
-        lastScrapedAt: new Date(),
-      })
-      .where(eq(resourcesTable.id, resource.id));
+    console.log(
+      `🐛 Successfully initiated rescrape for resource ${resource.id}`
+    );
   }
 
   console.log(
