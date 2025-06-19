@@ -53,7 +53,12 @@ export default function SignUpPage() {
             disabled={isLoading}
             onClick={() => handleSignInWithProvider("google")}
           >
-            <Image src="/google-logo.svg" alt="Google" width={16} height={16} />
+            <Image
+              src="/logos/google-logo.svg"
+              alt="Google"
+              width={16}
+              height={16}
+            />
             Google
           </Button>
           <Button
