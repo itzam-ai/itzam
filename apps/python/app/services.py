@@ -424,7 +424,7 @@ async def rescrape_resource_embeddings(
             
             # Send Discord notification for cache hit
             await send_discord_notification(
-                content=f"🎯 - cache hit for {resource.title} ({resource.id})",
+                content=f"🎯 - cache hit for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
                 username="Itzam Rescrape Bot"
             )
             
@@ -450,7 +450,7 @@ async def rescrape_resource_embeddings(
         
         # Send Discord notification for content refresh
         await send_discord_notification(
-            content=f"🔄 - refreshed for {resource.title} ({resource.id})",
+            content=f"🔄 - refreshed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
             username="Itzam Rescrape Bot"
         )
         
@@ -461,7 +461,7 @@ async def rescrape_resource_embeddings(
         
         # Send Discord notification for failure
         await send_discord_notification(
-            content=f"❌ - failed for {resource.title} ({resource.id})",
+            content=f"❌ - failed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency if 'existing_resource' in locals() else 'UNKNOWN'}",
             username="Itzam Rescrape Bot"
         )
         
