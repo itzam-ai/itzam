@@ -42,6 +42,7 @@ mdurl==0.1.2
 more-itertools==10.7.0
 msgpack==1.1.0
 multidict==6.4.4
+nodeenv==1.9.1
 numpy==2.2.6
 openai==1.82.1
 packaging==25.0
@@ -56,6 +57,7 @@ pydantic-settings==2.9.1
 pydantic_core==2.33.2
 Pygments==2.19.1
 PyJWT==2.10.1
+pyright==1.1.402
 pytest==8.3.5
 pytest-mock==3.14.1
 python-dateutil==2.9.0.post0

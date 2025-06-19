@@ -22,7 +22,7 @@ async def get_supabase_async_client() -> AsyncClient:
 
 def get_channel_id(resource: Dict[str, Any], knowledge_id: str) -> str:
     """Generate channel ID for Supabase realtime updates."""
-    channel_type = "files" if resource.type == "FILE" else "links"
+    channel_type = "files" if resource.get("type") == "FILE" else "links"
     return f"knowledge-{knowledge_id}-{channel_type}"
 
 async def send_update(resource: Dict[str, Any], payload: Dict[str, Any], event_type: str = "update"):

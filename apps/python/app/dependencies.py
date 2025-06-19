@@ -15,7 +15,7 @@ async def verify_auth_token(credentials: HTTPAuthorizationCredentials = Depends(
         supabase = get_supabase_client()
         # Verify the JWT token with Supabase
         response = supabase.auth.get_user(credentials.credentials)
-        if not response.user:
+        if not response or not response.user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token"

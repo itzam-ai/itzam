@@ -56,4 +56,4 @@ class Settings(BaseSettings):
         """Check if all required configuration is present."""
         return len(self.required_vars_missing) == 0
 
-settings = Settings() 
+settings = Settings()  # type: ignore[call-arg] 
