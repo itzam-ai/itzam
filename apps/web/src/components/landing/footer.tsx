@@ -39,7 +39,7 @@ export function Footer() {
                 <GitHubLogo size="sm" />
               </Link>
               <Link
-                href="https://discord.gg/itzam"
+                href="https://discord.gg/RtqC7brGbk"
                 target="_blank"
                 className="hover:opacity-80 transition-opacity"
               >
