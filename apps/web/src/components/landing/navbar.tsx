@@ -23,7 +23,6 @@ import {
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import GitHubLogo from "public/github-logo";
 
 const features = [
   {
@@ -123,19 +122,6 @@ export function NavBar() {
             </div>
 
             <div className="flex gap-2 items-center justify-end">
-              <Link
-                href="https://github.com/itzam-ai/itzam"
-                target="_blank"
-                className="hidden md:block"
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="gap-1.5 hover:bg-transparent hover:opacity-70 transition-opacity"
-                >
-                  <GitHubLogo size="md" />
-                </Button>
-              </Link>
               {isSignedIn ? (
                 <Link href="/dashboard" prefetch={true}>
                   <Button variant="secondary">
@@ -146,7 +132,7 @@ export function NavBar() {
               ) : (
                 <div className="flex items-center gap-x-2 text-sm">
                   <Link href="/auth/sign-up" prefetch={true}>
-                    <Button variant="ghost">Sign Up</Button>
+                    <Button variant="secondary">Sign Up</Button>
                   </Link>
                   <Link href="/auth/login" prefetch={true}>
                     <Button variant="primary">Login</Button>

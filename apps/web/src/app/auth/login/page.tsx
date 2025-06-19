@@ -10,7 +10,7 @@ import { Label } from "~/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import GitHubLogo from "public/github-logo";
+import GitHubLogo from "public/logos/github-logo";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
