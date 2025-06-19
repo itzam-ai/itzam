@@ -33,7 +33,7 @@ async def send_discord_notification(
     
     try:
         # Prepare payload
-        payload = {
+        payload: Dict[str, Any] = {
             "content": content
         }
         
