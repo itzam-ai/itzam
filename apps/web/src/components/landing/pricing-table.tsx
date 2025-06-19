@@ -38,7 +38,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <div className="relative flex flex-col justify-center">
-      <div className="flex w-full rounded-xl bg-muted/50 p-1 shadow-sm md:flex-row flex-col md:gap-0 gap-4">
+      <div className="flex w-full rounded-xl bg-muted/50 shadow-sm md:flex-row flex-col md:gap-0 gap-4">
         <div className="w-full md:w-2/6">
           <PricingCard
             title="Hobby"
