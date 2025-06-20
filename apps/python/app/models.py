@@ -237,7 +237,7 @@ class ContextItem(Base):
     __tablename__ = 'context_item'
     __table_args__ = (
         ForeignKeyConstraint(['context_id'], ['context.id'], name='context_item_context_id_context_id_fk'),
-        PrimaryKeyConstraint('id', name='context_item_pkey'),
+        PrimaryKeyConstraint('id', name='context_item_pkey1'),
         Index('context_id_idx', 'context_id')
     )
 
@@ -335,8 +335,8 @@ class Resource(Base):
     file_name: Mapped[Optional[str]] = mapped_column(String(256))
     file_size: Mapped[Optional[int]] = mapped_column(Integer)
     knowledge_id: Mapped[Optional[str]] = mapped_column(String(256))
-    last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     content_hash: Mapped[Optional[str]] = mapped_column(String(256))
+    last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
 
     knowledge: Mapped[Optional['Knowledge']] = relationship('Knowledge', back_populates='resource')
     chunks: Mapped[List['Chunks']] = relationship('Chunks', back_populates='resource')
@@ -387,13 +387,13 @@ class Workflow(Base):
     slug: Mapped[str] = mapped_column(String(256))
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))
     prompt: Mapped[str] = mapped_column(Text)
-    context_id: Mapped[str] = mapped_column(String(256))
     model_id: Mapped[str] = mapped_column(String(256))
     model_settings_id: Mapped[str] = mapped_column(String(256))
     user_id: Mapped[uuid.UUID] = mapped_column(Uuid)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
     knowledge_id: Mapped[str] = mapped_column(String(256))
+    context_id: Mapped[str] = mapped_column(String(256))
     description: Mapped[Optional[str]] = mapped_column(Text)
 
     context: Mapped['Context'] = relationship('Context', back_populates='workflow')

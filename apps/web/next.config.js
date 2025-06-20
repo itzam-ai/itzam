@@ -7,6 +7,7 @@
 const config = {
   reactStrictMode: false,
   experimental: {
+    instrumentationHook: true,
     serverActions: {
       bodySizeLimit: "10mb",
     },
@@ -57,7 +58,9 @@ const config = {
     ];
   },
   webpack: (config, { isServer }) => {
-    if (!isServer) {
+    if (isServer) {
+      config.ignoreWarnings = [{ module: /opentelemetry/ }];
+    } else {
       // Don't resolve 'fs', 'net', 'tls' modules on the client to prevent errors
       config.resolve.fallback = {
         ...config.resolve.fallback,

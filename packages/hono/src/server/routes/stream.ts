@@ -4,7 +4,7 @@ import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import { streamSSE } from "hono/streaming";
 import { StreamEventSchema, StreamTextEventSchema } from "../../client/schemas";
-import { setupRunGeneration } from "../../utils";
+import { setupRunGeneration, createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
@@ -40,30 +40,56 @@ export const streamRoute = new Hono()
       const { workflowSlug, threadId, input, attachments } =
         c.req.valid("json");
 
-      const setup = await setupRunGeneration({
-        userId,
-        workflowSlug,
-        threadId: threadId || null,
-        input,
-        attachments,
-      });
+      try {
+        const setup = await setupRunGeneration({
+          userId,
+          workflowSlug,
+          threadId: threadId || null,
+          input,
+          attachments,
+        });
 
-      if ("error" in setup) {
-        return c.json({ error: setup.error }, setup.status);
+        if ("error" in setup) {
+          return c.json({ error: setup.error }, setup.status);
+        }
+
+        return streamSSE(c, async (stream) => {
+          try {
+            const { aiParams, run, workflow } = setup;
+            const startTime = Date.now();
+            await generateTextOrObjectStream(
+              aiParams,
+              run,
+              workflow.model,
+              startTime,
+              stream,
+              "text"
+            );
+          } catch (streamError) {
+            // Send error event to stream
+            await stream.writeSSE({
+              data: JSON.stringify({
+                error: "Stream processing failed",
+                details: streamError instanceof Error ? streamError.message : "Unknown error"
+              }),
+              event: "error"
+            });
+            
+            // Don't notify Discord here - the AI library's onError callback already handles it
+            console.error("Stream processing error:", streamError);
+            
+            // Close the stream
+            await stream.close();
+          }
+        });
+      } catch (error) {
+        const errorResponse = createErrorResponse(error, {
+          userId,
+          workflowSlug,
+          endpoint: "/stream/text"
+        });
+        return c.json(errorResponse, 500);
       }
-
-      return streamSSE(c, async (stream) => {
-        const { aiParams, run, workflow } = setup;
-        const startTime = Date.now();
-        await generateTextOrObjectStream(
-          aiParams,
-          run,
-          workflow.model,
-          startTime,
-          stream,
-          "text"
-        );
-      });
     }
   )
   .post(
@@ -92,30 +118,56 @@ export const streamRoute = new Hono()
       const { workflowSlug, threadId, input, schema, attachments } =
         c.req.valid("json");
 
-      const setup = await setupRunGeneration({
-        userId,
-        workflowSlug,
-        threadId: threadId || null,
-        input,
-        schema,
-        attachments,
-      });
+      try {
+        const setup = await setupRunGeneration({
+          userId,
+          workflowSlug,
+          threadId: threadId || null,
+          input,
+          schema,
+          attachments,
+        });
 
-      if ("error" in setup) {
-        return c.json({ error: setup.error }, setup.status);
+        if ("error" in setup) {
+          return c.json({ error: setup.error }, setup.status);
+        }
+
+        return streamSSE(c, async (stream) => {
+          try {
+            const { aiParams, run, workflow } = setup;
+            const startTime = Date.now();
+            await generateTextOrObjectStream(
+              aiParams,
+              run,
+              workflow.model,
+              startTime,
+              stream,
+              "object"
+            );
+          } catch (streamError) {
+            // Send error event to stream
+            await stream.writeSSE({
+              data: JSON.stringify({
+                error: "Stream processing failed",
+                details: streamError instanceof Error ? streamError.message : "Unknown error"
+              }),
+              event: "error"
+            });
+            
+            // Don't notify Discord here - the AI library's onError callback already handles it
+            console.error("Stream processing error:", streamError);
+            
+            // Close the stream
+            await stream.close();
+          }
+        });
+      } catch (error) {
+        const errorResponse = createErrorResponse(error, {
+          userId,
+          workflowSlug,
+          endpoint: "/stream/object"
+        });
+        return c.json(errorResponse, 500);
       }
-
-      return streamSSE(c, async (stream) => {
-        const { aiParams, run, workflow } = setup;
-        const startTime = Date.now();
-        await generateTextOrObjectStream(
-          aiParams,
-          run,
-          workflow.model,
-          startTime,
-          stream,
-          "object"
-        );
-      });
     }
   );

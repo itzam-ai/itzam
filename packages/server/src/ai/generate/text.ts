@@ -7,6 +7,7 @@ import { calculateRunCost } from "../../db/run/utils";
 import { PreRunDetails } from "../../types";
 import type { AiParams } from "../types";
 import { type GenerationResponse, handleRunCompletion } from "../utils";
+import { notifyStreamingError } from "@itzam/utils";
 
 export async function generateTextOrObjectStream(
   aiParams: AiParams,
@@ -61,6 +62,15 @@ export async function generateTextOrObjectStream(
             },
             onError: async ({ error }) => {
               console.error("Error during streaming:", error);
+              
+              // Send Discord notification for streaming errors
+              if (error instanceof Error) {
+                await notifyStreamingError(error, {
+                  runId: run.id,
+                  streamType: "object"
+                });
+              }
+              
               await handleRunCompletion({
                 run,
                 model,
@@ -111,6 +121,15 @@ export async function generateTextOrObjectStream(
             },
             onError: async ({ error }) => {
               console.error("Error during streaming:", error);
+              
+              // Send Discord notification for streaming errors
+              if (error instanceof Error) {
+                await notifyStreamingError(error, {
+                  runId: run.id,
+                  streamType: "text"
+                });
+              }
+              
               await handleRunCompletion({
                 run,
                 model,
