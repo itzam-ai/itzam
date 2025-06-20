@@ -7,6 +7,7 @@ import {
 import { db } from "@itzam/server/db/index";
 import { threads } from "@itzam/server/db/schema";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
+import { notifyDiscordError } from "@itzam/utils";
 import { tryCatch } from "@itzam/utils/try-catch";
 import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
@@ -43,17 +44,17 @@ export type StatusCode = 200 | 400 | 401 | 404 | 500;
 type ValidationResult = ValidationError | ValidationSuccess;
 
 // Common error response function
-export const createErrorResponse = (error: unknown, context?: { userId?: string; workflowSlug?: string; endpoint?: string }) => {
+export const createErrorResponse = (
+  error: unknown,
+  context?: { userId?: string; workflowSlug?: string; endpoint?: string }
+) => {
   console.error("Error in endpoint:", error);
-  
+
   // Send Discord notification for production errors
-  if (error instanceof Error && process.env.NODE_ENV === "production") {
-    // Use dynamic import to avoid circular dependencies
-    import("./utils/discord-notifier").then(({ notifyDiscordError }) => {
-      notifyDiscordError(error, context).catch(console.error);
-    });
+  if (error instanceof Error) {
+    notifyDiscordError(error, context).catch(console.error);
   }
-  
+
   const errorMessage =
     error instanceof Error
       ? `${error.name}: ${error.message}`

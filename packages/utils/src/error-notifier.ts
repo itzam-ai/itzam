@@ -4,14 +4,20 @@ interface ErrorContext {
   runId?: string;
   endpoint?: string;
   streamType?: "text" | "object";
+  environment?: string;
 }
 
-export async function notifyStreamingError(
+interface NotifyErrorOptions {
+  skipProductionCheck?: boolean;
+}
+
+export async function notifyError(
   error: Error,
-  context?: ErrorContext
+  context?: ErrorContext,
+  options?: NotifyErrorOptions
 ): Promise<void> {
-  // Only send notifications in production
-  if (process.env.NODE_ENV !== "production") {
+  // Skip notifications in non-production unless explicitly overridden
+  if (!options?.skipProductionCheck && process.env.NODE_ENV !== "production") {
     return;
   }
 
@@ -27,7 +33,7 @@ export async function notifyStreamingError(
       context: {
         ...context,
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || "production",
+        environment: context?.environment || process.env.NODE_ENV || "production",
       },
     };
 
@@ -44,11 +50,28 @@ export async function notifyStreamingError(
     });
 
     if (!response.ok) {
-      console.error("Failed to send Discord streaming error notification:", response.statusText);
+      console.error("Failed to send Discord error notification:", response.statusText);
     }
   } catch (notificationError) {
-    console.error("Error sending Discord streaming error notification:", notificationError);
+    console.error("Error sending Discord error notification:", notificationError);
   }
+}
+
+// Backward compatibility wrapper
+export async function notifyDiscordError(
+  error: Error,
+  context?: ErrorContext
+): Promise<void> {
+  // Skip production check for backward compatibility
+  return notifyError(error, context, { skipProductionCheck: true });
+}
+
+// Streaming-specific wrapper
+export async function notifyStreamingError(
+  error: Error,
+  context?: ErrorContext
+): Promise<void> {
+  return notifyError(error, context);
 }
 
 function getErrorCode(error: Error): number | undefined {
@@ -75,6 +98,6 @@ function getErrorCode(error: Error): number | undefined {
     return 404;
   }
   
-  // Default to 500 for streaming errors
+  // Default to 500 for unknown errors
   return 500;
 }

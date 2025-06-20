@@ -74,6 +74,20 @@ class Users(Base):
     workflow: Mapped[List['Workflow']] = relationship('Workflow', back_populates='user')
 
 
+class Context(Base):
+    __tablename__ = 'context'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='context_pkey'),
+    )
+
+    id: Mapped[str] = mapped_column(String(256), primary_key=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
+
+    context_item: Mapped[List['ContextItem']] = relationship('ContextItem', back_populates='context')
+    workflow: Mapped[List['Workflow']] = relationship('Workflow', back_populates='context')
+
+
 t_hypopg_hidden_indexes = Table(
     'hypopg_hidden_indexes', Base.metadata,
     Column('indexrelid', OID),
@@ -219,6 +233,26 @@ class ApiKey(Base):
     user: Mapped['Users'] = relationship('Users', back_populates='api_key')
 
 
+class ContextItem(Base):
+    __tablename__ = 'context_item'
+    __table_args__ = (
+        ForeignKeyConstraint(['context_id'], ['context.id'], name='context_item_context_id_context_id_fk'),
+        PrimaryKeyConstraint('id', name='context_item_pkey1'),
+        Index('context_id_idx', 'context_id')
+    )
+
+    id: Mapped[str] = mapped_column(String(256), primary_key=True)
+    name: Mapped[str] = mapped_column(String(256))
+    content: Mapped[str] = mapped_column(Text)
+    type: Mapped[str] = mapped_column(Enum('TEXT', 'IMAGE', 'FILE', 'URL', name='context_item_type'))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
+    description: Mapped[Optional[str]] = mapped_column(Text)
+    context_id: Mapped[Optional[str]] = mapped_column(String(256))
+
+    context: Mapped[Optional['Context']] = relationship('Context', back_populates='context_item')
+
+
 class Model(Base):
     __tablename__ = 'model'
     __table_args__ = (
@@ -293,14 +327,19 @@ class Resource(Base):
     mime_type: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
+    scrape_frequency: Mapped[str] = mapped_column(Enum('NEVER', 'HOURLY', 'DAILY', 'WEEKLY', name='resource_scrape_frequency'), server_default=text("'NEVER'::resource_scrape_frequency"))
+    total_chunks: Mapped[int] = mapped_column(Integer, server_default=text('0'))
+    total_batches: Mapped[int] = mapped_column(Integer, server_default=text('0'))
+    processed_batches: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     title: Mapped[Optional[str]] = mapped_column(String(256))
     file_name: Mapped[Optional[str]] = mapped_column(String(256))
     file_size: Mapped[Optional[int]] = mapped_column(Integer)
     knowledge_id: Mapped[Optional[str]] = mapped_column(String(256))
+    content_hash: Mapped[Optional[str]] = mapped_column(String(256))
+    last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
 
     knowledge: Mapped[Optional['Knowledge']] = relationship('Knowledge', back_populates='resource')
     chunks: Mapped[List['Chunks']] = relationship('Chunks', back_populates='resource')
-    resource_contexts: Mapped[List['ResourceContexts']] = relationship('ResourceContexts', back_populates='resource')
     run_resource: Mapped[List['RunResource']] = relationship('RunResource', back_populates='resource')
 
 
@@ -330,12 +369,13 @@ class Chat(Base):
 class Workflow(Base):
     __tablename__ = 'workflow'
     __table_args__ = (
+        ForeignKeyConstraint(['context_id'], ['context.id'], name='workflow_context_id_context_id_fk'),
         ForeignKeyConstraint(['knowledge_id'], ['knowledge.id'], name='workflow_knowledge_id_knowledge_id_fk'),
         ForeignKeyConstraint(['model_id'], ['model.id'], name='workflow_model_id_model_id_fk'),
         ForeignKeyConstraint(['model_settings_id'], ['model_settings.id'], name='workflow_model_settings_id_model_settings_id_fk'),
         ForeignKeyConstraint(['user_id'], ['auth.users.id'], name='workflow_user_id_users_id_fk'),
         PrimaryKeyConstraint('id', name='workflow_pkey'),
-        Index('workflow_id_idx', 'id'),
+        Index('workflow_context_id_idx', 'context_id'),
         Index('workflow_model_id_idx', 'model_id'),
         Index('workflow_model_settings_id_idx', 'model_settings_id'),
         Index('workflow_slug_idx', 'slug'),
@@ -353,14 +393,15 @@ class Workflow(Base):
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
     knowledge_id: Mapped[str] = mapped_column(String(256))
+    context_id: Mapped[str] = mapped_column(String(256))
     description: Mapped[Optional[str]] = mapped_column(Text)
 
+    context: Mapped['Context'] = relationship('Context', back_populates='workflow')
     knowledge: Mapped['Knowledge'] = relationship('Knowledge', back_populates='workflow')
     model: Mapped['Model'] = relationship('Model', back_populates='workflow')
     model_settings: Mapped['ModelSettings'] = relationship('ModelSettings', back_populates='workflow')
     user: Mapped['Users'] = relationship('Users', back_populates='workflow')
     chunks: Mapped[List['Chunks']] = relationship('Chunks', back_populates='workflow')
-    context: Mapped[List['Context']] = relationship('Context', back_populates='workflow')
     thread: Mapped[List['Thread']] = relationship('Thread', back_populates='workflow')
     run: Mapped[List['Run']] = relationship('Run', back_populates='workflow')
 
@@ -417,29 +458,6 @@ class Chunks(Base):
     workflow: Mapped['Workflow'] = relationship('Workflow', back_populates='chunks')
 
 
-class Context(Base):
-    __tablename__ = 'context'
-    __table_args__ = (
-        ForeignKeyConstraint(['workflow_id'], ['workflow.id'], ondelete='CASCADE', name='context_workflow_id_workflow_id_fk'),
-        PrimaryKeyConstraint('id', name='context_pkey'),
-        Index('context_slug_idx', 'slug'),
-        Index('context_workflow_id_idx', 'workflow_id'),
-        Index('context_workflow_id_slug_unique', 'workflow_id', 'slug')
-    )
-
-    id: Mapped[str] = mapped_column(String(256), primary_key=True)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
-    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
-    name: Mapped[str] = mapped_column(String(256))
-    slug: Mapped[str] = mapped_column(String(256))
-    workflow_id: Mapped[str] = mapped_column(String(256))
-    description: Mapped[Optional[str]] = mapped_column(Text)
-
-    workflow: Mapped['Workflow'] = relationship('Workflow', back_populates='context')
-    resource_contexts: Mapped[List['ResourceContexts']] = relationship('ResourceContexts', back_populates='context')
-    run_contexts: Mapped[List['RunContexts']] = relationship('RunContexts', back_populates='context')
-
-
 class Thread(Base):
     __tablename__ = 'thread'
     __table_args__ = (
@@ -480,26 +498,6 @@ class MessageFile(Base):
     message: Mapped[Optional['ChatMessage']] = relationship('ChatMessage', back_populates='message_file')
 
 
-class ResourceContexts(Base):
-    __tablename__ = 'resource_contexts'
-    __table_args__ = (
-        ForeignKeyConstraint(['context_id'], ['context.id'], ondelete='CASCADE', name='resource_contexts_context_id_context_id_fk'),
-        ForeignKeyConstraint(['resource_id'], ['resource.id'], ondelete='CASCADE', name='resource_contexts_resource_id_resource_id_fk'),
-        PrimaryKeyConstraint('id', name='context_item_pkey'),
-        Index('resource_contexts_context_id_idx', 'context_id'),
-        Index('resource_contexts_resource_id_context_id_unique', 'resource_id', 'context_id'),
-        Index('resource_contexts_resource_id_idx', 'resource_id')
-    )
-
-    id: Mapped[str] = mapped_column(String(256), primary_key=True)
-    context_id: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
-    resource_id: Mapped[str] = mapped_column(String(256))
-
-    context: Mapped['Context'] = relationship('Context', back_populates='resource_contexts')
-    resource: Mapped['Resource'] = relationship('Resource', back_populates='resource_contexts')
-
-
 class Run(Base):
     __tablename__ = 'run'
     __table_args__ = (
@@ -536,7 +534,6 @@ class Run(Base):
     thread: Mapped[Optional['Thread']] = relationship('Thread', back_populates='run')
     workflow: Mapped[Optional['Workflow']] = relationship('Workflow', back_populates='run')
     attachment: Mapped[List['Attachment']] = relationship('Attachment', back_populates='run')
-    run_contexts: Mapped[List['RunContexts']] = relationship('RunContexts', back_populates='run')
     run_resource: Mapped[List['RunResource']] = relationship('RunResource', back_populates='run')
 
 
@@ -555,26 +552,6 @@ class Attachment(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
 
     run: Mapped['Run'] = relationship('Run', back_populates='attachment')
-
-
-class RunContexts(Base):
-    __tablename__ = 'run_contexts'
-    __table_args__ = (
-        ForeignKeyConstraint(['context_id'], ['context.id'], ondelete='CASCADE', name='run_contexts_context_id_context_id_fk'),
-        ForeignKeyConstraint(['run_id'], ['run.id'], ondelete='CASCADE', name='run_contexts_run_id_run_id_fk'),
-        PrimaryKeyConstraint('id', name='run_contexts_pkey'),
-        Index('run_contexts_context_id_idx', 'context_id'),
-        Index('run_contexts_run_id_context_id_unique', 'run_id', 'context_id'),
-        Index('run_contexts_run_id_idx', 'run_id')
-    )
-
-    id: Mapped[str] = mapped_column(String(256), primary_key=True)
-    run_id: Mapped[str] = mapped_column(String(256))
-    context_id: Mapped[str] = mapped_column(String(256))
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
-
-    context: Mapped['Context'] = relationship('Context', back_populates='run_contexts')
-    run: Mapped['Run'] = relationship('Run', back_populates='run_contexts')
 
 
 class RunResource(Base):

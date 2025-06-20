@@ -68,11 +68,14 @@ export const generateRoute = new Hono()
       } catch (error) {
         const userId = c.get("userId");
         const body = c.req.valid("json");
-        return c.json(createErrorResponse(error, {
-          userId,
-          workflowSlug: body.workflowSlug,
-          endpoint: "/generate/text"
-        }), 500);
+        return c.json(
+          createErrorResponse(error, {
+            userId,
+            workflowSlug: body.workflowSlug,
+            endpoint: "/generate/text",
+          }),
+          500
+        );
       }
     }
   )
@@ -130,11 +133,14 @@ export const generateRoute = new Hono()
       } catch (error) {
         const userId = c.get("userId");
         const body = c.req.valid("json");
-        return c.json(createErrorResponse(error, {
-          userId,
-          workflowSlug: body.workflowSlug,
-          endpoint: "/generate/object"
-        }), 500);
+        return c.json(
+          createErrorResponse(error, {
+            userId,
+            workflowSlug: body.workflowSlug,
+            endpoint: "/generate/object",
+          }),
+          500
+        );
       }
     }
   );

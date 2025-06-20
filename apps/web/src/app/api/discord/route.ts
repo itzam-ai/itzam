@@ -29,82 +29,59 @@ interface ErrorNotification {
 function formatErrorForDiscord(errorData: ErrorNotification) {
   const { error, context } = errorData;
   const emoji = getErrorEmoji(error.code);
-  const color = getErrorColor(error.code);
-  
-  const fields = [
-    {
-      name: "Error Type",
-      value: error.name,
-      inline: true,
-    },
-    {
-      name: "Environment",
-      value: context?.environment || "unknown",
-      inline: true,
-    },
-  ];
+
+  // Discord only accepts content without embeds for simple webhooks
+  // Format error as rich text content instead of embeds
+  const timestamp = context?.timestamp || new Date().toISOString();
+
+  let content = `${emoji} **API Error Alert** - ${context?.environment || "Production"} <@129021923945480192> <@281105209093259275>\n\n`;
+  content += `**Error:** ${error.name}: ${error.message.slice(0, 200)}${error.message.length > 200 ? "..." : ""}\n`;
+  content += `**Time:** ${timestamp}\n`;
 
   if (error.code) {
-    fields.push({
-      name: "Status Code",
-      value: error.code.toString(),
-      inline: true,
-    });
+    content += `**Status Code:** ${error.code}\n`;
   }
 
   if (context?.endpoint) {
-    fields.push({
-      name: "Endpoint",
-      value: context.endpoint,
-      inline: false,
-    });
+    content += `**Endpoint:** ${context.endpoint}\n`;
   }
 
   if (context?.workflowSlug) {
-    fields.push({
-      name: "Workflow",
-      value: context.workflowSlug,
-      inline: true,
-    });
+    content += `**Workflow:** ${context.workflowSlug}\n`;
   }
 
   if (context?.userId) {
-    fields.push({
-      name: "User ID",
-      value: context.userId,
-      inline: true,
-    });
+    content += `**User ID:** ${context.userId}\n`;
+  }
+
+  // Calculate remaining space for stack trace (Discord limit is 2000 chars)
+  const currentLength = content.length;
+  const remainingSpace = 1900 - currentLength; // Leave some buffer
+
+  if (error.stack && remainingSpace > 100) {
+    const stackTrace = error.stack.slice(0, remainingSpace - 20);
+    content += `\n**Stack Trace:**\n\`\`\`\n${stackTrace}${error.stack.length > remainingSpace - 20 ? "..." : ""}\n\`\`\``;
+  }
+
+  // Final safety check - ensure content is under 2000 chars
+  if (content.length > 2000) {
+    content = content.slice(0, 1997) + "...";
   }
 
   return {
-    content: `${emoji} **API Error Alert** - ${context?.environment || "Production"}`,
-    embeds: [
-      {
-        title: `${error.name}: ${error.message}`,
-        description: error.stack ? `\`\`\`\n${error.stack.slice(0, 1000)}${error.stack.length > 1000 ? '...' : ''}\n\`\`\`` : 'No stack trace available',
-        color,
-        fields,
-        timestamp: context?.timestamp || new Date().toISOString(),
-      },
-    ],
+    content,
   };
 }
 
-function getErrorColor(code?: number): number {
-  if (!code) return 0xffff00; // Yellow for unknown
-  switch (Math.floor(code / 100)) {
-    case 4: return 0xffa500; // Orange for 4xx errors
-    case 5: return 0xff0000; // Red for 5xx errors
-    default: return 0xffff00; // Yellow for other errors
-  }
-}
-
 function getErrorEmoji(code?: number): string {
-  if (!code) return '❌';
+  if (!code) return "❌";
   switch (Math.floor(code / 100)) {
-    case 4: return '⚠️';
-    case 5: return '🚨';
-    default: return '❌';
+    case 4:
+      return "⚠️";
+    case 5:
+      return "🚨";
+    default:
+      return "❌";
   }
 }
 
@@ -156,12 +133,12 @@ export async function POST(req: Request) {
     } else {
       // Parse the body to check message type
       const body = JSON.parse(rawBody);
-      
+
       if (body.type === "error") {
         // Handle error notifications with rich formatting
         const errorData = body as ErrorNotification;
         const discordMessage = formatErrorForDiscord(errorData);
-        
+
         const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
