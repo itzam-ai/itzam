@@ -42,8 +42,16 @@ export default async function KnowledgePage({
         />
       </div>
       <div className="flex flex-col gap-4">
-        <FileInput workflowId={workflowId} knowledge={knowledge} />
-        <LinkInput workflowId={workflowId} knowledge={knowledge} />
+        <FileInput
+          workflowId={workflowId}
+          resources={knowledge.resources}
+          knowledgeId={knowledge.id}
+        />
+        <LinkInput
+          workflowId={workflowId}
+          resources={knowledge.resources}
+          knowledgeId={knowledge.id}
+        />
       </div>
     </Card>
   );

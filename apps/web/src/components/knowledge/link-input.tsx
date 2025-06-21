@@ -51,23 +51,25 @@ const isValidUrl = (url: string) => {
 
 export const LinkInput = ({
   workflowId,
-  knowledge,
+  resources,
+  knowledgeId,
+  contextId,
 }: {
   workflowId: string;
-  knowledge: Knowledge;
+  resources: Knowledge["resources"];
+  knowledgeId?: string;
+  contextId?: string;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & {
       processedChunks?: number;
-      totalChunks?: number;
     })[]
   >(
-    knowledge?.resources
+    resources
       .filter((resource) => resource.type === "LINK")
       .map((resource) => ({
         ...resource,
         processedChunks: resource.chunks.length ?? 0,
-        totalChunks: resource.totalChunks ?? 0,
       })) ?? []
   );
 
@@ -128,7 +130,7 @@ export const LinkInput = ({
       mimeType: "text/html",
       type: "LINK" as const,
       fileSize: 0,
-      knowledgeId: knowledge?.id ?? "",
+      knowledgeId: knowledgeId ?? "",
       workflowId,
       active: true,
       totalChunks: 0,
@@ -138,7 +140,7 @@ export const LinkInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
-      contextId: null,
+      contextId: contextId ?? "",
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
@@ -147,7 +149,8 @@ export const LinkInput = ({
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
         workflowId: workflowId,
-        knowledgeId: knowledge?.id ?? "",
+        knowledgeId: knowledgeId ?? "",
+        contextId: contextId ?? "",
       });
     } catch (error) {
       setWorkflowLinks((prevLinks) => {
@@ -163,7 +166,9 @@ export const LinkInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = `knowledge-${knowledge?.id}-links`;
+  const channelId = knowledgeId
+    ? `knowledge-${knowledgeId}-links`
+    : `context-${contextId}-links`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -379,7 +384,7 @@ export const LinkInput = ({
                 disabled={isSubmitting || linksToAdd.length === 0}
               >
                 <ArrowDown className="size-3" />
-                Add to knowledge
+                Add to {knowledgeId ? "knowledge" : "context"}
               </Button>
             </div>
           </motion.div>
@@ -389,7 +394,9 @@ export const LinkInput = ({
         <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
           <EmptyStateDetails
             title="No links added"
-            description="Add links to the model's knowledge base"
+            description={`Add links to ${
+              knowledgeId ? "the model's knowledge base" : "this context"
+            }`}
             icon={<Globe className="size-4" />}
           />
           <Dialog
@@ -412,7 +419,8 @@ export const LinkInput = ({
               <DialogHeader>
                 <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge.
+                  Add URLs to{" "}
+                  {knowledgeId ? "the model's knowledge" : "this context"}.
                 </DialogDescription>
               </DialogHeader>
 

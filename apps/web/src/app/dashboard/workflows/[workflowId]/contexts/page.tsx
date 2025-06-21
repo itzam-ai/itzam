@@ -15,22 +15,27 @@ export default async function ContextsPage({
 
   const availableStorage = await getMaxLimit();
 
-  const totalSize = knowledge?.resources.reduce(
-    (acc, resource) => acc + (resource.fileSize ?? 0),
+  const totalSize = contexts.reduce(
+    (acc, context) =>
+      acc +
+      (context.resources.reduce(
+        (acc, resource) => acc + (resource.fileSize ?? 0),
+        0
+      ) ?? 0),
     0
   );
 
-  if (!knowledge || "error" in knowledge) {
-    return <div>Error: {JSON.stringify(knowledge?.error)}</div>;
+  if (!contexts || "error" in contexts) {
+    return <div>Error: {JSON.stringify(contexts?.error)}</div>;
   }
 
   return (
     <Card className="p-6 flex flex-col">
       <div className="flex justify-between items-start">
         <div className="flex flex-col gap-1">
-          <h1 className="text font-medium">Knowledge</h1>
+          <h1 className="text font-medium">Contexts</h1>
           <p className="text-xs text-muted-foreground mb-8">
-            Add files and links to the model&apos;s knowledge base.
+            Create contexts (files and links) to use programatically.
           </p>
         </div>
         <Usage
@@ -40,8 +45,16 @@ export default async function ContextsPage({
         />
       </div>
       <div className="flex flex-col gap-4">
-        <FileInput workflowId={workflowId} knowledge={knowledge} />
-        <LinkInput workflowId={workflowId} knowledge={knowledge} />
+        <FileInput
+          workflowId={workflowId}
+          resources={contexts.flatMap((context) => context.resources)}
+          contextId={contexts.id}
+        />
+        <LinkInput
+          workflowId={workflowId}
+          resources={contexts.flatMap((context) => context.resources)}
+          contextId={contexts.id}
+        />
       </div>
     </Card>
   );
