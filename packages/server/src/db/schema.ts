@@ -18,37 +18,19 @@ import {
 // Retrieving the auth schema (default for supabase auth)
 const authSchema = pgSchema("auth");
 
+// -------- 👤 USERS --------
 export const users = authSchema.table("users", {
   id: uuid("id").primaryKey(),
   role: varchar("role", { length: 256 }),
   email: varchar("email", { length: 256 }),
 });
 
-export const createTable = pgTableCreator((name) => `${name}`);
-
-// Enums
-export const runStatusEnum = pgEnum("run_status", [
-  "RUNNING",
-  "COMPLETED",
-  "FAILED",
-]);
-export const runOriginEnum = pgEnum("run_origin", ["SDK", "WEB"]);
-export const contextItemTypeEnum = pgEnum("context_item_type", [
-  "TEXT",
-  "IMAGE",
-  "FILE",
-  "URL",
-]);
+// -------- 📋 ENUMS <> USERS --------
 export const userRoleEnum = pgEnum("user_role", ["MEMBER", "ADMIN"]);
 
-export const chatMessageRoleEnum = pgEnum("chat_message_role", [
-  "user",
-  "assistant",
-  "system",
-  "data",
-]);
+export const createTable = pgTableCreator((name) => `${name}`);
 
-// Provider table
+// -------- 🏭 PROVIDERS --------
 export const providers = createTable("provider", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   name: varchar("name", { length: 256 }).notNull(),
@@ -60,7 +42,7 @@ export const providers = createTable("provider", {
     .notNull(),
 });
 
-// Model table
+// -------- 🤖 MODELS --------
 export const models = createTable(
   "model",
   {
@@ -107,7 +89,7 @@ export const models = createTable(
   })
 );
 
-// Context table
+// -------- 📂 CONTEXTS --------
 export const contexts = createTable(
   "context",
   {
@@ -131,6 +113,8 @@ export const contexts = createTable(
   })
 );
 
+// -------- 📋 ENUMS <> MODEL SETTINGS --------
+
 export const temperaturePresetEnum = pgEnum("temperature_preset", [
   "STRICT",
   "BALANCED",
@@ -145,7 +129,7 @@ export const maxTokensPresetEnum = pgEnum("max_tokens_preset", [
   "CUSTOM",
 ]);
 
-// ModelSettings table
+// -------- ⚙️ MODEL SETTINGS --------
 export const modelSettings = createTable("model_settings", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   temperature: decimal("temperature", { precision: 3, scale: 2 }).notNull(),
@@ -160,7 +144,7 @@ export const modelSettings = createTable("model_settings", {
     .notNull(),
 });
 
-// Workflow table
+// -------- 🏗️ WORKFLOWS --------
 export const workflows = createTable(
   "workflow",
   {
@@ -199,7 +183,15 @@ export const workflows = createTable(
   })
 );
 
-// Run table
+// -------- 📋 ENUMS <> RUNS --------
+export const runStatusEnum = pgEnum("run_status", [
+  "RUNNING",
+  "COMPLETED",
+  "FAILED",
+]);
+export const runOriginEnum = pgEnum("run_origin", ["SDK", "WEB"]);
+
+// -------- 🏃🏻‍➡️ RUNS --------
 export const runs = createTable(
   "run",
   {
@@ -238,7 +230,7 @@ export const runs = createTable(
   })
 );
 
-// Attachment table
+// -------- 📎 ATTACHMENTS --------
 export const attachments = createTable("attachment", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   url: varchar("url", { length: 1024 }).notNull(),
@@ -256,7 +248,7 @@ export const attachments = createTable("attachment", {
     .notNull(),
 });
 
-// RunResource table
+// -------- 🏃🏻‍➡️ RUN <> 🖼️ RESOURCE --------
 export const runResources = createTable(
   "run_resource",
   {
@@ -278,6 +270,7 @@ export const runResources = createTable(
   })
 );
 
+// -------- 🧠 KNOWLEDGE --------
 export const knowledge = createTable("knowledge", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -287,6 +280,8 @@ export const knowledge = createTable("knowledge", {
     .$onUpdate(() => new Date())
     .notNull(),
 });
+
+// -------- 📋 ENUMS <> RESOURCES --------
 
 export const resourceTypeEnum = pgEnum("resource_type", ["FILE", "LINK"]);
 export const resourceStatusEnum = pgEnum("resource_status", [
@@ -302,6 +297,7 @@ export const resourceScrapeFrequencyEnum = pgEnum("resource_scrape_frequency", [
   "WEEKLY",
 ]);
 
+// -------- 🖼️ RESOURCES --------
 export const resources = createTable(
   "resource",
   {
@@ -341,6 +337,7 @@ export const resources = createTable(
   })
 );
 
+// -------- 📄 CHUNKS --------
 export const chunks = createTable(
   "chunks",
   {
@@ -367,6 +364,7 @@ export const chunks = createTable(
   })
 );
 
+// -------- 🏭 PROVIDER KEYS --------
 export const providerKeys = createTable(
   "provider_key",
   {
@@ -392,6 +390,7 @@ export const providerKeys = createTable(
   })
 );
 
+// -------- 🔑 API KEYS --------
 export const apiKeys = createTable(
   "api_key",
   {
@@ -414,7 +413,7 @@ export const apiKeys = createTable(
   })
 );
 
-// -------- THREADS --------
+// -------- 💬 THREADS --------
 export const threads = createTable(
   "thread",
   {
@@ -436,7 +435,7 @@ export const threads = createTable(
   })
 );
 
-// -------- THREAD LOOKUP KEYS --------
+// -------- 💬 THREAD <> 🔑 LOOKUP KEYS --------
 export const threadLookupKeys = createTable(
   "thread_lookup_key",
   {
@@ -457,7 +456,24 @@ export const threadLookupKeys = createTable(
   })
 );
 
-// ----------------- CHAT --------------------------
+// -------- 💬 THREAD <> 📂 CONTEXT --------
+export const threadContexts = createTable("thread_context", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  threadId: varchar("thread_id", { length: 256 })
+    .notNull()
+    .references(() => threads.id),
+  contextId: varchar("context_id", { length: 256 })
+    .notNull()
+    .references(() => contexts.id),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// ----------------- 💬 CHAT --------------------------
 export const chats = createTable(
   "chat",
   {
@@ -483,6 +499,15 @@ export const chats = createTable(
   })
 );
 
+// -------- 📋 ENUMS <> CHAT MESSAGES --------
+export const chatMessageRoleEnum = pgEnum("chat_message_role", [
+  "user",
+  "assistant",
+  "system",
+  "data",
+]);
+
+// -------- 💬 CHAT <> 💬 MESSAGES --------
 export const chatMessages = createTable(
   "chat_message",
   {
@@ -510,6 +535,7 @@ export const chatMessages = createTable(
   })
 );
 
+// -------- 💬 CHAT <> 📎 MESSAGE FILES --------
 export const messageFiles = createTable("message_file", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   url: varchar("url", { length: 1024 }).notNull(),
@@ -528,7 +554,7 @@ export const messageFiles = createTable("message_file", {
 
 // -------- RELATIONS --------
 
-// -------- Workflow --------
+// -------- 🏗️ WORKFLOW --------
 export const workflowRelations = relations(workflows, ({ one, many }) => ({
   model: one(models, {
     fields: [workflows.modelId],
@@ -547,21 +573,22 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
   }),
 }));
 
-// -------- Context --------
+// -------- 📂 CONTEXT --------
 export const contextRelations = relations(contexts, ({ one, many }) => ({
   resources: many(resources),
   workflow: one(workflows, {
     fields: [contexts.workflowId],
     references: [workflows.id],
   }),
+  threadContexts: many(threadContexts),
 }));
 
-// -------- Provider --------
+// -------- 🏭 PROVIDER --------
 export const providerRelations = relations(providers, ({ many }) => ({
   models: many(models),
 }));
 
-// -------- Model --------
+// -------- 🤖 MODEL --------
 export const modelRelations = relations(models, ({ one }) => ({
   provider: one(providers, {
     fields: [models.providerId],
@@ -569,14 +596,14 @@ export const modelRelations = relations(models, ({ one }) => ({
   }),
 }));
 
-// -------- User --------
+// -------- 👤 USER --------
 export const userRelations = relations(users, ({ many }) => ({
   chats: many(chats),
   apiKeys: many(apiKeys),
   providerKeys: many(providerKeys),
 }));
 
-// -------- Run --------
+// -------- 🏃🏻‍➡️ RUN --------
 export const runRelations = relations(runs, ({ one, many }) => ({
   workflow: one(workflows, {
     fields: [runs.workflowId],
@@ -594,7 +621,7 @@ export const runRelations = relations(runs, ({ one, many }) => ({
   }),
 }));
 
-// -------- ApiKey --------
+// -------- 🔑 API KEY --------
 export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   user: one(users, {
     fields: [apiKeys.userId],
@@ -602,7 +629,7 @@ export const apiKeyRelations = relations(apiKeys, ({ one }) => ({
   }),
 }));
 
-// -------- Attachment --------
+// -------- 📎 ATTACHMENT --------
 export const attachmentRelations = relations(attachments, ({ one }) => ({
   run: one(runs, {
     fields: [attachments.runId],
@@ -610,7 +637,7 @@ export const attachmentRelations = relations(attachments, ({ one }) => ({
   }),
 }));
 
-// -------- Knowledge --------
+// -------- 🧠 KNOWLEDGE --------
 export const knowledgeRelations = relations(knowledge, ({ many, one }) => ({
   resources: many(resources),
   workflow: one(workflows, {
@@ -619,7 +646,7 @@ export const knowledgeRelations = relations(knowledge, ({ many, one }) => ({
   }),
 }));
 
-// -------- Resource --------
+// -------- 🖼️ RESOURCE --------
 export const resourceRelations = relations(resources, ({ one, many }) => ({
   knowledge: one(knowledge, {
     fields: [resources.knowledgeId],
@@ -629,7 +656,7 @@ export const resourceRelations = relations(resources, ({ one, many }) => ({
   chunks: many(chunks),
 }));
 
-// -------- Chunk --------
+// -------- 📄 CHUNK --------
 export const chunkRelations = relations(chunks, ({ one }) => ({
   resource: one(resources, {
     fields: [chunks.resourceId],
@@ -637,7 +664,7 @@ export const chunkRelations = relations(chunks, ({ one }) => ({
   }),
 }));
 
-// -------- ProviderKey --------
+// -------- 🏭 PROVIDER KEY --------
 export const providerKeyRelations = relations(providerKeys, ({ one }) => ({
   user: one(users, {
     fields: [providerKeys.userId],
@@ -649,7 +676,7 @@ export const providerKeyRelations = relations(providerKeys, ({ one }) => ({
   }),
 }));
 
-// -------- Chat --------
+// -------- 💬 CHAT --------
 export const chatRelations = relations(chats, ({ many, one }) => ({
   messages: many(chatMessages),
   lastModel: one(models, {
@@ -658,6 +685,7 @@ export const chatRelations = relations(chats, ({ many, one }) => ({
   }),
 }));
 
+// -------- 💬 CHAT <> 💬 MESSAGES --------
 export const chatMessageRelations = relations(
   chatMessages,
   ({ one, many }) => ({
@@ -673,6 +701,7 @@ export const chatMessageRelations = relations(
   })
 );
 
+// -------- 💬 CHAT <> 📎 MESSAGE FILES --------
 export const messageFileRelations = relations(messageFiles, ({ one }) => ({
   message: one(chatMessages, {
     fields: [messageFiles.messageId],
@@ -680,7 +709,7 @@ export const messageFileRelations = relations(messageFiles, ({ one }) => ({
   }),
 }));
 
-// -------- RunResource --------
+// -------- 🏃🏻‍➡️ RUN <> 🖼️ RESOURCE --------
 export const runResourceRelations = relations(runResources, ({ one }) => ({
   run: one(runs, {
     fields: [runResources.runId],
@@ -692,7 +721,7 @@ export const runResourceRelations = relations(runResources, ({ one }) => ({
   }),
 }));
 
-// -------- Thread --------
+// -------- 💬 THREADS --------
 export const threadRelations = relations(threads, ({ many, one }) => ({
   runs: many(runs),
   workflow: one(workflows, {
@@ -700,8 +729,10 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
     references: [workflows.id],
   }),
   lookupKeys: many(threadLookupKeys),
+  threadContexts: many(threadContexts),
 }));
 
+// -------- 💬 THREAD <> 🔑 LOOKUP KEYS --------
 export const threadLookupKeyRelations = relations(
   threadLookupKeys,
   ({ one }) => ({
