@@ -24,7 +24,7 @@ import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
-import { KnowledgeItem } from "./knowledge-item";
+import { Resource } from "../resource/resource";
 interface ExtendedFile extends File {
   id: string;
   url: string | null;
@@ -183,8 +183,8 @@ export const FileInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
+        knowledgeId: knowledge?.id ?? "",
       });
     } catch (error) {
       console.error(error);
@@ -389,7 +389,7 @@ export const FileInput = ({
         {workflowFiles && workflowFiles.length > 0 ? (
           <motion.div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
             {workflowFiles.map((resource) => (
-              <KnowledgeItem
+              <Resource
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}

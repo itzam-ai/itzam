@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { KnowledgeItem } from "./knowledge-item";
+import { Resource } from "../resource/resource";
 
 type LinkToAdd = {
   id: string;
@@ -146,8 +146,8 @@ export const LinkInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
+        knowledgeId: knowledge?.id ?? "",
       });
     } catch (error) {
       setWorkflowLinks((prevLinks) => {
@@ -494,7 +494,7 @@ export const LinkInput = ({
       ) : (
         <motion.div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
           {workflowLinks.map((resource) => (
-            <KnowledgeItem
+            <Resource
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}

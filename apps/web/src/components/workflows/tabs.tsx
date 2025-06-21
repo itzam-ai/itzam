@@ -24,6 +24,9 @@ export function WorkflowTabs({ id }: { id: string }) {
     if (pathname.includes("/knowledge")) {
       return "knowledge";
     }
+    if (pathname.includes("/contexts")) {
+      return "contexts";
+    }
     return "summary";
   };
 
@@ -60,6 +63,15 @@ export function WorkflowTabs({ id }: { id: string }) {
         >
           <TabsTrigger value="knowledge" className="w-full">
             Knowledge
+          </TabsTrigger>
+        </Link>
+        <Link
+          prefetch
+          href={`/dashboard/workflows/${id}/contexts`}
+          className="w-full"
+        >
+          <TabsTrigger value="contexts" className="w-full">
+            Contexts
           </TabsTrigger>
         </Link>
         <Link

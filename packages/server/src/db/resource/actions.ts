@@ -9,7 +9,7 @@ import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
 import { customerIsSubscribedToItzamProForUserId } from "../billing/actions";
 import { checkPlanLimits, Knowledge } from "../knowledge/actions";
-import { resources, resources as resourcesTable } from "../schema";
+import { chunks, resources, resources as resourcesTable } from "../schema";
 
 export type ResourceWithKnowledgeAndWorkflow = Awaited<
   ReturnType<typeof getResourcesToRescrape>
@@ -48,13 +48,13 @@ export async function updateRescrapeFrequency(
 }
 
 export async function createResourceAndSendoToAPI({
-  knowledgeId,
   workflowId,
   resources,
+  knowledgeId,
 }: {
-  knowledgeId: string;
   workflowId: string;
   resources: Knowledge["resources"];
+  knowledgeId: string;
 }) {
   const user = await getUser();
 
@@ -63,7 +63,7 @@ export async function createResourceAndSendoToAPI({
   }
 
   // check plan limits
-  await checkPlanLimits(knowledgeId);
+  await checkPlanLimits(workflowId);
 
   // create resources in the database
   const createdResources = await db
@@ -397,4 +397,18 @@ export async function rescrapeResource(resourceId: string) {
     success: true,
     message: "Resource rescrape initiated",
   };
+}
+
+export async function deleteResource(resourceId: string) {
+  // delete the resource
+  await db
+    .update(resources)
+    .set({ active: false })
+    .where(eq(resources.id, resourceId));
+
+  // delete the chunks
+  await db
+    .update(chunks)
+    .set({ active: false })
+    .where(eq(chunks.resourceId, resourceId));
 }

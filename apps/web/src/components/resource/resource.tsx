@@ -1,7 +1,8 @@
 "use client";
 
-import { deleteResource, Knowledge } from "@itzam/server/db/knowledge/actions";
+import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import {
+  deleteResource,
   rescrapeResource,
   updateRescrapeFrequency,
 } from "@itzam/server/db/resource/actions";
@@ -42,9 +43,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { TextLoop } from "./text-loop";
+import { TextLoop } from "../knowledge/text-loop";
 
-export const KnowledgeItem = ({
+export const Resource = ({
   resource,
   onDelete,
 }: {
