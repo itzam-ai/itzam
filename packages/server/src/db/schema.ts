@@ -108,37 +108,26 @@ export const models = createTable(
 );
 
 // Context table
-export const contexts = createTable("context", {
-  id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .$onUpdate(() => new Date())
-    .notNull(),
-});
-
-// ContextItem table
-export const contextItems = createTable(
-  "context_item",
+export const contexts = createTable(
+  "context",
   {
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
     name: varchar("name", { length: 256 }).notNull(),
     description: text("description"),
-    content: text("content").notNull(),
-    type: contextItemTypeEnum("type").notNull(),
-    contextId: varchar("context_id", { length: 256 }).references(
-      () => contexts.id
-    ),
+    slug: varchar("slug", { length: 256 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
+    workflowId: varchar("workflow_id", { length: 256 })
+      .notNull()
+      .references(() => workflows.id),
   },
   (table) => ({
-    contextIdIndex: index("context_id_idx").on(table.contextId),
+    slugIndex: index("context_slug_idx").on(table.slug),
+    workflowIdIndex: index("context_workflow_id_idx").on(table.workflowId),
   })
 );
 
@@ -181,9 +170,6 @@ export const workflows = createTable(
     slug: varchar("slug", { length: 256 }).notNull(),
     isActive: boolean("is_active").notNull().default(true),
     prompt: text("prompt").notNull(),
-    contextId: varchar("context_id", { length: 256 })
-      .notNull()
-      .references(() => contexts.id),
     modelId: varchar("model_id", { length: 256 })
       .notNull()
       .references(() => models.id),
@@ -204,7 +190,6 @@ export const workflows = createTable(
       .notNull(),
   },
   (table) => ({
-    contextIdIndex: index("workflow_context_id_idx").on(table.contextId),
     modelIdIndex: index("workflow_model_id_idx").on(table.modelId),
     modelSettingsIdIndex: index("workflow_model_settings_id_idx").on(
       table.modelSettingsId
@@ -346,9 +331,13 @@ export const resources = createTable(
     knowledgeId: varchar("knowledge_id", { length: 256 }).references(
       () => knowledge.id
     ),
+    contextId: varchar("context_id", { length: 256 }).references(
+      () => contexts.id
+    ),
   },
   (table) => ({
     knowledgeIdIndex: index("resource_knowledge_id_idx").on(table.knowledgeId),
+    contextIdIndex: index("resource_context_id_idx").on(table.contextId),
   })
 );
 
@@ -549,10 +538,7 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.modelSettingsId],
     references: [modelSettings.id],
   }),
-  context: one(contexts, {
-    fields: [workflows.contextId],
-    references: [contexts.id],
-  }),
+  contexts: many(contexts),
   runs: many(runs),
   threads: many(threads),
   knowledge: one(knowledge, {
@@ -562,15 +548,11 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
 }));
 
 // -------- Context --------
-export const contextRelations = relations(contexts, ({ many }) => ({
-  contextItems: many(contextItems),
-}));
-
-// -------- ContextItem --------
-export const contextItemRelations = relations(contextItems, ({ one }) => ({
-  context: one(contexts, {
-    fields: [contextItems.contextId],
-    references: [contexts.id],
+export const contextRelations = relations(contexts, ({ one, many }) => ({
+  resources: many(resources),
+  workflow: one(workflows, {
+    fields: [contexts.workflowId],
+    references: [workflows.id],
   }),
 }));
 

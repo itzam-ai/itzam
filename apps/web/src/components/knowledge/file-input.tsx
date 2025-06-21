@@ -173,6 +173,7 @@ export const FileInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
+      contextId: null,
     }));
 
     setWorkflowFiles((prevFiles) => {

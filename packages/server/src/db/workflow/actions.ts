@@ -30,16 +30,6 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
             provider: true,
           },
         },
-        context: {
-          with: {
-            contextItems: {
-              limit: 10,
-              orderBy: (contextItems, { desc }) => [
-                desc(contextItems.updatedAt),
-              ],
-            },
-          },
-        },
         runs: {
           with: {
             model: true,
@@ -96,7 +86,6 @@ export const getUserWorkflows = protectedProcedure(async ({ user }) => {
     where: and(eq(workflows.userId, user.id), eq(workflows.isActive, true)),
     with: {
       model: true,
-      context: true,
       runs: {
         limit: 1,
         orderBy: (runs, { desc }) => [desc(runs.createdAt)],
@@ -147,17 +136,6 @@ export const createWorkflow = protectedProcedure(
     { user },
     { name, description, slug, prompt, modelId }: CreateWorkflowArgs
   ) => {
-    const [context] = await db
-      .insert(contexts)
-      .values({
-        id: uuidv7(),
-      })
-      .returning();
-
-    if (!context) {
-      throw new Error("Failed to create context");
-    }
-
     const model = await db.query.models.findFirst({
       where: eq(models.id, modelId),
     });
@@ -204,7 +182,6 @@ export const createWorkflow = protectedProcedure(
         prompt,
         modelId,
         userId: user.id,
-        contextId: context?.id,
         modelSettingsId: modelSetting?.id,
         knowledgeId: knowledgeSaved?.id,
       })

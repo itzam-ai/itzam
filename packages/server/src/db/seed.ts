@@ -6,8 +6,6 @@ import { v7 } from "uuid";
 import { createStripeCustomer } from "./billing/actions";
 import { db } from "./index";
 import {
-  contextItems,
-  contexts,
   knowledge,
   modelSettings,
   models,
@@ -822,23 +820,6 @@ async function seedWorkflows(userId: string) {
     maxTokensPreset: "LONG",
   });
 
-  const contextId = v7();
-
-  // Create sample context
-  await db.insert(contexts).values({
-    id: contextId,
-  });
-
-  // Create sample context item
-  await db.insert(contextItems).values({
-    id: v7(),
-    name: "Itzam Context Item",
-    description: "This is a sample context item for the Itzam organization.",
-    content: "This is a sample context item for the Itzam organization.",
-    type: "TEXT",
-    contextId,
-  });
-
   const googleGeminiFlashModel = await db.query.models.findFirst({
     where: eq(models.tag, "google:gemini-2.0-flash"),
   });
@@ -872,7 +853,6 @@ async function seedWorkflows(userId: string) {
         userId: userId,
         name: "Code Assistant",
         description: "A code assistant.",
-        contextId,
         slug: "code-assistant",
         prompt:
           "You are a helpful code assistant. Act as a senior software engineer and help the user with their code.",
@@ -914,7 +894,6 @@ async function seedWorkflows(userId: string) {
         userId: userId,
         name: "Prompt Filler",
         description: "A prompt filler.",
-        contextId,
         slug: "prompt-filler",
         prompt:
           "The user is creating an AI workflow. Fill in the prompt for the user. The user will provide a title, a description (optional), and a initial prompt(optional). The title and description will be a short description of the workflow.",
@@ -956,7 +935,6 @@ async function seedWorkflows(userId: string) {
         userId: userId,
         name: "Prompt Enhancer",
         description: "A prompt enhancer.",
-        contextId,
         slug: "prompt-enhancer",
         prompt:
           "You are a prompt enhancer. You will be given a prompt and you will need to enhance it.",
@@ -995,7 +973,6 @@ async function seedWorkflows(userId: string) {
         userId: userId,
         name: "Lisa",
         description: "A virtual assistant inspired by the movie Her.",
-        contextId,
         slug: "lisa",
         prompt:
           "You are a virtual assistant inspired by the movie Her. You will be given a prompt and you will need to respond to the user. Be enigmatic and mysterious. Be a bit cold and aloof. Be a bit of a know-it-all.",
@@ -1034,7 +1011,6 @@ async function seedWorkflows(userId: string) {
         userId: userId,
         name: "File Title Generator",
         description: "A file title generator.",
-        contextId,
         slug: "file-title-generator",
         prompt:
           "You are an expert at generating file titles. I will provide you with the contents of a file, and you will generate a concise and descriptive title for it. The title should accurately reflect the content and purpose of the file. Use keywords that would make the file easily searchable. Do not include file extensions in the title. Keep it short, no more than 4 words.",

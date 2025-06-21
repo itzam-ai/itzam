@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
