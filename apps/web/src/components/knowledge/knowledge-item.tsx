@@ -25,10 +25,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
-<<<<<<< HEAD
-import { ContextPopover } from "../contexts/context-popover";
-import { LayersIcon } from "lucide-react";
-=======
 import {
   Dialog,
   DialogContent,
@@ -47,25 +43,20 @@ import {
   SelectValue,
 } from "../ui/select";
 import { TextLoop } from "./text-loop";
->>>>>>> origin/main
 
 export const KnowledgeItem = ({
   resource,
   onDelete,
-<<<<<<< HEAD
   processedChunks,
   workflowId,
   contextId,
   contexts,
-=======
->>>>>>> origin/main
 }: {
   resource: Knowledge["resources"][number] & {
     totalChunks?: number;
     processedChunks?: number;
   };
   onDelete?: (resourceId: string) => void;
-<<<<<<< HEAD
   processedChunks?: number;
   workflowId?: string;
   contextId?: string;
@@ -77,8 +68,6 @@ export const KnowledgeItem = ({
       resourceId: string;
     }>;
   }>;
-=======
->>>>>>> origin/main
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingRescrapeFrequency, setIsUpdatingRescrapeFrequency] =
@@ -275,19 +264,6 @@ export const KnowledgeItem = ({
           </div>
         </div>
         <div className="flex items-center">
-<<<<<<< HEAD
-          {workflowId && contexts && (
-            <ContextPopover
-              resourceId={resource.id}
-              workflowId={workflowId}
-              contexts={contexts}
-              trigger={
-                <Button variant="ghost" size="icon">
-                  <LayersIcon className="size-3" />
-                </Button>
-              }
-            />
-=======
           {resource.type === "LINK" && (
             <Dialog
               open={isDialogOpen}
@@ -387,7 +363,6 @@ export const KnowledgeItem = ({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
->>>>>>> origin/main
           )}
           <Button
             variant="ghost"
