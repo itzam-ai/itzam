@@ -92,8 +92,8 @@ export function Hero() {
   const { isSignedIn } = useCurrentUser();
 
   return (
-    <section className="mx-auto max-w-6xl min-h-screen py-24 md:pt-32 pt-48 flex justify-center align-middle flex-col">
-      <div className="flex justify-center align-middle max-w-6xl mx-4 md:mx-8 flex-col md:flex-row md:gap-0 gap-24">
+    <section className="mx-auto max-w-5xl min-h-screen py-24 md:pt-32 pt-48 flex justify-center align-middle flex-col">
+      <div className="flex justify-center align-middle max-w-5xl mx-4 md:mx-0 flex-col md:flex-row md:gap-0 gap-24">
         <div className="w-full md:w-1/2 flex flex-col justify-center align-middle text-left">
           <motion.h1
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
@@ -133,7 +133,7 @@ export function Hero() {
             transition={{ duration: 0.5 }}
             className="font-medium text-3xl md:text-5xl md:mt-2 mt-1 flex items-center gap-1 justify-start"
           >
-            with 4 lines of code
+            in 2 minutes
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
@@ -141,9 +141,11 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="max-w-2xl text-sm md:text-lg text-muted-foreground md:mt-6 mt-4"
           >
-            The best way to integrate AI into your app.
+            Stop wasting time on <span className="text-primary/50">RAG</span>,{" "}
+            <span className="text-primary/50">prompts</span>, and{" "}
+            <span className="text-primary/50">models</span>.
             <br />
-            Manage knowledge (RAG), models, prompts, and more.
+            Manage everything about AI in one place.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
@@ -166,8 +168,8 @@ export function Hero() {
                 </Button>
               </Link>
             )}
-            <Link href="https://cal.com/gustavo-fior/30min" target="_blank">
-              <Button variant="ghost">Schedule a demo</Button>
+            <Link href="https://docs.itz.am" target="_blank">
+              <Button variant="ghost">Check the docs</Button>
             </Link>
           </motion.div>
         </div>
@@ -194,9 +196,7 @@ export function Showcase() {
   const [userInput, setUserInput] = useState("");
 
   const code = `
-const itzam = new Itzam("api-key");
-
-const response = await itzam.generateText({
+const response = await itzam.streamText({
   input: "${userInput}",
   workflowSlug: "support-chat"
 });
@@ -208,8 +208,6 @@ const response = await itzam.generateText({
   const [secondAssistantMessageTyped, setSecondAssistantMessageTyped] =
     useState("");
 
-  const [isTyping, setIsTyping] = useState(false);
-
   useEffect(() => {
     simulateTyping(firstUserMessage, 4000, setFirstUserMessageTyped, 40);
 
@@ -219,47 +217,46 @@ const response = await itzam.generateText({
       secondAssistantMessage,
       8000,
       setSecondAssistantMessageTyped,
-      40,
-      setIsTyping
+      30
     );
   }, []);
 
   return (
     <div className="w-full md:max-w-lg max-w-full ">
       <div className="mx-auto">
-        <div className="p-4 dark:bg-card bg-card/70 rounded-t-3xl border md:mx-8 mx-4 border-b-0 shadow-sm">
+        <div className="p-4 dark:bg-card bg-card/70 rounded-t-3xl border md:mx-10 mx-4 border-b-0 shadow-sm">
           <div className="p-2">
             <h2 className="font-medium text-center flex items-center gap-1.5 justify-center">
-              <Bird className="size-3.5 mb-0.5" />
+              <Bird className="size-3.5 mb-0.5" strokeWidth={2.2} />
               Acme Support
             </h2>
 
             <div className="mt-6 flex flex-col gap-4 min-h-[200px] overflow-y-auto">
-              <Message role="assistant" isTyping={false}>
+              <Message role="assistant" isTyping={false} delay={1.4}>
                 <p>{firstAssistantMessage}</p>
               </Message>
               {firstUserMessageTyped && (
-                <Message role="user" isTyping={false}>
+                <Message role="user" isTyping={false} delay={0.1}>
                   <p>{firstUserMessageTyped}</p>
                 </Message>
               )}
-              {(secondAssistantMessageTyped || isTyping) && (
-                <Message role="assistant" isTyping={isTyping}>
+              {secondAssistantMessageTyped && (
+                <Message role="assistant" isTyping={false} delay={0.1}>
                   <p>{secondAssistantMessageTyped}</p>
                 </Message>
               )}
             </div>
 
-            <div className="relative mt-6 mb-2">
+            <div className="relative mt-6">
               <Input
                 placeholder="Send a message..."
-                className="w-full pr-12 pl-6 h-12 rounded-full"
+                className="w-full pr-8 pl-4 h-10 rounded-full"
               />
               <Button
                 variant="outline"
-                className="rounded-full bg-primary border-none p-2 size-6 absolute right-3 top-1/2 -translate-y-1/2 hover:bg-primary/80"
+                className="rounded-full bg-muted-foreground/50 border-none p-2 size-6 absolute right-2.5 top-1/2 -translate-y-1/2 hover:bg-muted-foreground/60"
               >
-                <ArrowUp className="size-3 text-background" strokeWidth={2.5} />
+                <ArrowUp className="size-3 text-primary" strokeWidth={2.5} />
               </Button>
             </div>
           </div>
@@ -281,16 +278,18 @@ function Message({
   role,
   children,
   isTyping,
+  delay,
 }: {
   role: string;
   children: React.ReactNode;
   isTyping: boolean;
+  delay: number;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
       animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-      transition={{ duration: 0.2, delay: role === "user" ? 0.2 : 1.4 }}
+      transition={{ duration: 0.2, delay }}
       className={`flex items-center gap-2 ${
         role === "user" ? "justify-end items-end" : "justify-start items-start"
       }`}
