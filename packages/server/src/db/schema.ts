@@ -377,6 +377,28 @@ export const resourceContexts = createTable(
   })
 );
 
+// ThreadContext junction table for many-to-many relationship
+export const threadContexts = createTable(
+  "thread_context",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    threadId: varchar("thread_id", { length: 256 })
+      .notNull()
+      .references(() => threads.id),
+    contextId: varchar("context_id", { length: 256 })
+      .notNull()
+      .references(() => contexts.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    compositePk: index("thread_context_pk").on(table.threadId, table.contextId),
+    threadIdIndex: index("thread_context_thread_id_idx").on(table.threadId),
+    contextIdIndex: index("thread_context_context_id_idx").on(table.contextId),
+  })
+);
+
 export const chunks = createTable(
   "chunks",
   {
@@ -590,6 +612,7 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
 export const contextRelations = relations(contexts, ({ many }) => ({
   contextItems: many(contextItems),
   resourceContexts: many(resourceContexts),
+  threadContexts: many(threadContexts),
 }));
 
 // -------- ContextItem --------
@@ -608,6 +631,18 @@ export const resourceContextRelations = relations(resourceContexts, ({ one }) =>
   }),
   context: one(contexts, {
     fields: [resourceContexts.contextId],
+    references: [contexts.id],
+  }),
+}));
+
+// -------- ThreadContext --------
+export const threadContextRelations = relations(threadContexts, ({ one }) => ({
+  thread: one(threads, {
+    fields: [threadContexts.threadId],
+    references: [threads.id],
+  }),
+  context: one(contexts, {
+    fields: [threadContexts.contextId],
     references: [contexts.id],
   }),
 }));
@@ -757,6 +792,7 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
     references: [workflows.id],
   }),
   lookupKeys: many(threadLookupKeys),
+  threadContexts: many(threadContexts),
 }));
 
 export const threadLookupKeyRelations = relations(
