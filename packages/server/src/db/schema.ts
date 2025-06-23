@@ -354,6 +354,28 @@ export const resources = createTable(
   })
 );
 
+// ResourceContext junction table for many-to-many relationship
+export const resourceContexts = createTable(
+  "resource_context",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    resourceId: varchar("resource_id", { length: 256 })
+      .notNull()
+      .references(() => resources.id),
+    contextId: varchar("context_id", { length: 256 })
+      .notNull()
+      .references(() => contexts.id),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+  (table) => ({
+    compositePk: index("resource_context_pk").on(table.resourceId, table.contextId),
+    resourceIdIndex: index("resource_context_resource_id_idx").on(table.resourceId),
+    contextIdIndex: index("resource_context_context_id_idx").on(table.contextId),
+  })
+);
+
 export const chunks = createTable(
   "chunks",
   {
@@ -566,12 +588,25 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
 // -------- Context --------
 export const contextRelations = relations(contexts, ({ many }) => ({
   contextItems: many(contextItems),
+  resourceContexts: many(resourceContexts),
 }));
 
 // -------- ContextItem --------
 export const contextItemRelations = relations(contextItems, ({ one }) => ({
   context: one(contexts, {
     fields: [contextItems.contextId],
+    references: [contexts.id],
+  }),
+}));
+
+// -------- ResourceContext --------
+export const resourceContextRelations = relations(resourceContexts, ({ one }) => ({
+  resource: one(resources, {
+    fields: [resourceContexts.resourceId],
+    references: [resources.id],
+  }),
+  context: one(contexts, {
+    fields: [resourceContexts.contextId],
     references: [contexts.id],
   }),
 }));
@@ -647,6 +682,7 @@ export const resourceRelations = relations(resources, ({ one, many }) => ({
   }),
   runResources: many(runResources),
   chunks: many(chunks),
+  resourceContexts: many(resourceContexts),
 }));
 
 // -------- Chunk --------
