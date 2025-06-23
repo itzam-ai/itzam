@@ -135,18 +135,42 @@ export async function getThreadRunsHistory(threadId: string, userId?: string) {
 }
 
 export async function getThreadContextIds(threadId: string): Promise<string[]> {
-	// Get contexts directly associated with the thread via threadContexts junction table
-	const threadContextsResult = await db.query.threadContexts.findMany({
-		where: eq(threadContexts.threadId, threadId),
-		with: {
-			context: true,
-		},
-	});
+	try {
+		// Get contexts directly associated with the thread via threadContexts junction table
+		const threadContextsResult = await db.query.threadContexts.findMany({
+			where: eq(threadContexts.threadId, threadId),
+			columns: { contextId: true },
+		});
 
-	// Extract context IDs from the results
-	const contextIds = threadContextsResult.map((tc) => tc.context.id);
+		// If we have direct thread contexts, return them
+		if (threadContextsResult.length > 0) {
+			return threadContextsResult.map((tc) => tc.contextId);
+		}
 
-	return contextIds;
+		// Fallback: Get context from the thread's workflow
+		const thread = await db.query.threads.findFirst({
+			where: eq(threads.id, threadId),
+			columns: { workflowId: true },
+		});
+
+		if (!thread?.workflowId) {
+			return [];
+		}
+
+		const workflow = await db.query.workflows.findFirst({
+			where: eq(workflows.id, thread.workflowId),
+			columns: { contextId: true },
+		});
+
+		if (!workflow?.contextId) {
+			return [];
+		}
+
+		return [workflow.contextId];
+	} catch (error) {
+		console.error('Error getting thread context IDs:', error);
+		return [];
+	}
 }
 
 export async function createThread({

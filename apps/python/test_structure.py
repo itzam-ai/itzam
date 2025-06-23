@@ -44,9 +44,8 @@ def test_routes():
         expected_routes = [
             "/health/",
             "/api/v1/create-resource",
-            "/api/v1/chunk",
-            "/",
-            "/items/{item_id}"
+            "/api/v1/rescrape",
+            "/"
         ]
         
         for expected_route in expected_routes:

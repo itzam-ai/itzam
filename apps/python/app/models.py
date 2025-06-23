@@ -587,3 +587,22 @@ class RunResource(Base):
 
     resource: Mapped['Resource'] = relationship('Resource', back_populates='run_resource')
     run: Mapped['Run'] = relationship('Run', back_populates='run_resource')
+
+
+class ResourceContexts(Base):
+    __tablename__ = 'resource_contexts'
+    __table_args__ = (
+        ForeignKeyConstraint(['resource_id'], ['resource.id'], name='resource_contexts_resource_id_resource_id_fk'),
+        ForeignKeyConstraint(['context_id'], ['context.id'], name='resource_contexts_context_id_context_id_fk'),
+        PrimaryKeyConstraint('id', name='resource_contexts_pkey'),
+        Index('resource_contexts_resource_id_idx', 'resource_id'),
+        Index('resource_contexts_context_id_idx', 'context_id')
+    )
+
+    id: Mapped[str] = mapped_column(String(256), primary_key=True)
+    resource_id: Mapped[str] = mapped_column(String(256))
+    context_id: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
+
+    resource: Mapped['Resource'] = relationship('Resource')
+    context: Mapped['Context'] = relationship('Context')
