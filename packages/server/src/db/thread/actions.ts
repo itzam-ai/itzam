@@ -130,10 +130,24 @@ export async function getThreadRunsHistory(threadId: string, userId?: string) {
 }
 
 export async function getThreadContextIds(threadId: string): Promise<string[]> {
-  // TODO: Implement thread-context relationship
-  // For now, return empty array as threads don't have direct context associations
-  // This may need to be implemented when thread-context relationships are added
-  return [];
+  // Get the thread with its workflow and context
+  const thread = await db.query.threads.findFirst({
+    where: eq(threads.id, threadId),
+    with: {
+      workflow: {
+        with: {
+          context: true,
+        },
+      },
+    },
+  });
+
+  if (!thread?.workflow?.context) {
+    return [];
+  }
+
+  // Return the context ID from the workflow
+  return [thread.workflow.context.id];
 }
 
 export async function createThread({
