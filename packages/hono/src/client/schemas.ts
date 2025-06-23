@@ -591,6 +591,14 @@ export const CreateContextInputSchema = z.object({
     description: "The slug of the context",
     example: "my-context",
   }),
+  description: z.string().optional().openapi({
+    description: "The description of the context",
+    example: "A context for managing customer data",
+  }),
+  workflowSlug: z.string().openapi({
+    description: "The slug of the workflow this context belongs to",
+    example: "customer-support",
+  }),
   resources: z.array(z.string()).optional().openapi({
     description: "Array of resource IDs to add to the context",
     example: ["resource_1234567890"],
