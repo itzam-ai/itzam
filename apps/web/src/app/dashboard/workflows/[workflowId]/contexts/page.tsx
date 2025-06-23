@@ -1,9 +1,8 @@
 import { getContextsByWorkflowId } from "@itzam/server/db/contexts/actions";
 import { getMaxLimit } from "@itzam/server/db/knowledge/actions";
-import { FileInput } from "~/components/knowledge/file-input";
-import { LinkInput } from "~/components/knowledge/link-input";
+import Link from "next/link";
 import { Usage } from "~/components/knowledge/usage";
-import { Card } from "~/components/ui/card";
+import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 
 export default async function ContextsPage({
   params,
@@ -45,16 +44,18 @@ export default async function ContextsPage({
         />
       </div>
       <div className="flex flex-col gap-4">
-        <FileInput
-          workflowId={workflowId}
-          resources={contexts.flatMap((context) => context.resources)}
-          contextId={contexts.id}
-        />
-        <LinkInput
-          workflowId={workflowId}
-          resources={contexts.flatMap((context) => context.resources)}
-          contextId={contexts.id}
-        />
+        {contexts.map((context) => (
+          <Link
+            key={context.id}
+            href={`/dashboard/workflows/${context.workflowId}/contexts/${context.id}`}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>{context.name}</CardTitle>
+              </CardHeader>
+            </Card>
+          </Link>
+        ))}
       </div>
     </Card>
   );
