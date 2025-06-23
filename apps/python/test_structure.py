@@ -9,7 +9,7 @@ def test_imports():
         from app.main import app
         from app.config import settings
         from app.schemas import HealthResponse, CreateResourceRequest
-        from app.database import get_supabase_client
+        from app.supabase import get_supabase_client
         from app.dependencies import verify_auth_token
         from app.services import get_text_from_tika, generate_file_title
         from app.routers import health, resources

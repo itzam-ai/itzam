@@ -80,4 +80,16 @@ export const enterpriseFeatures = [
     icon: Code,
     text: "Custom integrations",
   },
+  {
+    icon: CalendarCheckIcon,
+    text: "Unlimited data retention",
+  },
+  {
+    icon: FileUpIcon,
+    text: "Custom knowledge per workflow",
+  },
+  {
+    icon: BotMessageSquareIcon,
+    text: "Custom prompt enhancements",
+  },
 ];

@@ -10,7 +10,7 @@ import { Label } from "~/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import GitHubLogo from "public/github-logo";
+import GitHubLogo from "public/logos/github-logo";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +56,12 @@ export default function LoginPage() {
             onClick={() => handleSignInWithProvider("google")}
             disabled={isLoading}
           >
-            <Image src="/google-logo.svg" alt="Google" width={16} height={16} />
+            <Image
+              src="/logos/google-logo.svg"
+              alt="Google"
+              width={16}
+              height={16}
+            />
             Google
           </Button>
           <Button

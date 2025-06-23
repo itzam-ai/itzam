@@ -1,7 +1,10 @@
 "use client";
 
 import { deleteResource, Knowledge } from "@itzam/server/db/knowledge/actions";
-import { updateRescrapeFrequency } from "@itzam/server/db/resource/actions";
+import {
+  rescrapeResource,
+  updateRescrapeFrequency,
+} from "@itzam/server/db/resource/actions";
 import NumberFlow from "@number-flow/react";
 import { formatBytes } from "bytes-formatter";
 import { formatDistanceToNow } from "date-fns";
@@ -13,6 +16,7 @@ import {
   FileIcon,
   GlobeIcon,
   Loader2,
+  RefreshCw,
   Settings,
   TrashIcon,
   X,
@@ -80,6 +84,7 @@ export const KnowledgeItem = ({
   const [isUpdatingRescrapeFrequency, setIsUpdatingRescrapeFrequency] =
     useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isRescraping, setIsRescraping] = useState(false);
   const [scrapeFrequency, setScrapeFrequency] = useState<
     "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
   >(resource.scrapeFrequency ?? "NEVER");
@@ -113,6 +118,19 @@ export const KnowledgeItem = ({
     await updateRescrapeFrequency(resource.id, frequency);
     setIsUpdatingRescrapeFrequency(false);
     toast.success("Rescrape frequency updated");
+  };
+
+  const handleRescrapeNow = async () => {
+    setIsRescraping(true);
+    try {
+      await rescrapeResource(resource.id);
+
+      toast.success("Resource rescrape initiated");
+    } catch {
+      toast.error("Failed to rescrape resource");
+    } finally {
+      setIsRescraping(false);
+    }
   };
 
   useEffect(() => {
@@ -321,30 +339,51 @@ export const KnowledgeItem = ({
                   </Select>
                 </div>
 
-                <DialogFooter>
+                <DialogFooter className="flex justify-between sm:justify-between">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      setScrapeFrequency(resource.scrapeFrequency ?? "NEVER");
-                    }}
+                    onClick={handleRescrapeNow}
+                    disabled={isRescraping}
+                    className="mr-auto"
                   >
-                    Cancel
+                    {isRescraping ? (
+                      <>
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Rescraping...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-3 w-3" />
+                        Rescrape Now
+                      </>
+                    )}
                   </Button>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="sm"
-                    className="w-24"
-                    onClick={() => {
-                      handleUpdateRescrapeFrequency(scrapeFrequency);
-                      setIsDialogOpen(false);
-                    }}
-                    disabled={isUpdatingRescrapeFrequency}
-                  >
-                    Update
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        setScrapeFrequency(resource.scrapeFrequency ?? "NEVER");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="sm"
+                      className="w-24"
+                      onClick={() => {
+                        handleUpdateRescrapeFrequency(scrapeFrequency);
+                        setIsDialogOpen(false);
+                      }}
+                      disabled={isUpdatingRescrapeFrequency}
+                    >
+                      Update
+                    </Button>
+                  </div>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

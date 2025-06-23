@@ -501,6 +501,7 @@ export type Database = {
       resource: {
         Row: {
           active: boolean
+          content_hash: string | null
           created_at: string
           file_name: string | null
           file_size: number | null
@@ -523,6 +524,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          content_hash?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -545,6 +547,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          content_hash?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -700,7 +703,6 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          lookup_key: string | null
           name: string
           updated_at: string
           workflow_id: string
@@ -708,7 +710,6 @@ export type Database = {
         Insert: {
           created_at?: string
           id: string
-          lookup_key?: string | null
           name: string
           updated_at: string
           workflow_id: string
@@ -716,7 +717,6 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          lookup_key?: string | null
           name?: string
           updated_at?: string
           workflow_id?: string
@@ -727,6 +727,35 @@ export type Database = {
             columns: ["workflow_id"]
             isOneToOne: false
             referencedRelation: "workflow"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      thread_lookup_key: {
+        Row: {
+          created_at: string
+          id: string
+          lookup_key: string
+          thread_id: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          lookup_key: string
+          thread_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lookup_key?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_lookup_key_thread_id_thread_id_fk"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "thread"
             referencedColumns: ["id"]
           },
         ]

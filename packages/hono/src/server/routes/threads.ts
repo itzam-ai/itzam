@@ -1,29 +1,31 @@
 import { db } from "@itzam/server/db/index";
-import { contexts, threadContexts, threads, workflows } from "@itzam/server/db/schema";
+import { threads, workflows } from "@itzam/server/db/schema";
 import {
   getThreadById,
   getThreadRunsHistory,
   getThreadsByWorkflowSlug,
 } from "@itzam/server/db/thread/actions";
-import { and, eq, inArray, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
-import { validator } from "hono/validator";
 import { v7 } from "uuid";
-import { z } from "zod";
+import { createThread } from "@itzam/server/db/thread/actions";
 import {
   CreateThreadResponseSchema,
-  GetRunsByThreadParamsSchema,
   GetRunsByThreadResponseSchema,
   GetThreadResponseSchema,
-  GetThreadsByWorkflowParamsSchema,
   GetThreadsByWorkflowResponseSchema,
 } from "../../client/schemas";
 import { createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
-import { createThreadValidator } from "../validators";
+import {
+  createThreadValidator,
+  getRunsByThreadParamsValidator,
+  getThreadsByWorkflowParamsValidator,
+  getThreadsByWorkflowQueryValidator,
+} from "../validators";
 
 export const threadsRoute = new Hono()
   .use(apiKeyMiddleware)
@@ -46,11 +48,16 @@ export const threadsRoute = new Hono()
     createThreadValidator,
     async (c) => {
       try {
-        const { name, lookupKey, workflowSlug, contexts: contextIds } = c.req.valid("json");
+        const userId = c.get("userId");
+        const { name, lookupKeys, workflowSlug } = c.req.valid("json");
 
-        // Find the workflow by slug
+        // Find the workflow by slug and userId
         const workflow = await db.query.workflows.findFirst({
-          where: eq(workflows.slug, workflowSlug),
+          where: and(
+            eq(workflows.slug, workflowSlug),
+            eq(workflows.userId, userId),
+            eq(workflows.isActive, true)
+          ),
         });
 
         if (!workflow) {
@@ -60,63 +67,11 @@ export const threadsRoute = new Hono()
           );
         }
 
-        // Validate contexts if provided
-        let validatedContexts: any[] = [];
-        if (contextIds && contextIds.length > 0) {
-          const foundContexts = await db.query.contexts.findMany({
-            where: and(
-              eq(contexts.workflowId, workflow.id),
-              or(
-                inArray(contexts.id, contextIds),
-                inArray(contexts.slug, contextIds)
-              )
-            ),
-            with: {
-              resourceContexts: {
-                with: {
-                  resource: {
-                    columns: {
-                      id: true,
-                      title: true,
-                      type: true,
-                      url: true,
-                      status: true,
-                    },
-                  },
-                },
-              },
-            },
-          });
-
-          if (foundContexts.length !== contextIds.length) {
-            return c.json(
-              createErrorResponse(new Error("One or more contexts not found")),
-              404
-            );
-          }
-
-          validatedContexts = foundContexts.map((context) => ({
-            ...context,
-            createdAt: context.createdAt.toISOString(),
-            updatedAt: context.updatedAt.toISOString(),
-            resources: context.resourceContexts?.map((rc) => rc.resource) || [],
-            resourceContexts: undefined,
-          }));
-        }
-
-        const threadId = `thread_${v7()}`;
-        const threadName = name || `Thread ${threadId.slice(-10)}`;
-
-        // Create the thread
-        const [thread] = await db
-          .insert(threads)
-          .values({
-            id: threadId,
-            name: threadName,
-            lookupKey: lookupKey || null,
-            workflowId: workflow.id,
-          })
-          .returning();
+        const thread = await createThread({
+          workflowId: workflow.id,
+          lookupKeys,
+          name,
+        });
 
         if (!thread) {
           return c.json(
@@ -125,22 +80,10 @@ export const threadsRoute = new Hono()
           );
         }
 
-        // Associate contexts with the thread
-        if (validatedContexts.length > 0) {
-          const threadContextAssociations = validatedContexts.map((context) => ({
-            id: `tc_${v7()}`,
-            threadId: thread.id,
-            contextId: context.id,
-          }));
-
-          await db.insert(threadContexts).values(threadContextAssociations);
-        }
-
         return c.json({
           id: thread.id,
           name: thread.name,
-          lookupKey: thread.lookupKey,
-          contexts: validatedContexts,
+          lookupKeys: thread.lookupKeys,
           createdAt: thread.createdAt.toISOString(),
           updatedAt: thread.updatedAt.toISOString(),
         });
@@ -166,45 +109,23 @@ export const threadsRoute = new Hono()
         description: "Successfully retrieved threads",
       }),
     }),
-    validator("param", (value, c) => {
-      const parsed = GetThreadsByWorkflowParamsSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid parameters", 400);
-      }
-      return parsed.data;
-    }),
-    validator("query", (value, c) => {
-      const querySchema = z.object({
-        lookupKey: z.string().optional(),
-      });
-      const parsed = querySchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid query parameters", 400);
-      }
-      return parsed.data;
-    }),
+    getThreadsByWorkflowParamsValidator,
+    getThreadsByWorkflowQueryValidator,
     async (c) => {
       try {
         const userId = c.get("userId");
         const { workflowSlug } = c.req.valid("param");
-        const { lookupKey } = c.req.valid("query");
+        const { lookupKeys } = c.req.valid("query");
 
         const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
-          lookupKey,
+          lookupKeys,
         });
 
         return c.json({
           threads: threads.map((thread) => ({
             id: thread.id,
             name: thread.name,
-            lookupKey: thread.lookupKey,
-            contexts: thread.threadContexts?.map((tc) => ({
-              ...tc.context,
-              createdAt: tc.context.createdAt.toISOString(),
-              updatedAt: tc.context.updatedAt.toISOString(),
-              resources: tc.context.resourceContexts?.map((rc) => rc.resource) || [],
-              resourceContexts: undefined,
-            })) || [],
+            lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
             createdAt: thread.createdAt.toISOString(),
             updatedAt: thread.updatedAt.toISOString(),
           })),
@@ -230,13 +151,7 @@ export const threadsRoute = new Hono()
         description: "Successfully retrieved thread runs",
       }),
     }),
-    validator("param", (value, c) => {
-      const parsed = GetRunsByThreadParamsSchema.safeParse(value);
-      if (!parsed.success) {
-        return c.text("Invalid parameters", 400);
-      }
-      return parsed.data;
-    }),
+    getRunsByThreadParamsValidator,
     async (c) => {
       try {
         const userId = c.get("userId");
@@ -244,18 +159,41 @@ export const threadsRoute = new Hono()
 
         const runs = await getThreadRunsHistory(threadId, userId);
 
-        return c.json({
+        const response = {
           runs: runs.map((run) => ({
             id: run.id,
+            origin: run.origin,
+            status: run.status,
             input: run.input,
-            output: run.output || "",
-            createdAt: run.createdAt.toISOString(),
+            output: run.output ?? "",
+            prompt: run.prompt,
+            inputTokens: run.inputTokens,
+            outputTokens: run.outputTokens,
+            cost: run.cost,
+            durationInMs: run.durationInMs,
+            threadId: run.threadId ?? null,
             model: {
-              name: run.model?.name || "",
-              tag: run.model?.tag || "",
+              name: run.model?.name ?? "",
+              tag: run.model?.tag ?? "",
             },
+            attachments: run.attachments.map((attachment) => ({
+              id: attachment.id,
+              url: attachment.url,
+              mimeType: attachment.mimeType,
+            })),
+            knowledge: run.runResources.map((resource) => ({
+              id: resource.resource.id,
+              title: resource.resource.title,
+              url: resource.resource.url,
+              type: resource.resource.type,
+              // In the future: context property -- null if no context, object if it's from context
+            })),
+            workflowId: run.workflowId ?? "",
+            createdAt: run.createdAt.toISOString(),
           })),
-        });
+        };
+
+        return c.json(response);
       } catch (error) {
         return c.json(createErrorResponse(error), 500);
       }

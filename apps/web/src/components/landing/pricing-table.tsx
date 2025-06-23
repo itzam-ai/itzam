@@ -38,7 +38,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
 
   return (
     <div className="relative flex flex-col justify-center">
-      <div className="flex w-full rounded-xl bg-muted/50 p-1 shadow-sm md:flex-row flex-col md:gap-0 gap-4">
+      <div className="flex w-full rounded-xl bg-muted/50 shadow-sm md:flex-row flex-col md:gap-0 gap-4">
         <div className="w-full md:w-2/6">
           <PricingCard
             title="Hobby"
@@ -58,7 +58,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
               ) : (
                 <Link href="/auth/login" className="block w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Integrate now
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>
@@ -98,14 +98,14 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
               isSignedIn ? (
                 <Link href="/dashboard/settings" className="w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Get started
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>
               ) : (
                 <Link href="/auth/login" className="w-full">
                   <Button variant="primary" className="w-full" size="sm">
-                    Get started
+                    Start Building
                     <ArrowRight className="hidden size-4 md:block" />
                   </Button>
                 </Link>

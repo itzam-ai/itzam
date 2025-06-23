@@ -94,7 +94,7 @@ export function Hero() {
   return (
     <section className="mx-auto max-w-6xl min-h-screen py-24 md:pt-32 pt-48 flex justify-center align-middle flex-col">
       <div className="flex justify-center align-middle max-w-6xl mx-4 md:mx-8 flex-col md:flex-row md:gap-0 gap-24">
-        <div className="w-full md:w-1/2 flex flex-col justify-center align-middle text-center md:text-left">
+        <div className="w-full md:w-1/2 flex flex-col justify-center align-middle text-left">
           <motion.h1
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
@@ -131,7 +131,7 @@ export function Hero() {
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             transition={{ duration: 0.5 }}
-            className="font-medium text-3xl md:text-5xl md:mt-2 mt-1 flex items-center gap-1 justify-center md:justify-start"
+            className="font-medium text-3xl md:text-5xl md:mt-2 mt-1 flex items-center gap-1 justify-start"
           >
             with 4 lines of code
           </motion.h1>
@@ -139,12 +139,11 @@ export function Hero() {
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-2xl text-base md:text-lg text-muted-foreground md:mt-6 mt-4"
+            className="max-w-2xl text-sm md:text-lg text-muted-foreground md:mt-6 mt-4"
           >
-            Itzam is the <span className="hidden md:inline">easiest</span> way
-            to integrate AI into your app.
+            The best way to integrate AI into your app.
             <br />
-            Manage prompts, models, billing, and more.
+            Manage knowledge (RAG), models, prompts, and more.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
@@ -155,14 +154,14 @@ export function Hero() {
             {isSignedIn ? (
               <Link href="/dashboard">
                 <Button variant="primary" className="w-40">
-                  Integrate now
+                  Start Building
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>
             ) : (
               <Link href="/auth/login" prefetch={true}>
                 <Button variant="primary" className="w-40">
-                  Integrate now
+                  Start Building
                   <ArrowRight className="size-4" />
                 </Button>
               </Link>

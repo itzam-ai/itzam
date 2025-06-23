@@ -61,7 +61,7 @@ export default function Home() {
         <section id="sdks-api" className="border-t pt-24">
           <Feature
             icon={Code}
-            title="AI in 4 lines of code"
+            title="Only 4 lines of code"
             feature="SDKs & API"
             description="Access 30+ AI models with a beautiful SDK."
             component={<EasySDKAPI />}

@@ -1,24 +1,16 @@
 "use client";
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
+import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 import {
-<<<<<<< HEAD
   ResourceUpdatePayload,
   subscribeToResourceUpdates,
-=======
-  subscribeToResourceUpdates,
-  ResourceUpdatePayload,
->>>>>>> origin/main
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
-<<<<<<< HEAD
-import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
-=======
->>>>>>> origin/main
 import { cn } from "~/lib/utils";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
@@ -32,7 +24,6 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { KnowledgeItem } from "./knowledge-item";
 import { Label } from "../ui/label";
 import {
   Select,
@@ -41,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
+import { KnowledgeItem } from "./knowledge-item";
 
 type LinkToAdd = {
   id: string;
@@ -61,35 +52,12 @@ const isValidUrl = (url: string) => {
 export const LinkInput = ({
   workflowId,
   knowledge,
-  contextId,
-  contexts,
 }: {
   workflowId: string;
   knowledge: Knowledge;
-  contextId?: string;
-  contexts?: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    resourceContexts?: Array<{
-      resourceId: string;
-    }>;
-  }>;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & {
-<<<<<<< HEAD
-      chunksLength?: number;
-      processedChunks?: number;
-      totalChunks?: number;
-    })[]
-  >(knowledge?.resources.filter((resource) => resource.type === "LINK") ?? []);
-
-  // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<
-    Record<string, number>
-  >({});
-=======
       processedChunks?: number;
       totalChunks?: number;
     })[]
@@ -102,7 +70,6 @@ export const LinkInput = ({
         totalChunks: resource.totalChunks ?? 0,
       })) ?? []
   );
->>>>>>> origin/main
 
   const [link, setLink] = useState<string>("");
   const [scrapeFrequency, setScrapeFrequency] = useState<
@@ -161,7 +128,7 @@ export const LinkInput = ({
       mimeType: "text/html",
       type: "LINK" as const,
       fileSize: 0,
-      knowledgeId: contextId ? null : (knowledge?.id ?? null),
+      knowledgeId: knowledge?.id ?? "",
       workflowId,
       active: true,
       totalChunks: 0,
@@ -170,15 +137,15 @@ export const LinkInput = ({
       lastScrapedAt: null,
       totalBatches: 0,
       processedBatches: 0,
+      contentHash: null,
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
 
     try {
-      await createResourceAndSendToAPI({
+      await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: contextId ? undefined : knowledge?.id,
-        contextId: contextId,
+        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
       });
     } catch (error) {
@@ -195,9 +162,7 @@ export const LinkInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = contextId
-    ? `context-${contextId}-links`
-    : `knowledge-${knowledge?.id}-links`;
+  const channelId = `knowledge-${knowledge?.id}-links`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -209,30 +174,11 @@ export const LinkInput = ({
               // Only update fields that are present in the payload (partial updates)
               const updatedLink = { ...link };
 
-<<<<<<< HEAD
-              if (payload.status !== undefined)
-                updatedLink.status = payload.status;
-              if (payload.title !== undefined)
-                updatedLink.title = payload.title;
-              if (payload.chunksLength !== undefined)
-                updatedLink.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined)
-                updatedLink.fileSize = payload.fileSize;
-
-              // Handle progress updates for processing
-              if (
-                payload.processedChunks !== undefined &&
-                payload.totalChunks !== undefined
-              ) {
-                updatedLink.processedChunks = payload.processedChunks;
-                updatedLink.totalChunks = payload.totalChunks;
-=======
               if (
                 payload.status !== undefined &&
                 payload.status !== "PROCESSED"
               ) {
                 updatedLink.status = payload.status;
->>>>>>> origin/main
               }
               if (payload.title !== undefined)
                 updatedLink.title = payload.title;
@@ -258,18 +204,6 @@ export const LinkInput = ({
             return link;
           });
         });
-<<<<<<< HEAD
-      },
-      (progressPayload) => {
-        // Handle processed-chunks events to accumulate progress
-        setProcessedChunksMap((prev) => ({
-          ...prev,
-          [progressPayload.resourceId]:
-            (prev[progressPayload.resourceId] || 0) +
-            progressPayload.processedChunks,
-        }));
-=======
->>>>>>> origin/main
       }
     );
 
@@ -563,13 +497,6 @@ export const LinkInput = ({
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}
-<<<<<<< HEAD
-              processedChunks={processedChunksMap[resource.id]}
-              workflowId={workflowId}
-              contextId={contextId}
-              contexts={contexts}
-=======
->>>>>>> origin/main
             />
           ))}
         </motion.div>

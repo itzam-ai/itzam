@@ -11,16 +11,19 @@ import Itzam from "itzam";
 
 const itzam = new Itzam("YOUR_API_KEY");
 
-const threads = await itzam.threads.list("customer-support");
+const threads = await itzam.threads.list("customer-support", {
+  lookupKeys: ["user-123", "platform-web-app"],
+});
 
 console.log(threads);
 ```
 
 ### Parameters
 
-| Parameter      | Type     | Description                             |
-| -------------- | -------- | --------------------------------------- |
-| `workflowSlug` | `string` | **Required**. The slug of the workflow. |
+| Parameter      | Type       | Description                             |
+| -------------- | ---------- | --------------------------------------- | -------------------------------------- |
+| `workflowSlug` | `string`   | **Required**. The slug of the workflow. |
+| `lookupKeys`   | `string[]` | No                                      | A custom list of lookup keys to match. |
 
 ### Return Value
 
@@ -29,7 +32,7 @@ type ThreadsResponse = {
   threads: {
     id: string; // The unique thread ID
     name: string; // The thread name
-    lookupKey: string | null; // The lookup key if provided
+    lookupKeys: string[]; // The lookup keys if provided
     createdAt: string; // ISO 8601 timestamp
     updatedAt: string; // ISO 8601 timestamp
   }[]; // Array of thread objects

@@ -2,15 +2,9 @@
 
 import { Knowledge } from "@itzam/server/db/knowledge/actions";
 import {
-<<<<<<< HEAD
   ResourceUpdatePayload,
   subscribeToResourceUpdates,
   supabase,
-=======
-  subscribeToResourceUpdates,
-  supabase,
-  ResourceUpdatePayload,
->>>>>>> origin/main
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -26,11 +20,7 @@ import { toast } from "sonner";
 import { v7 } from "uuid";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 
-<<<<<<< HEAD
-import { createResourceAndSendToAPI } from "~/components/knowledge/actions";
-=======
 import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
->>>>>>> origin/main
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
@@ -70,36 +60,12 @@ const uploadFileToSupabase = async (
 export const FileInput = ({
   workflowId,
   knowledge,
-  contextId,
-  contexts,
 }: {
   workflowId: string;
   knowledge: Knowledge;
-  contextId?: string;
-  contexts?: Array<{
-    id: string;
-    name: string;
-    slug: string;
-    resourceContexts?: Array<{
-      resourceId: string;
-    }>;
-  }>;
 }) => {
   const [workflowFiles, setWorkflowFiles] = useState<
     (Knowledge["resources"][number] & {
-<<<<<<< HEAD
-      chunksLength?: number;
-      processedChunks?: number;
-      totalChunks?: number;
-    })[]
-  >(knowledge?.resources.filter((resource) => resource.type === "FILE") ?? []);
-
-  // Track total processed chunks for progress calculation
-  const [processedChunksMap, setProcessedChunksMap] = useState<
-    Record<string, number>
-  >({});
-
-=======
       processedChunks?: number;
       totalChunks?: number;
     })[]
@@ -113,7 +79,6 @@ export const FileInput = ({
       })) ?? []
   );
 
->>>>>>> origin/main
   const { user } = useCurrentUser();
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -198,7 +163,7 @@ export const FileInput = ({
       mimeType: file.type,
       type: "FILE" as const,
       fileSize: file.size,
-      knowledgeId: contextId ? null : (knowledge?.id ?? null),
+      knowledgeId: knowledge?.id ?? "",
       workflowId,
       active: true,
       totalChunks: 0,
@@ -207,6 +172,7 @@ export const FileInput = ({
       lastScrapedAt: null,
       totalBatches: 0,
       processedBatches: 0,
+      contentHash: null,
     }));
 
     setWorkflowFiles((prevFiles) => {
@@ -214,10 +180,9 @@ export const FileInput = ({
     });
 
     try {
-      await createResourceAndSendToAPI({
+      await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: contextId ? undefined : knowledge?.id,
-        contextId: contextId,
+        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
       });
     } catch (error) {
@@ -235,9 +200,7 @@ export const FileInput = ({
     );
   };
 
-  const channelId = contextId
-    ? `context-${contextId}-files`
-    : `knowledge-${knowledge?.id}-files`;
+  const channelId = `knowledge-${knowledge?.id}-files`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -249,24 +212,6 @@ export const FileInput = ({
               // Only update fields that are present in the payload (partial updates)
               const updatedFile = { ...file };
 
-<<<<<<< HEAD
-              if (payload.status !== undefined)
-                updatedFile.status = payload.status;
-              if (payload.title !== undefined)
-                updatedFile.title = payload.title;
-              if (payload.chunksLength !== undefined)
-                updatedFile.chunksLength = payload.chunksLength;
-              if (payload.fileSize !== undefined)
-                updatedFile.fileSize = payload.fileSize;
-
-              // Handle progress updates for processing
-              if (
-                payload.processedChunks !== undefined &&
-                payload.totalChunks !== undefined
-              ) {
-                updatedFile.processedChunks = payload.processedChunks;
-                updatedFile.totalChunks = payload.totalChunks;
-=======
               if (
                 payload.status !== undefined &&
                 payload.status !== "PROCESSED"
@@ -284,7 +229,6 @@ export const FileInput = ({
                   (updatedFile.totalChunks ?? 1)
                 )
                   updatedFile.status = "PROCESSED";
->>>>>>> origin/main
               }
               if (
                 payload.totalChunks !== undefined &&
@@ -297,18 +241,6 @@ export const FileInput = ({
             return file;
           });
         });
-<<<<<<< HEAD
-      },
-      (progressPayload) => {
-        // Handle processed-chunks events to accumulate progress
-        setProcessedChunksMap((prev) => ({
-          ...prev,
-          [progressPayload.resourceId]:
-            (prev[progressPayload.resourceId] || 0) +
-            progressPayload.processedChunks,
-        }));
-=======
->>>>>>> origin/main
       }
     );
 
@@ -460,13 +392,6 @@ export const FileInput = ({
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}
-<<<<<<< HEAD
-                processedChunks={processedChunksMap[resource.id]}
-                workflowId={workflowId}
-                contextId={contextId}
-                contexts={contexts}
-=======
->>>>>>> origin/main
               />
             ))}
           </motion.div>

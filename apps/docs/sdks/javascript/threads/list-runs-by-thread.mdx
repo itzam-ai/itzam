@@ -11,9 +11,9 @@ import Itzam from "itzam";
 
 const itzam = new Itzam("YOUR_API_KEY");
 
-const runs = await itzam.threads.getRuns("thread_1234567890");
+const { runs } = await itzam.threads.getRuns("thread_1234567890");
 
-runs.runs.forEach((run) => {
+runs.forEach((run) => {
   console.log(`Input: ${run.input}`);
   console.log(`Output: ${run.output}`);
   console.log(`Model: ${run.model.name}`);
@@ -31,14 +31,34 @@ runs.runs.forEach((run) => {
 ```typescript
 type RunsResponse = {
   runs: Array<{
-    id: string; // Run ID
-    input: string; // Input text
-    output: string; // Generated output
-    createdAt: string; // ISO 8601 timestamp
+    id: string; // The ID of the run
+    origin: string; // Origin of the run (WEB is it's from Playground, SDK is it's from the SDK)
+    status: string; // Status of the run (RUNNING | COMPLETED | FAILED)
+    input: string; // The user's input
+    output: string | null; // The model's output
+    prompt: string; // The system prompt
+    inputTokens: number; // The number of input tokens used for this run
+    outputTokens: number; // The number of output tokens used for this run
+    cost: string; // The cost in USD
+    durationInMs: number; // The duration of the run in milliseconds
+    threadId: string | null; // The thread ID of the run
     model: {
-      name: string; // Model name
-      tag: string; // Model tag
+      name: string; // The name of the model
+      tag: string; // The tag of the model
     };
+    attachments: Array<{
+      id: string; // The ID of the attachment
+      url: string; // The URL of the attachment
+      mimeType: string; // The MIME type of the attachment
+    }>;
+    knowledge: Array<{
+      id: string; // The ID of the knowledge
+      title: string | null; // The title of the knowledge
+      url: string | null; // The URL of the knowledge
+      type: string | null; // The type of the knowledge
+    }>;
+    workflowId: string; // The ID of the workflow
+    createdAt: string; // The date and time the run was created/executed
   }>;
 };
 ```

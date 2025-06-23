@@ -27,6 +27,7 @@ The `getRunById` method returns the following object:
 
 ```typescript
 type GetRunByIdResponse = {
+  id: string; // The ID of the run
   origin: string; // Origin of the run (WEB is it's from Playground, SDK is it's from the SDK)
   status: string; // Status of the run (RUNNING | COMPLETED | FAILED)
   input: string; // The user's input
@@ -41,6 +42,17 @@ type GetRunByIdResponse = {
     name: string; // The name of the model
     tag: string; // The tag of the model
   };
+  attachments: Array<{
+    id: string; // The ID of the attachment
+    url: string; // The URL of the attachment
+    mimeType: string; // The MIME type of the attachment
+  }>;
+  knowledge: Array<{
+    id: string; // The ID of the knowledge
+    title: string | null; // The title of the knowledge
+    url: string | null; // The URL of the knowledge
+    type: string | null; // The type of the knowledge
+  }>;
   workflowId: string; // The ID of the workflow
   createdAt: string; // The date and time the run was created/executed
 };

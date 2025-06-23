@@ -62,14 +62,6 @@ const BaseInput = z.object({
     description:
       "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
   }),
-  contexts: z
-    .array(z.string())
-    .optional()
-    .openapi({
-      example: ["production-data", "user-feedback"],
-      description:
-        "Optional array of context identifiers (IDs or slugs) to include in the generation",
-    }),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({
@@ -359,24 +351,28 @@ export const StreamTextEventSchema = z
 
 export const GetRunByIdResponseSchema = z
   .object({
+    id: z.string().openapi({
+      example: "run_1234567890",
+      description: "The ID of the run",
+    }),
     origin: z.string().openapi({
-      example: "sdk",
+      example: "SDK",
       description: "The origin of the run",
     }),
     status: z.string().openapi({
-      example: "completed",
+      example: "COMPLETED",
       description: "The status of the run",
     }),
     input: z.string().openapi({
-      example: "Hello, world!",
+      example: "Who are you?",
       description: "The input of the run",
     }),
     output: z.string().openapi({
-      example: "Hello, world!",
+      example: "I'm a helpful assistant",
       description: "The output of the run",
     }),
     prompt: z.string().openapi({
-      example: "Hello, world!",
+      example: "Be friendly and helpful",
       description: "The prompt of the run",
     }),
     inputTokens: z.number().openapi({
@@ -401,18 +397,54 @@ export const GetRunByIdResponseSchema = z
     }),
     model: z.object({
       name: z.string().openapi({
-        example: "gpt-4o",
+        example: "GPT-4o",
         description: "The name of the model",
       }),
       tag: z.string().openapi({
-        example: "gpt-4o",
+        example: "openai:gpt-4o",
         description: "The tag of the model",
       }),
     }),
-    schema: z.string().nullable().openapi({
-      example: "{}",
-      description: "The schema used to generate the object",
-    }),
+    attachments: z
+      .array(
+        z.object({
+          url: z.string().openapi({
+            example: "https://example.com/image.jpg",
+            description: "The URL of the attachment",
+          }),
+          mimeType: z.string().openapi({
+            example: "image/jpeg",
+            description: "The MIME type of the attachment",
+          }),
+          id: z.string().openapi({
+            example: "attachment_1234567890",
+            description: "The ID of the attachment",
+          }),
+        })
+      )
+      .nullable(),
+    knowledge: z
+      .array(
+        z.object({
+          id: z.string().openapi({
+            example: "1353151353531",
+            description: "The ID of the knowledge",
+          }),
+          title: z.string().nullable().openapi({
+            example: "My Resource",
+            description: "The title of the knowledge",
+          }),
+          url: z.string().openapi({
+            example: "https://example.com/resource.pdf",
+            description: "The URL of the knowledge",
+          }),
+          type: z.string().openapi({
+            example: "file",
+            description: "The type of the knowledge",
+          }),
+        })
+      )
+      .nullable(),
     workflowId: z.string().openapi({
       example: "workflow_1234567890",
       description: "The ID of the workflow",
@@ -439,22 +471,17 @@ export const CreateThreadInputSchema = z
       description:
         "The name of the thread (optional, will auto-generate if not provided)",
     }),
-    lookupKey: z.string().optional().openapi({
-      example: "user-123-session",
-      description: "Optional lookup key for finding the thread later",
-    }),
+    lookupKeys: z
+      .array(z.string())
+      .optional()
+      .openapi({
+        example: ["user-123", "platform-web-app"],
+        description: "Optional lookup keys for finding the thread later",
+      }),
     workflowSlug: z.string().min(1).openapi({
       example: "my_great_workflow",
       description: "The slug of the workflow this thread belongs to",
     }),
-    contexts: z
-      .array(z.string())
-      .optional()
-      .openapi({
-        example: ["production-data", "user-feedback"],
-        description:
-          "Optional array of context identifiers (IDs or slugs) to associate with this thread",
-      }),
   })
   .openapi({ ref: "CreateThreadInput" });
 
@@ -468,14 +495,12 @@ export const CreateThreadResponseSchema = z
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKey: z.string().nullable().openapi({
-      example: "user-123-session",
-      description: "The lookup key of the thread",
-    }),
-    contexts: z
-      .array(GetContextResponseSchema)
+    lookupKeys: z
+      .array(z.string())
+      .nullable()
       .openapi({
-        description: "Array of contexts associated with this thread",
+        example: ["user-123", "platform-web-app"],
+        description: "The lookup keys of the thread",
       }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
@@ -488,20 +513,6 @@ export const CreateThreadResponseSchema = z
   })
   .openapi({ ref: "CreateThreadResponse" });
 
-export const GetThreadByIdParamsSchema = z.object({
-  id: z.string().openapi({
-    example: "thread_1234567890",
-    description: "The ID of the thread to retrieve",
-  }),
-});
-
-export const GetThreadByLookupKeyParamsSchema = z.object({
-  lookupKey: z.string().openapi({
-    example: "user-123-session",
-    description: "The lookup key of the thread to retrieve",
-  }),
-});
-
 export const GetThreadResponseSchema = z
   .object({
     id: z.string().openapi({
@@ -512,14 +523,12 @@ export const GetThreadResponseSchema = z
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKey: z.string().nullable().openapi({
-      example: "user-123-session",
-      description: "The lookup key of the thread",
-    }),
-    contexts: z
-      .array(GetContextResponseSchema)
+    lookupKeys: z
+      .array(z.string())
+      .nullable()
       .openapi({
-        description: "Array of contexts associated with this thread",
+        example: ["user-123-session"],
+        description: "The lookup keys of the thread",
       }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
@@ -540,10 +549,13 @@ export const GetThreadsByWorkflowParamsSchema = z.object({
 });
 
 export const GetThreadsByWorkflowQuerySchema = z.object({
-  lookupKey: z.string().optional().openapi({
-    example: "user-123-session",
-    description: "Optional lookup key to filter threads",
-  }),
+  lookupKeys: z
+    .union([z.string().transform((val) => [val]), z.array(z.string())])
+    .optional()
+    .openapi({
+      example: ["user-123", "platform-web-app"],
+      description: "Optional lookup keys to filter threads",
+    }),
 });
 
 export const GetThreadsByWorkflowResponseSchema = z
@@ -561,40 +573,9 @@ export const GetRunsByThreadParamsSchema = z.object({
   }),
 });
 
-export const ThreadRunSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "run_1234567890",
-      description: "The ID of the run",
-    }),
-    input: z.string().openapi({
-      example: "What is React?",
-      description: "The input of the run",
-    }),
-    output: z.string().openapi({
-      example: "React is a JavaScript library...",
-      description: "The output of the run",
-    }),
-    createdAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The creation date of the run",
-    }),
-    model: z.object({
-      name: z.string().openapi({
-        example: "gpt-4o",
-        description: "The name of the model",
-      }),
-      tag: z.string().openapi({
-        example: "openai:gpt-4o",
-        description: "The tag of the model",
-      }),
-    }),
-  })
-  .openapi({ ref: "ThreadRun" });
-
 export const GetRunsByThreadResponseSchema = z
   .object({
-    runs: z.array(ThreadRunSchema).openapi({
+    runs: z.array(GetRunByIdResponseSchema).openapi({
       description: "Array of runs in the thread",
     }),
   })
@@ -608,204 +589,3 @@ export type NonLiteralJson = Exclude<Json, Literal>;
 const jsonSchema: z.ZodType<Json> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)])
 );
-
-// -------- CONTEXTS --------
-export const CreateContextInputSchema = z
-  .object({
-    name: z.string().min(1).max(256).openapi({
-      example: "Customer Support",
-      description: "The name of the context",
-    }),
-    description: z.string().optional().openapi({
-      example: "Context for customer support related documents",
-      description: "Optional description of the context",
-    }),
-    workflowSlug: z.string().min(1).openapi({
-      example: "my_great_workflow",
-      description: "The slug of the workflow this context belongs to",
-    }),
-  })
-  .openapi({ ref: "CreateContextInput" });
-
-export const CreateContextResponseSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "context_1234567890",
-      description: "The ID of the created context",
-    }),
-    name: z.string().openapi({
-      example: "Customer Support",
-      description: "The name of the context",
-    }),
-    slug: z.string().openapi({
-      example: "customer-support",
-      description: "The slug of the context",
-    }),
-    description: z.string().nullable().openapi({
-      example: "Context for customer support related documents",
-      description: "The description of the context",
-    }),
-    workflowId: z.string().openapi({
-      example: "workflow_1234567890",
-      description: "The ID of the workflow this context belongs to",
-    }),
-    createdAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The creation date of the context",
-    }),
-    updatedAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The last update date of the context",
-    }),
-    resources: z.array(z.object({
-      id: z.string().openapi({
-        example: "resource_1234567890",
-        description: "The ID of the resource",
-      }),
-      title: z.string().nullable().openapi({
-        example: "Support Documentation",
-        description: "The title of the resource",
-      }),
-      type: z.enum(["FILE", "LINK"]).openapi({
-        example: "FILE",
-        description: "The type of the resource",
-      }),
-      url: z.string().openapi({
-        example: "https://example.com/document.pdf",
-        description: "The URL of the resource",
-      }),
-      status: z.enum(["PENDING", "PROCESSED", "FAILED"]).openapi({
-        example: "PROCESSED",
-        description: "The processing status of the resource",
-      }),
-    })).optional().openapi({
-      description: "Array of resources associated with this context",
-    }),
-  })
-  .openapi({ ref: "CreateContextResponse" });
-
-export const GetContextByWorkflowParamsSchema = z.object({
-  workflowSlug: z.string().openapi({
-    example: "my_great_workflow",
-    description: "The slug of the workflow to get contexts for",
-  }),
-});
-
-export const GetContextByIdentifierParamsSchema = z.object({
-  identifier: z.string().openapi({
-    example: "context_1234567890",
-    description: "The ID or slug of the context to retrieve",
-  }),
-});
-
-export const GetContextResponseSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "context_1234567890",
-      description: "The ID of the context",
-    }),
-    name: z.string().openapi({
-      example: "Customer Support",
-      description: "The name of the context",
-    }),
-    slug: z.string().openapi({
-      example: "customer-support",
-      description: "The slug of the context",
-    }),
-    description: z.string().nullable().openapi({
-      example: "Context for customer support related documents",
-      description: "The description of the context",
-    }),
-    workflowId: z.string().openapi({
-      example: "workflow_1234567890",
-      description: "The ID of the workflow this context belongs to",
-    }),
-    createdAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The creation date of the context",
-    }),
-    updatedAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The last update date of the context",
-    }),
-    resources: z.array(z.object({
-      id: z.string().openapi({
-        example: "resource_1234567890",
-        description: "The ID of the resource",
-      }),
-      title: z.string().nullable().openapi({
-        example: "Support Documentation",
-        description: "The title of the resource",
-      }),
-      type: z.enum(["FILE", "LINK"]).openapi({
-        example: "FILE",
-        description: "The type of the resource",
-      }),
-      url: z.string().openapi({
-        example: "https://example.com/document.pdf",
-        description: "The URL of the resource",
-      }),
-      status: z.enum(["PENDING", "PROCESSED", "FAILED"]).openapi({
-        example: "PROCESSED",
-        description: "The processing status of the resource",
-      }),
-    })).optional().openapi({
-      description: "Array of resources associated with this context",
-    }),
-  })
-  .openapi({ ref: "GetContextResponse" });
-
-export const GetContextsByWorkflowResponseSchema = z
-  .object({
-    contexts: z.array(GetContextResponseSchema).openapi({
-      description: "Array of contexts for the workflow",
-    }),
-  })
-  .openapi({ ref: "GetContextsByWorkflowResponse" });
-
-export const UpdateContextInputSchema = z
-  .object({
-    name: z.string().min(1).max(256).optional().openapi({
-      example: "Updated Customer Support",
-      description: "The updated name of the context",
-    }),
-    description: z.string().optional().openapi({
-      example: "Updated context description",
-      description: "The updated description of the context",
-    }),
-    resourceIds: z.array(z.string()).optional().openapi({
-      example: ["resource_1234567890", "resource_0987654321"],
-      description: "Array of resource IDs to associate with this context",
-    }),
-  })
-  .openapi({ ref: "UpdateContextInput" });
-
-export const UpdateContextParamsSchema = z.object({
-  id: z.string().openapi({
-    example: "context_1234567890",
-    description: "The ID of the context to update",
-  }),
-});
-
-export const UpdateContextResponseSchema = GetContextResponseSchema
-  .openapi({ ref: "UpdateContextResponse" });
-
-export const DeleteContextParamsSchema = z.object({
-  id: z.string().openapi({
-    example: "context_1234567890",
-    description: "The ID of the context to delete",
-  }),
-});
-
-export const DeleteContextResponseSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "context_1234567890",
-      description: "The ID of the deleted context",
-    }),
-    deleted: z.boolean().openapi({
-      example: true,
-      description: "Whether the context was successfully deleted",
-    }),
-  })
-  .openapi({ ref: "DeleteContextResponse" });

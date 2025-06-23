@@ -1,4 +1,4 @@
-import { and, eq, relations, sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   decimal,
@@ -8,7 +8,6 @@ import {
   pgEnum,
   pgSchema,
   pgTableCreator,
-  pgView,
   text,
   timestamp,
   uuid,
@@ -34,6 +33,12 @@ export const runStatusEnum = pgEnum("run_status", [
   "FAILED",
 ]);
 export const runOriginEnum = pgEnum("run_origin", ["SDK", "WEB"]);
+export const contextItemTypeEnum = pgEnum("context_item_type", [
+  "TEXT",
+  "IMAGE",
+  "FILE",
+  "URL",
+]);
 export const userRoleEnum = pgEnum("user_role", ["MEMBER", "ADMIN"]);
 
 export const chatMessageRoleEnum = pgEnum("chat_message_role", [
@@ -102,17 +107,29 @@ export const models = createTable(
   })
 );
 
-// Context table for dynamic context feature
-export const contexts = createTable(
-  "context",
+// Context table
+export const contexts = createTable("context", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// ContextItem table
+export const contextItems = createTable(
+  "context_item",
   {
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
     name: varchar("name", { length: 256 }).notNull(),
-    slug: varchar("slug", { length: 256 }).notNull(),
     description: text("description"),
-    workflowId: varchar("workflow_id", { length: 256 })
-      .notNull()
-      .references(() => workflows.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    type: contextItemTypeEnum("type").notNull(),
+    contextId: varchar("context_id", { length: 256 }).references(
+      () => contexts.id
+    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -121,68 +138,7 @@ export const contexts = createTable(
       .notNull(),
   },
   (table) => ({
-    workflowIdIndex: index("context_workflow_id_idx").on(table.workflowId),
-    slugIndex: index("context_slug_idx").on(table.slug),
-    // Unique slug within a workflow
-    uniqueSlugPerWorkflow: index("context_workflow_id_slug_unique").on(
-      table.workflowId,
-      table.slug
-    ),
-  })
-);
-
-// ResourceContexts junction table
-export const resourceContexts = createTable(
-  "resource_contexts",
-  {
-    id: varchar("id", { length: 256 }).primaryKey().notNull(),
-    resourceId: varchar("resource_id", { length: 256 })
-      .notNull()
-      .references(() => resources.id, { onDelete: "cascade" }),
-    contextId: varchar("context_id", { length: 256 })
-      .notNull()
-      .references(() => contexts.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (table) => ({
-    resourceIdIndex: index("resource_contexts_resource_id_idx").on(
-      table.resourceId
-    ),
-    contextIdIndex: index("resource_contexts_context_id_idx").on(
-      table.contextId
-    ),
-    // Prevent duplicate resource-context relationships
-    uniqueResourceContext: index(
-      "resource_contexts_resource_id_context_id_unique"
-    ).on(table.resourceId, table.contextId),
-  })
-);
-
-// RunContexts table to track which contexts were used in a run
-export const runContexts = createTable(
-  "run_contexts",
-  {
-    id: varchar("id", { length: 256 }).primaryKey().notNull(),
-    runId: varchar("run_id", { length: 256 })
-      .notNull()
-      .references(() => runs.id, { onDelete: "cascade" }),
-    contextId: varchar("context_id", { length: 256 })
-      .notNull()
-      .references(() => contexts.id, { onDelete: "cascade" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-  },
-  (table) => ({
-    runIdIndex: index("run_contexts_run_id_idx").on(table.runId),
-    contextIdIndex: index("run_contexts_context_id_idx").on(table.contextId),
-    // Prevent duplicate run-context relationships
-    uniqueRunContext: index("run_contexts_run_id_context_id_unique").on(
-      table.runId,
-      table.contextId
-    ),
+    contextIdIndex: index("context_id_idx").on(table.contextId),
   })
 );
 
@@ -225,6 +181,9 @@ export const workflows = createTable(
     slug: varchar("slug", { length: 256 }).notNull(),
     isActive: boolean("is_active").notNull().default(true),
     prompt: text("prompt").notNull(),
+    contextId: varchar("context_id", { length: 256 })
+      .notNull()
+      .references(() => contexts.id),
     modelId: varchar("model_id", { length: 256 })
       .notNull()
       .references(() => models.id),
@@ -245,7 +204,7 @@ export const workflows = createTable(
       .notNull(),
   },
   (table) => ({
-    workflowIdIndex: index("workflow_id_idx").on(table.id),
+    contextIdIndex: index("workflow_context_id_idx").on(table.contextId),
     modelIdIndex: index("workflow_model_id_idx").on(table.modelId),
     modelSettingsIdIndex: index("workflow_model_settings_id_idx").on(
       table.modelSettingsId
@@ -376,6 +335,7 @@ export const resources = createTable(
     processedBatches: integer("processed_batches").notNull().default(0),
     type: resourceTypeEnum("type").notNull(),
     mimeType: varchar("mime_type", { length: 256 }).notNull(),
+    contentHash: varchar("content_hash", { length: 256 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -416,22 +376,6 @@ export const chunks = createTable(
     resourceIdIndex: index("chunks_resource_id_idx").on(table.resourceId),
     workflowIdIndex: index("chunks_workflow_id_idx").on(table.workflowId),
   })
-);
-
-export const workflowChunks = pgView("workflow_chunks").as((qb) =>
-  qb
-    .select({
-      id: chunks.id,
-      contextId: resourceContexts.contextId,
-      knowledgeId: resources.knowledgeId,
-      resourceId: resources.id,
-      embeddings: chunks.embedding,
-      content: chunks.content,
-    })
-    .from(resources)
-    .innerJoin(chunks, eq(resources.id, chunks.resourceId))
-    .innerJoin(resourceContexts, eq(resources.id, resourceContexts.resourceId))
-    .where(and(eq(resources.active, true), eq(chunks.active, true)))
 );
 
 export const providerKeys = createTable(
@@ -487,7 +431,6 @@ export const threads = createTable(
   {
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
     name: varchar("name", { length: 256 }).notNull(),
-    lookupKey: varchar("lookup_key", { length: 256 }).unique(),
     workflowId: varchar("workflow_id", { length: 256 })
       .notNull()
       .references(() => workflows.id),
@@ -499,34 +442,29 @@ export const threads = createTable(
       .notNull(),
   },
   (table) => ({
-    lookupKeyIndex: index("thread_lookup_key_idx").on(table.lookupKey),
     createdAtIndex: index("thread_created_at_idx").on(table.createdAt),
     workflowIdIndex: index("thread_workflow_id_idx").on(table.workflowId),
   })
 );
 
-// ThreadContexts junction table
-export const threadContexts = createTable(
-  "thread_contexts",
+// -------- THREAD LOOKUP KEYS --------
+export const threadLookupKeys = createTable(
+  "thread_lookup_key",
   {
     id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    lookupKey: varchar("lookup_key", { length: 256 }).notNull(),
     threadId: varchar("thread_id", { length: 256 })
       .notNull()
-      .references(() => threads.id, { onDelete: "cascade" }),
-    contextId: varchar("context_id", { length: 256 })
-      .notNull()
-      .references(() => contexts.id, { onDelete: "cascade" }),
+      .references(() => threads.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
   },
   (table) => ({
-    threadIdIndex: index("thread_contexts_thread_id_idx").on(table.threadId),
-    contextIdIndex: index("thread_contexts_context_id_idx").on(table.contextId),
-    threadContextUniqueIndex: index("thread_context_unique_idx").on(
-      table.threadId,
-      table.contextId
+    lookupKeyIndex: index("thread_lookup_key_lookup_key_idx").on(
+      table.lookupKey
     ),
+    threadIdIndex: index("thread_lookup_key_thread_id_idx").on(table.threadId),
   })
 );
 
@@ -611,24 +549,29 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.modelSettingsId],
     references: [modelSettings.id],
   }),
+  context: one(contexts, {
+    fields: [workflows.contextId],
+    references: [contexts.id],
+  }),
   runs: many(runs),
   threads: many(threads),
   knowledge: one(knowledge, {
     fields: [workflows.knowledgeId],
     references: [knowledge.id],
   }),
-  contexts: many(contexts),
 }));
 
 // -------- Context --------
-export const contextRelations = relations(contexts, ({ one, many }) => ({
-  workflow: one(workflows, {
-    fields: [contexts.workflowId],
-    references: [workflows.id],
+export const contextRelations = relations(contexts, ({ many }) => ({
+  contextItems: many(contextItems),
+}));
+
+// -------- ContextItem --------
+export const contextItemRelations = relations(contextItems, ({ one }) => ({
+  context: one(contexts, {
+    fields: [contextItems.contextId],
+    references: [contexts.id],
   }),
-  resourceContexts: many(resourceContexts),
-  runContexts: many(runContexts),
-  threadContexts: many(threadContexts),
 }));
 
 // -------- Provider --------
@@ -667,7 +610,6 @@ export const runRelations = relations(runs, ({ one, many }) => ({
     fields: [runs.threadId],
     references: [threads.id],
   }),
-  runContexts: many(runContexts),
 }));
 
 // -------- ApiKey --------
@@ -703,7 +645,6 @@ export const resourceRelations = relations(resources, ({ one, many }) => ({
   }),
   runResources: many(runResources),
   chunks: many(chunks),
-  resourceContexts: many(resourceContexts),
 }));
 
 // -------- Chunk --------
@@ -776,47 +717,15 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
     fields: [threads.workflowId],
     references: [workflows.id],
   }),
-  threadContexts: many(threadContexts),
+  lookupKeys: many(threadLookupKeys),
 }));
 
-// -------- ResourceContexts --------
-export const resourceContextRelations = relations(
-  resourceContexts,
-  ({ one }) => ({
-    resource: one(resources, {
-      fields: [resourceContexts.resourceId],
-      references: [resources.id],
-    }),
-    context: one(contexts, {
-      fields: [resourceContexts.contextId],
-      references: [contexts.id],
-    }),
-  })
-);
-
-// -------- ThreadContexts --------
-export const threadContextRelations = relations(
-  threadContexts,
+export const threadLookupKeyRelations = relations(
+  threadLookupKeys,
   ({ one }) => ({
     thread: one(threads, {
-      fields: [threadContexts.threadId],
+      fields: [threadLookupKeys.threadId],
       references: [threads.id],
-    }),
-    context: one(contexts, {
-      fields: [threadContexts.contextId],
-      references: [contexts.id],
     }),
   })
 );
-
-// -------- RunContexts --------
-export const runContextRelations = relations(runContexts, ({ one }) => ({
-  run: one(runs, {
-    fields: [runContexts.runId],
-    references: [runs.id],
-  }),
-  context: one(contexts, {
-    fields: [runContexts.contextId],
-    references: [contexts.id],
-  }),
-}));

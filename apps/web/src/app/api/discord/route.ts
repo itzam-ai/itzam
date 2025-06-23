@@ -9,6 +9,82 @@ function validateSignature(signature: string | null): boolean {
   return signature === env.VERCEL_WEBHOOK_SECRET;
 }
 
+interface ErrorNotification {
+  type: "error";
+  error: {
+    name: string;
+    message: string;
+    stack?: string;
+    code?: number;
+  };
+  context?: {
+    userId?: string;
+    workflowSlug?: string;
+    endpoint?: string;
+    timestamp: string;
+    environment?: string;
+  };
+}
+
+function formatErrorForDiscord(errorData: ErrorNotification) {
+  const { error, context } = errorData;
+  const emoji = getErrorEmoji(error.code);
+
+  // Discord only accepts content without embeds for simple webhooks
+  // Format error as rich text content instead of embeds
+  const timestamp = context?.timestamp || new Date().toISOString();
+
+  let content = `${emoji} **API Error Alert** - ${context?.environment || "Production"} <@129021923945480192> <@281105209093259275>\n\n`;
+  content += `**Error:** ${error.name}: ${error.message.slice(0, 200)}${error.message.length > 200 ? "..." : ""}\n`;
+  content += `**Time:** ${timestamp}\n`;
+
+  if (error.code) {
+    content += `**Status Code:** ${error.code}\n`;
+  }
+
+  if (context?.endpoint) {
+    content += `**Endpoint:** ${context.endpoint}\n`;
+  }
+
+  if (context?.workflowSlug) {
+    content += `**Workflow:** ${context.workflowSlug}\n`;
+  }
+
+  if (context?.userId) {
+    content += `**User ID:** ${context.userId}\n`;
+  }
+
+  // Calculate remaining space for stack trace (Discord limit is 2000 chars)
+  const currentLength = content.length;
+  const remainingSpace = 1900 - currentLength; // Leave some buffer
+
+  if (error.stack && remainingSpace > 100) {
+    const stackTrace = error.stack.slice(0, remainingSpace - 20);
+    content += `\n**Stack Trace:**\n\`\`\`\n${stackTrace}${error.stack.length > remainingSpace - 20 ? "..." : ""}\n\`\`\``;
+  }
+
+  // Final safety check - ensure content is under 2000 chars
+  if (content.length > 2000) {
+    content = content.slice(0, 1997) + "...";
+  }
+
+  return {
+    content,
+  };
+}
+
+function getErrorEmoji(code?: number): string {
+  if (!code) return "❌";
+  switch (Math.floor(code / 100)) {
+    case 4:
+      return "⚠️";
+    case 5:
+      return "🚨";
+    default:
+      return "❌";
+  }
+}
+
 export async function POST(req: Request) {
   const DISCORD_WEBHOOK_URL = env.DISCORD_WEBHOOK_URL;
 
@@ -55,16 +131,36 @@ export async function POST(req: Request) {
         throw new Error("Failed to send Discord message");
       }
     } else {
-      // Handle regular Discord message
-      const body = JSON.parse(rawBody) as { content: string };
-      const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: body.content }),
-      });
+      // Parse the body to check message type
+      const body = JSON.parse(rawBody);
 
-      if (!discordResponse.ok) {
-        throw new Error("Failed to send Discord message");
+      if (body.type === "error") {
+        // Handle error notifications with rich formatting
+        const errorData = body as ErrorNotification;
+        const discordMessage = formatErrorForDiscord(errorData);
+
+        const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(discordMessage),
+        });
+
+        if (!discordResponse.ok) {
+          const errorText = await discordResponse.text();
+          throw new Error(`Failed to send Discord message: ${errorText}`);
+        }
+      } else {
+        // Forward the entire payload to Discord webhook
+        const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!discordResponse.ok) {
+          const errorText = await discordResponse.text();
+          throw new Error(`Failed to send Discord message: ${errorText}`);
+        }
       }
     }
 

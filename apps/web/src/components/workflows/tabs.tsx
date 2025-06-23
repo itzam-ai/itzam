@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { Badge } from "../ui/badge";
 
 export function WorkflowTabs({ id }: { id: string }) {
   const pathname = usePathname();
@@ -47,20 +46,11 @@ export function WorkflowTabs({ id }: { id: string }) {
         </Link>
         <Link
           prefetch
-          // href={`/dashboard/workflows/${id}/prompts`}
-          href="#"
-          className="w-full cursor-not-allowed"
-          onClick={(e) => e.preventDefault()}
+          href={`/dashboard/workflows/${id}/prompt`}
+          className="w-full"
         >
-          <TabsTrigger
-            value="prompt"
-            className="w-full opacity-50"
-            disabled={true}
-          >
-            Prompt{" "}
-            <Badge variant="outline" size="xs" className="ml-2">
-              Soon
-            </Badge>
+          <TabsTrigger value="prompt" className="w-full">
+            Prompt
           </TabsTrigger>
         </Link>
         <Link
@@ -69,10 +59,7 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="knowledge" className="w-full">
-            Knowledge{" "}
-            <Badge variant="green" size="xs" className="ml-2">
-              New
-            </Badge>
+            Knowledge
           </TabsTrigger>
         </Link>
         <Link

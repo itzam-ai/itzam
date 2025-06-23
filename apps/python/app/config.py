@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # Tika Configuration
     TIKA_URL: str = os.getenv("TIKA_URL", "https://tika.yllw.software/tika")
     
+    # Next.js App URL for API endpoints
+    NEXT_PUBLIC_APP_URL: str = os.getenv("NEXT_PUBLIC_APP_URL", "http://localhost:3000")
+    
     # API Configuration
     API_TITLE: str = "Itzam Processing API"
     API_DESCRIPTION: str = "API for document processing, chunking, embedding generation, and storage with Supabase integration"
@@ -53,4 +56,4 @@ class Settings(BaseSettings):
         """Check if all required configuration is present."""
         return len(self.required_vars_missing) == 0
 
-settings = Settings() 
+settings = Settings()  # type: ignore[call-arg] 

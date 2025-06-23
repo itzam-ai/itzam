@@ -28,10 +28,7 @@ export default async function WorkflowPage({
 
           <ModelCard model={workflow?.model} workflowId={workflowId} />
         </div>
-        <PromptCard
-          initialPrompt={workflow?.prompt ?? ""}
-          workflowId={workflowId}
-        />
+        <PromptCard prompt={workflow?.prompt ?? ""} workflowId={workflowId} />
         <GraphCard workflowId={workflowId} />
       </div>
 

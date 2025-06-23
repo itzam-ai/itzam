@@ -4,7 +4,7 @@ import { signInWithProvider, signup } from "@itzam/server/db/auth/actions";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import GitHubLogo from "public/github-logo";
+import GitHubLogo from "public/logos/github-logo";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "~/components/ui/button";
@@ -53,7 +53,12 @@ export default function SignUpPage() {
             disabled={isLoading}
             onClick={() => handleSignInWithProvider("google")}
           >
-            <Image src="/google-logo.svg" alt="Google" width={16} height={16} />
+            <Image
+              src="/logos/google-logo.svg"
+              alt="Google"
+              width={16}
+              height={16}
+            />
             Google
           </Button>
           <Button

@@ -43,11 +43,6 @@ itzam.thread.create({
 
 ### Other improvements
 
-- [ ] Docs
-
-  - [ ] Improve clarity
-  - [ ] Add tutorials & guides
-
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
@@ -65,13 +60,10 @@ itzam.thread.create({
 
 - [ ] Playground tab
 
-  - [ ] Improve error treatment
   - [ ] Attachments
-  - [ ] Check knowledge in production
 
 - [ ] Prompt tab
 
-  - [ ] Enhance with AI
   - [ ] Versioning
 
 - [ ] Model tab
@@ -92,6 +84,24 @@ itzam.thread.create({
 - [ ] Status page
 
 ### Past (Done)
+
+#### 25w 2025
+
+- [x] Prompt tab
+
+  - [x] Enhance with AI
+
+#### 24w 2025
+
+- [x] Playground tab
+
+  - [x] Improve error treatment
+  - [x] Check knowledge in production
+
+- [x] Docs
+
+  - [x] Improve clarity
+  - [x] Add tutorials & guides
 
 #### 23w 2025
 

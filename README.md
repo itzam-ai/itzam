@@ -2,12 +2,16 @@
 
 > [!WARNING]  
 > Itzam is in a development hiatus, we are trying to get to 10 paid users or 1000 sign-ups by the end of june.
-> 
+>
 > If you have any idea, advice, or are willing to invest, please get in touch [@heyimgustavo](x.com/heyimgustavo) [@abdulhdr1](x.com/abdulhdr1)
 
 # Itzam
 
 [Itzam](https://itz.am) is an open source platform for integrating AI.
+
+## Demo
+
+[![Demo](https://i.ytimg.com/an_webp/gfLG2YmzH4c/mqdefault_6s.webp?du=3000&sqp=COGd18IG&rs=AOn4CLBKz2Gh5x9qMKXZmsT4N7nuukTjVA)](https://www.youtube.com/watch?v=NKIk7dPRUM0)
 
 ## What we do?
 

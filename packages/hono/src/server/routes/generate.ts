@@ -67,7 +67,16 @@ export const generateRoute = new Hono()
           metadata: result.metadata,
         });
       } catch (error) {
-        return c.json(createErrorResponse(error), 500);
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
+        return c.json(
+          createErrorResponse(error, {
+            userId,
+            workflowSlug: body.workflowSlug,
+            endpoint: "/generate/text",
+          }),
+          500
+        );
       }
     }
   )
@@ -115,7 +124,8 @@ export const generateRoute = new Hono()
           aiParams,
           run,
           workflow.model,
-          startTime
+          startTime,
+          "object"
         );
 
         return c.json({
@@ -123,7 +133,16 @@ export const generateRoute = new Hono()
           metadata: result.metadata,
         });
       } catch (error) {
-        return c.json(createErrorResponse(error), 500);
+        const userId = c.get("userId");
+        const body = c.req.valid("json");
+        return c.json(
+          createErrorResponse(error, {
+            userId,
+            workflowSlug: body.workflowSlug,
+            endpoint: "/generate/object",
+          }),
+          500
+        );
       }
     }
   );

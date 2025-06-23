@@ -8,6 +8,7 @@ import { db } from "@itzam/server/db/index";
 import { contexts, threads } from "@itzam/server/db/schema";
 import { getThreadContextIds } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
+import { notifyDiscordError } from "@itzam/utils";
 import { tryCatch } from "@itzam/utils/try-catch";
 import { eq, inArray, or, sql } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
@@ -65,8 +66,17 @@ export const resolveContextIds = async (
 };
 
 // Common error response function
-export const createErrorResponse = (error: unknown) => {
+export const createErrorResponse = (
+  error: unknown,
+  context?: { userId?: string; workflowSlug?: string; endpoint?: string }
+) => {
   console.error("Error in endpoint:", error);
+
+  // Send Discord notification for production errors
+  if (error instanceof Error) {
+    notifyDiscordError(error, context).catch(console.error);
+  }
+
   const errorMessage =
     error instanceof Error
       ? `${error.name}: ${error.message}`

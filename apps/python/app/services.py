@@ -1,19 +1,24 @@
 import logging
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, Union, Optional
+from datetime import datetime
 import aiohttp
 import tiktoken
 import json
+import xxhash
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
+from sqlalchemy import update
 
 from .config import settings
-from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches
+from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches, get_resource_by_id, get_db_session, delete_chunks_for_resource
+from .models import Resource
 from .supabase import send_update, send_usage_update
 from .schemas import LinkResource, FileResource, ResourceBase
+from .discord import send_discord_notification
 
 logger = logging.getLogger(__name__)
 
-async def get_text_from_tika(url: str, tika_url: str = None) -> tuple[str, int]:
+async def get_text_from_tika(url: str, tika_url: Optional[str] = None) -> tuple[str, int]:
     """Extract text from a file URL using Tika asynchronously."""
     if tika_url is None:
         tika_url = settings.TIKA_URL
@@ -103,9 +108,12 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No text content extracted from the provided URL"
             )
+        
+        # Compute content hash using xxhash
+        content_hash = xxhash.xxh64(text_content.encode('utf-8')).hexdigest()
 
         # Send initial update with file size
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": "PENDING",
             "title": "",
             "fileSize": file_size,
@@ -117,12 +125,16 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         # Send usage update
         await send_usage_update(workflow_id, file_size)
         
-        # Generate title using Itzam API or fallback
-        original_filename = resource.url
-        title = await generate_file_title(text_content, original_filename)
+        if hasattr(resource, 'title') and resource.title:
+            title = resource.title
+            logger.info(f"Using existing title for resource {resource.id}: {title}")
+        else:
+            original_filename = str(resource.url)
+            title = await generate_file_title(text_content, original_filename)
+            logger.info(f"Generated new title for resource {resource.id}: {title}")
 
         # Send update with title
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": "PENDING",
             "title": title,
             "fileSize": file_size,
@@ -131,8 +143,9 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "knowledgeId": knowledge_id
         })
         
-        # Update resource with title and file size
-        update_resource_status(resource.id, "PENDING", title, file_size)
+        # Update resource with title, file size and content hash
+        if resource.id:
+            update_resource_status(resource.id, "PENDING", title, file_size, content_hash=content_hash)
         
         # Initialize tokenizer and chunker
         chunker = TokenChunker(tokenizer, chunk_size=chunk_size)
@@ -142,10 +155,11 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         chunk_length = len(chunks)
 
         # Update resource with total chunks
-        update_resource_status(resource.id, "PENDING", title, file_size, chunk_length)
+        if resource.id:
+            update_resource_status(resource.id, "PENDING", title, file_size, chunk_length, content_hash)
 
         # Send update with total chunks
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": "PENDING",
             "title": title,
             "fileSize": file_size,
@@ -160,19 +174,21 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "chunks": chunks,
             "title": title,
             "file_size": file_size,
-            "text_content": text_content
+            "text_content": text_content,
+            "content_hash": content_hash
         }
         
     except Exception as e:
         logger.error(f"Error generating chunks for resource {resource.id}: {str(e)}")
         
         # Update resource status to failed
-        update_resource_status(resource.id, "FAILED")
+        if resource.id:
+            update_resource_status(resource.id, "FAILED")
         
         # Send failure update
         fallback_title = str(resource.url)
         
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": "FAILED",
             "title": fallback_title,
             "totalChunks": 0,
@@ -183,8 +199,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str = None, file_size: int = 0, title: str = None) -> Dict[str, Any]:
-    """Generate embeddings for chunks and save to database."""
+async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str, file_size: int, title: Optional[str] = None, save_to_db: bool = False) -> Dict[str, Any]:
+    """Generate embeddings for chunks and optionally save to database."""
     try:
         # Use provided title or generate a fallback
         if not title:
@@ -223,8 +239,8 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "embeddings_count": len(embeddings_data) if embeddings_data else 0
         }
         
-        # Save to database
-        if embeddings_data:
+        # Save to database if requested
+        if save_to_db and embeddings_data and resource.id:
             save_result = save_chunks_to_db(embeddings_data, resource.id, workflow_id)
             result["save_result"] = save_result
             
@@ -236,17 +252,21 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
                 result["save_error"] = save_result["error"]
                 status_to_set = "FAILED"
         else:
-            status_to_set = "FAILED"
+            result["embeddings"] = embeddings_data
+            status_to_set = "PROCESSED"
         
         # Increment processed batches and check if all batches are completed
-        all_batches_completed = increment_processed_batches(resource.id, 1)
+        all_batches_completed = False
+        if resource.id:
+            all_batches_completed = increment_processed_batches(resource.id, 1)
         
         if all_batches_completed:
             logger.info(f"All embedding batches completed for resource {resource.id}. Resource fully processed.")
             # The last_scraped_at was already updated in increment_processed_batches
         
         # Update resource status
-        update_resource_status(resource.id, status_to_set)
+        if resource.id:
+            update_resource_status(resource.id, status_to_set)
 
         logger.warn({
             "status": status_to_set,
@@ -259,7 +279,7 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
         })
         
         # Send real-time update
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": status_to_set,
             "title": title,
             "processedChunks": len(chunks),
@@ -274,11 +294,11 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
         logger.error('Error generating embeddings for resource %s: %s', resource.id, str(e))
         
         # Update resource status to failed
-        update_resource_status(resource.id, "FAILED")
+        if resource.id:
+            update_resource_status(resource.id, "FAILED")
         
         # Send failure update
-        fallback_title = title or str(resource.url)
-        await send_update(resource, {
+        await send_update(resource.dict(), {
             "status": "FAILED",
             "title": title,
             "fileSize": 0,
@@ -292,8 +312,8 @@ async def process_resource_embeddings(
     background_tasks: BackgroundTasks,
     resource: ResourceBase,
     workflow_id: str,
-    knowledge_id: str = None,
-    context_ids: List[str] = None
+    knowledge_id: str,
+    save_to_db: bool = False
 ) -> Dict[str, Any]:
     """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
     try:
@@ -335,8 +355,9 @@ async def process_resource_embeddings(
             batches.append(current_batch)
 
         # Update total_batches in the database
-        update_resource_total_batches(resource.id, len(batches))
-        logger.info(f"Set total_batches to {len(batches)} for resource {resource.id}")
+        if resource.id:
+            update_resource_total_batches(resource.id, len(batches))
+            logger.info(f"Set total_batches to {len(batches)} for resource {resource.id}")
 
         # Add a background task for each batch
         for batch in batches:
@@ -349,10 +370,120 @@ async def process_resource_embeddings(
                 knowledge_id=knowledge_id,
                 file_size=file_size,
                 title=chunks_data["title"],
+                save_to_db=save_to_db
             )
 
-        return True
+        return {"success": True, "batches": len(batches)}
 
     except Exception as e:
         logger.error(f"Error processing resource embeddings for {resource.id}: {str(e)}")
+        raise
+
+async def rescrape_resource_embeddings(
+    background_tasks: BackgroundTasks,
+    resource: ResourceBase,
+    workflow_id: str,
+    knowledge_id: str,
+    save_to_db: bool = False
+) -> Dict[str, Any]:
+    """Rescrape pipeline: check if content has changed before processing."""
+    existing_resource: Optional[Resource] = None
+    try:
+        if not resource.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Resource ID is required"
+            )
+        
+        # Get existing resource from database
+        existing_resource = get_resource_by_id(resource.id)
+        if not existing_resource:
+            logger.error(f"Resource {resource.id} not found in database")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Resource {resource.id} not found"
+            )
+        
+        # Keep status as PENDING during processing
+        logger.info(f"Starting rescrape process for resource {resource.id}")
+        
+        # Send real-time update that processing has started
+        await send_update(resource.dict(), {
+            "status": "PENDING",
+            "title": existing_resource.title or "",
+            "fileSize": existing_resource.file_size or 0,
+            "totalChunks": existing_resource.total_chunks,
+            "resourceId": resource.id,
+            "knowledgeId": knowledge_id,
+            "message": "Starting rescrape process"
+        })
+        
+        # Extract text content to check hash
+        text_content, file_size = await get_text_from_tika(str(resource.url))
+        
+        # Compute new content hash
+        new_content_hash = xxhash.xxh64(text_content.encode('utf-8')).hexdigest()
+        
+        # Check if content has changed
+        if existing_resource.content_hash == new_content_hash:
+            logger.info(f"Content hash unchanged for resource {resource.id}, skipping rescrape")
+            
+            # Update status back to PROCESSED (lastScrapedAt already updated by TypeScript)
+            if resource.id:
+                update_resource_status(resource.id, "PROCESSED")
+            
+            # Send update that rescrape was skipped
+            await send_update(resource.dict(), {
+                "status": "SKIPPED",
+                "title": existing_resource.title or "",
+                "fileSize": existing_resource.file_size or 0,
+                "totalChunks": existing_resource.total_chunks,
+                "resourceId": resource.id,
+                "knowledgeId": knowledge_id,
+                "message": "Content unchanged, skipping rescrape"
+            })
+            
+            # Send Discord notification for cache hit
+            await send_discord_notification(
+                content=f"🎯 - cache hit for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
+                username="Itzam Rescrape Bot"
+            )
+            
+            return {
+                "status": "skipped",
+                "reason": "content_unchanged",
+                "content_hash": new_content_hash
+            }
+        
+        logger.info(f"Content hash changed for resource {resource.id}, processing rescrape")
+        
+        delete_chunks_for_resource(resource.id)
+        logger.info(f"Deleted old chunks for resource {resource.id}")
+        
+        # If content has changed, process normally
+        result = await process_resource_embeddings(
+            background_tasks,
+            resource,
+            workflow_id,
+            knowledge_id,
+            save_to_db
+        )
+        
+        # Send Discord notification for content refresh
+        await send_discord_notification(
+            content=f"🔄 - refreshed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
+            username="Itzam Rescrape Bot"
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error rescraping resource {resource.id}: {str(e)}")
+        
+        # Send Discord notification for failure
+        await send_discord_notification(
+            content=f"❌ - failed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency if existing_resource else 'UNKNOWN'}",
+            username="Itzam Rescrape Bot"
+        )
+        
         raise

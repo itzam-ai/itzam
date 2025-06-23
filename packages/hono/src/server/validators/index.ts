@@ -4,12 +4,12 @@ import { HTTPException } from "hono/http-exception";
 import { ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
-  CreateContextInputSchema,
   CreateThreadInputSchema,
-  DeleteContextParamsSchema,
+  GetRunsByThreadParamsSchema,
+  GetThreadsByWorkflowParamsSchema,
+  GetThreadsByWorkflowQuerySchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
-  UpdateContextInputSchema,
 } from "../../client/schemas";
 
 const messages = {
@@ -36,6 +36,9 @@ export const zValidator = <
   schema: T
 ) =>
   zv(target, schema, (result, c) => {
+    console.log(result);
+    console.log(schema);
+
     if (!result.success) {
       throw new HTTPException(400, {
         cause: result.error,
@@ -48,6 +51,8 @@ export const zValidator = <
             );
 
             const expected = zodToJsonSchema(schema);
+
+            console.log(expected);
 
             return {
               ...messages["FILE_PROPERTY_REQUIRED"],
@@ -81,17 +86,17 @@ export const createThreadValidator = zValidator(
   CreateThreadInputSchema
 );
 
-export const createContextValidator = zValidator(
-  "json",
-  CreateContextInputSchema
-);
-
-export const updateContextValidator = zValidator(
-  "json",
-  UpdateContextInputSchema
-);
-
-export const deleteContextValidator = zValidator(
+export const getThreadsByWorkflowParamsValidator = zValidator(
   "param",
-  DeleteContextParamsSchema
+  GetThreadsByWorkflowParamsSchema
+);
+
+export const getThreadsByWorkflowQueryValidator = zValidator(
+  "query",
+  GetThreadsByWorkflowQuerySchema
+);
+
+export const getRunsByThreadParamsValidator = zValidator(
+  "param",
+  GetRunsByThreadParamsSchema
 );
