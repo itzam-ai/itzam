@@ -110,6 +110,8 @@ export const models = createTable(
 // Context table
 export const contexts = createTable("context", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  slug: varchar("slug", { length: 256 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

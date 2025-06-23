@@ -581,6 +581,99 @@ export const GetRunsByThreadResponseSchema = z
   })
   .openapi({ ref: "GetRunsByThreadResponse" });
 
+// -------- Context Schemas --------
+export const CreateContextInputSchema = z.object({
+  name: z.string().openapi({
+    description: "The name of the context",
+    example: "My Context",
+  }),
+  slug: z.string().openapi({
+    description: "The slug of the context",
+    example: "my-context",
+  }),
+  resources: z.array(z.string()).optional().openapi({
+    description: "Array of resource IDs to add to the context",
+    example: ["resource_1234567890"],
+  }),
+});
+
+export const UpdateContextInputSchema = z.object({
+  name: z.string().optional().openapi({
+    description: "The name of the context",
+    example: "My Updated Context",
+  }),
+  resources: z.object({
+    add: z.array(z.string()).optional().openapi({
+      description: "Array of resource IDs to add to the context",
+      example: ["resource_1234567890"],
+    }),
+    remove: z.array(z.string()).optional().openapi({
+      description: "Array of resource IDs to remove from the context",
+      example: ["resource_0987654321"],
+    }),
+  }).optional(),
+});
+
+export const CreateContextResponseSchema = z.object({
+  id: z.string().openapi({
+    description: "The ID of the created context",
+    example: "context_1234567890",
+  }),
+  name: z.string().openapi({
+    description: "The name of the context",
+    example: "My Context",
+  }),
+  slug: z.string().openapi({
+    description: "The slug of the context",
+    example: "my-context",
+  }),
+  createdAt: z.string().openapi({
+    description: "The creation timestamp",
+    example: "2023-01-01T00:00:00Z",
+  }),
+}).openapi({ ref: "CreateContextResponse" });
+
+export const GetContextResponseSchema = z.object({
+  id: z.string().openapi({
+    description: "The ID of the context",
+    example: "context_1234567890",
+  }),
+  name: z.string().openapi({
+    description: "The name of the context",
+    example: "My Context",
+  }),
+  slug: z.string().openapi({
+    description: "The slug of the context",
+    example: "my-context",
+  }),
+  createdAt: z.string().openapi({
+    description: "The creation timestamp",
+    example: "2023-01-01T00:00:00Z",
+  }),
+  updatedAt: z.string().openapi({
+    description: "The last update timestamp",
+    example: "2023-01-01T00:00:00Z",
+  }),
+  resourceContexts: z.array(z.object({
+    resourceId: z.string(),
+  })).optional(),
+}).openapi({ ref: "GetContextResponse" });
+
+export const GetContextsByWorkflowResponseSchema = z.object({
+  contexts: z.array(GetContextResponseSchema).openapi({
+    description: "Array of contexts for the workflow",
+  }),
+}).openapi({ ref: "GetContextsByWorkflowResponse" });
+
+export const UpdateContextResponseSchema = GetContextResponseSchema.openapi({ ref: "UpdateContextResponse" });
+
+export const DeleteContextResponseSchema = z.object({
+  success: z.boolean().openapi({
+    description: "Whether the context was successfully deleted",
+    example: true,
+  }),
+}).openapi({ ref: "DeleteContextResponse" });
+
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | { [key: string]: Json } | Json[];

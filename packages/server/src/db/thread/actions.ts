@@ -129,6 +129,13 @@ export async function getThreadRunsHistory(threadId: string, userId?: string) {
   return await getRunsByThreadIdWithResourcesAndAttachments(threadId);
 }
 
+export async function getThreadContextIds(threadId: string): Promise<string[]> {
+  // TODO: Implement thread-context relationship
+  // For now, return empty array as threads don't have direct context associations
+  // This may need to be implemented when thread-context relationships are added
+  return [];
+}
+
 export async function createThread({
   workflowId,
   lookupKeys,

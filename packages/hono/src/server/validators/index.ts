@@ -1,15 +1,17 @@
 import type { ValidationTargets } from "hono";
 import { validator as zv } from "hono-openapi/zod";
 import { HTTPException } from "hono/http-exception";
-import { ZodSchema } from "zod";
+import { z, ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import {
+  CreateContextInputSchema,
   CreateThreadInputSchema,
   GetRunsByThreadParamsSchema,
   GetThreadsByWorkflowParamsSchema,
   GetThreadsByWorkflowQuerySchema,
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
+  UpdateContextInputSchema,
 } from "../../client/schemas";
 
 const messages = {
@@ -99,4 +101,24 @@ export const getThreadsByWorkflowQueryValidator = zValidator(
 export const getRunsByThreadParamsValidator = zValidator(
   "param",
   GetRunsByThreadParamsSchema
+);
+
+export const createContextValidator = zValidator(
+  "json",
+  CreateContextInputSchema
+);
+
+export const updateContextValidator = zValidator(
+  "json",
+  UpdateContextInputSchema
+);
+
+export const deleteContextValidator = zValidator(
+  "param",
+  z.object({
+    contextId: z.string().openapi({
+      description: "The ID of the context to delete",
+      example: "context_1234567890",
+    }),
+  })
 );
