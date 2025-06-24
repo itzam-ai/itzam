@@ -1,8 +1,9 @@
 import { getContextsByWorkflowId } from "@itzam/server/db/contexts/actions";
 import { getMaxLimit } from "@itzam/server/db/knowledge/actions";
-import Link from "next/link";
+import { ContextsMenu } from "~/components/contexts/contexts";
+import { EmptyState } from "~/components/contexts/empty-state";
 import { Usage } from "~/components/knowledge/usage";
-import { Card, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card } from "~/components/ui/card";
 
 export default async function ContextsPage({
   params,
@@ -43,20 +44,12 @@ export default async function ContextsPage({
           availableStorage={availableStorage ?? 0}
         />
       </div>
-      <div className="flex flex-col gap-4">
-        {contexts.map((context) => (
-          <Link
-            key={context.id}
-            href={`/dashboard/workflows/${context.workflowId}/contexts/${context.id}`}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle>{context.name}</CardTitle>
-              </CardHeader>
-            </Card>
-          </Link>
-        ))}
-      </div>
+
+      {contexts.length > 0 && (
+        <ContextsMenu contexts={contexts} workflowId={workflowId} />
+      )}
+
+      {contexts.length === 0 && <EmptyState workflowId={workflowId} />}
     </Card>
   );
 }

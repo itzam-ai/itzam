@@ -130,7 +130,7 @@ export const LinkInput = ({
       mimeType: "text/html",
       type: "LINK" as const,
       fileSize: 0,
-      knowledgeId: knowledgeId ?? "",
+      knowledgeId: knowledgeId || null,
       workflowId,
       active: true,
       totalChunks: 0,
@@ -140,7 +140,7 @@ export const LinkInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
-      contextId: contextId ?? "",
+      contextId: contextId || null,
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);

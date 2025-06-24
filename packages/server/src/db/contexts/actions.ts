@@ -2,9 +2,8 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import "server-only";
+import { v7 } from "uuid";
 import { db } from "..";
-import { getUser } from "../auth/actions";
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
 import { chunks, contexts, resources, workflows } from "../schema";
 
 export type Contexts = NonNullable<
@@ -21,7 +20,10 @@ export async function getContextsByWorkflowId(workflowId: string) {
   }
 
   const contextsFromWorkflow = await db.query.contexts.findMany({
-    where: eq(contexts.workflowId, workflowId),
+    where: and(
+      eq(contexts.workflowId, workflowId),
+      eq(contexts.isActive, true)
+    ),
     with: {
       threadContexts: {
         with: {
@@ -31,9 +33,24 @@ export async function getContextsByWorkflowId(workflowId: string) {
       resources: {
         where: eq(resources.active, true),
         orderBy: desc(resources.createdAt),
+      },
+    },
+  });
+
+  return contextsFromWorkflow;
+}
+
+export async function getContextById(contextId: string) {
+  const context = await db.query.contexts.findFirst({
+    where: eq(contexts.id, contextId),
+    with: {
+      resources: {
+        where: eq(resources.active, true),
+        orderBy: desc(resources.createdAt),
         with: {
           chunks: {
-            where: and(eq(chunks.active, true)),
+            where: eq(chunks.active, true),
+            orderBy: desc(chunks.createdAt),
             columns: {
               id: true,
               resourceId: true,
@@ -45,5 +62,69 @@ export async function getContextsByWorkflowId(workflowId: string) {
     },
   });
 
-  return contextsFromWorkflow;
+  if (!context) {
+    throw new Error("Context not found");
+  }
+
+  return context;
+}
+
+export async function createContext(
+  workflowId: string,
+  name: string,
+  slug: string,
+  description?: string
+) {
+  const contextWithSameSlug = await db.query.contexts.findFirst({
+    where: and(
+      eq(contexts.slug, slug),
+      eq(contexts.workflowId, workflowId),
+      eq(contexts.isActive, true)
+    ),
+  });
+
+  if (contextWithSameSlug) {
+    throw new Error("Context with same slug already exists");
+  }
+
+  const [context] = await db
+    .insert(contexts)
+    .values({
+      id: v7(),
+      workflowId,
+      name,
+      description,
+      slug,
+    })
+    .returning();
+
+  return context;
+}
+
+export async function deleteContext(contextId: string) {
+  const context = await db.query.contexts.findFirst({
+    where: eq(contexts.id, contextId),
+  });
+
+  if (!context) {
+    throw new Error("Context not found");
+  }
+
+  const contextResources = await db.query.resources.findMany({
+    where: and(eq(resources.contextId, contextId), eq(resources.active, true)),
+  });
+
+  // delete all resources in the context
+  for (const resource of contextResources) {
+    await db
+      .update(resources)
+      .set({ active: false })
+      .where(eq(resources.id, resource.id));
+  }
+
+  // delete the context
+  await db
+    .update(contexts)
+    .set({ isActive: false })
+    .where(eq(contexts.id, contextId));
 }

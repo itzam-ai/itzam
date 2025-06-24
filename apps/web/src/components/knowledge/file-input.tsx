@@ -165,7 +165,7 @@ export const FileInput = ({
       mimeType: file.type,
       type: "FILE" as const,
       fileSize: file.size,
-      knowledgeId: knowledgeId ?? "",
+      knowledgeId: knowledgeId || null,
       workflowId,
       active: true,
       totalChunks: 0,
@@ -175,7 +175,7 @@ export const FileInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
-      contextId: contextId ?? "",
+      contextId: contextId || null,
     }));
 
     setWorkflowFiles((prevFiles) => {

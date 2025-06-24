@@ -97,6 +97,7 @@ export const contexts = createTable(
     name: varchar("name", { length: 256 }).notNull(),
     description: text("description"),
     slug: varchar("slug", { length: 256 }).notNull(),
+    isActive: boolean("is_active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -654,6 +655,10 @@ export const resourceRelations = relations(resources, ({ one, many }) => ({
   }),
   runResources: many(runResources),
   chunks: many(chunks),
+  context: one(contexts, {
+    fields: [resources.contextId],
+    references: [contexts.id],
+  }),
 }));
 
 // -------- 📄 CHUNK --------
@@ -730,6 +735,18 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
   }),
   lookupKeys: many(threadLookupKeys),
   threadContexts: many(threadContexts),
+}));
+
+// -------- 💬 THREAD <> 📂 CONTEXT --------
+export const threadContextRelations = relations(threadContexts, ({ one }) => ({
+  thread: one(threads, {
+    fields: [threadContexts.threadId],
+    references: [threads.id],
+  }),
+  context: one(contexts, {
+    fields: [threadContexts.contextId],
+    references: [contexts.id],
+  }),
 }));
 
 // -------- 💬 THREAD <> 🔑 LOOKUP KEYS --------

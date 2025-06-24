@@ -32,7 +32,7 @@ export function WorkflowTabs({ id }: { id: string }) {
 
   return (
     <Tabs value={getActiveTab()} className="mb-6 w-full">
-      <TabsList className="mb-6 grid grid-cols-6">
+      <TabsList className="mb-6 grid grid-cols-7">
         <Link prefetch href={`/dashboard/workflows/${id}`} className="w-full">
           <TabsTrigger value="summary" className="w-full">
             Summary

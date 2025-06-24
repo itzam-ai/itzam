@@ -7,7 +7,6 @@ import json
 import xxhash
 from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
 from fastapi import BackgroundTasks, HTTPException, status
-from sqlalchemy import update
 
 from .config import settings
 from .database import save_chunks_to_db, update_resource_status, update_resource_total_batches, increment_processed_batches, get_resource_by_id, get_db_session, delete_chunks_for_resource
@@ -23,10 +22,38 @@ async def get_text_from_tika(url: str, tika_url: Optional[str] = None) -> tuple[
     if tika_url is None:
         tika_url = settings.TIKA_URL
         
+    # Headers to mimic a real browser request
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+    }
+        
     try:
         async with aiohttp.ClientSession() as session:
-            # Download the file from the URL
-            async with session.get(str(url)) as file_response:
+            # Download the file from the URL with browser-like headers
+            async with session.get(str(url), headers=headers) as file_response:
+                # Handle specific error cases
+                if file_response.status == 999:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied by the website. This URL may not allow automated access (common with LinkedIn, social media sites, etc.)"
+                    )
+                elif file_response.status == 403:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access forbidden. The website blocked the request."
+                    )
+                elif file_response.status == 404:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="The requested URL was not found."
+                    )
+                
                 file_response.raise_for_status()
                 file_content = await file_response.read()
                 file_size = len(file_content)
@@ -40,10 +67,26 @@ async def get_text_from_tika(url: str, tika_url: Optional[str] = None) -> tuple[
                 tika_response.raise_for_status()
                 text_content = await tika_response.text()
                 return text_content, file_size
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
     except aiohttp.ClientError as e:
+        # Handle other aiohttp errors
+        error_message = str(e)
+        if '999' in error_message:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied by the website. This URL may not allow automated access (common with LinkedIn, social media sites, etc.)"
+            )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to extract text from URL: {str(e)}"
+            detail=f"Failed to extract text from URL: {error_message}"
+        )
+    except Exception as e:
+        # Handle any other unexpected errors
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Unexpected error while processing URL: {str(e)}"
         )
 
 async def generate_file_title(text: str, original_filename: str) -> str:

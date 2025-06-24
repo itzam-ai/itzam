@@ -1,7 +1,7 @@
 "use server";
 import { env } from "@itzam/utils/env";
 import { addDays, addHours, isBefore } from "date-fns";
-import { and, eq, inArray, not } from "drizzle-orm";
+import { and, eq, inArray, not, or } from "drizzle-orm";
 import { groupBy } from "lodash";
 import { revalidatePath } from "next/cache";
 import { db } from "..";
@@ -25,6 +25,11 @@ export async function getResourcesToRescrape() {
       ),
     with: {
       knowledge: {
+        with: {
+          workflow: true,
+        },
+      },
+      context: {
         with: {
           workflow: true,
         },
@@ -123,7 +128,8 @@ export async function rescrapeResources(
 
   const resourcesGroupedByUserId = groupBy(
     resources,
-    "knowledge.workflow.userId"
+    (resource) =>
+      resource.knowledge?.workflow.userId ?? resource.context?.workflow.userId
   );
 
   for (const userId in resourcesGroupedByUserId) {
@@ -192,6 +198,11 @@ export async function rescrapeResources(
   for (const resource of resourcesToRescrape) {
     console.log(`🐛 Sending resource ${resource.id} to Python API`);
 
+    const userId =
+      resource.knowledge?.workflow.userId ?? resource.context?.workflow.userId;
+    const workflowId =
+      resource.knowledge?.workflow.id ?? resource.context?.workflow.id;
+
     const response = await fetch(
       `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`,
       {
@@ -200,7 +211,6 @@ export async function rescrapeResources(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          knowledgeId: resource.knowledge?.id,
           resources: [
             {
               type: resource.type,
@@ -209,8 +219,10 @@ export async function rescrapeResources(
               title: resource.title,
             },
           ],
-          userId: resource.knowledge?.workflow.userId,
-          workflowId: resource.knowledge?.workflow.id,
+          knowledgeId: resource.knowledge?.id,
+          contextId: resource.context?.id,
+          userId,
+          workflowId,
           rescrapeSecret: env.RESCRAPE_CRON_SECRET,
         }),
       }
@@ -279,7 +291,10 @@ async function fileSizeExceedsPlanLimit(
   // Get all resources in the knowledge
   const otherResourcesSize = await db.query.resources.findMany({
     where: and(
-      eq(resources.knowledgeId, resource.knowledge?.id ?? ""),
+      or(
+        eq(resources.knowledgeId, resource.knowledge?.id ?? ""),
+        eq(resources.contextId, resource.context?.id ?? "")
+      ),
       eq(resources.active, true),
       not(eq(resources.id, resource.id))
     ),
@@ -289,7 +304,7 @@ async function fileSizeExceedsPlanLimit(
   });
 
   // Get the current total size of the knowledge
-  const currentKnowledgeSizeInWorkflowWithoutCurrentResource =
+  const currentKnowledgeAndContextsSizeInWorkflowWithoutCurrentResource =
     otherResourcesSize.reduce(
       (acc, resource) => acc + (resource.fileSize ?? 0),
       0
@@ -314,7 +329,8 @@ async function fileSizeExceedsPlanLimit(
   });
 
   if (
-    file.size + currentKnowledgeSizeInWorkflowWithoutCurrentResource >
+    file.size +
+      currentKnowledgeAndContextsSizeInWorkflowWithoutCurrentResource >
     maxKnowledgeSize
   ) {
     return true;
@@ -343,6 +359,11 @@ export async function rescrapeResource(resourceId: string) {
           workflow: true,
         },
       },
+      context: {
+        with: {
+          workflow: true,
+        },
+      },
     },
   });
 
@@ -351,7 +372,10 @@ export async function rescrapeResource(resourceId: string) {
   }
 
   // Check if user owns the workflow
-  if (resource.knowledge?.workflow?.userId !== user.id) {
+  if (
+    resource.knowledge?.workflow?.userId !== user.id &&
+    resource.context?.workflow?.userId !== user.id
+  ) {
     throw new Error("Unauthorized");
   }
 
@@ -364,6 +388,11 @@ export async function rescrapeResource(resourceId: string) {
   // The Python service will handle this appropriately based on whether content changed
   console.log(`🐛 Manual rescrape initiated for resource ${resource.id}`);
 
+  const userId =
+    resource.knowledge?.workflow.userId ?? resource.context?.workflow.userId;
+  const workflowId =
+    resource.knowledge?.workflow.id ?? resource.context?.workflow.id;
+
   const response = await fetch(
     `${env.PYTHON_KNOWLEDGE_API_URL}/api/v1/rescrape`,
     {
@@ -372,7 +401,6 @@ export async function rescrapeResource(resourceId: string) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        knowledgeId: resource.knowledge?.id,
         resources: [
           {
             type: resource.type,
@@ -381,8 +409,10 @@ export async function rescrapeResource(resourceId: string) {
             title: resource.title,
           },
         ],
-        userId: resource.knowledge?.workflow.userId,
-        workflowId: resource.knowledge?.workflow.id,
+        knowledgeId: resource.knowledge?.id,
+        contextId: resource.context?.id,
+        userId,
+        workflowId,
         rescrapeSecret: env.RESCRAPE_CRON_SECRET,
       }),
     }
@@ -393,7 +423,8 @@ export async function rescrapeResource(resourceId: string) {
   }
 
   revalidatePath(
-    `/dashboard/workflows/${resource.knowledge.workflow.id}/knowledge`
+    `/dashboard/workflows/${workflowId}/` +
+      (resource.knowledge ? "knowledge" : `contexts/${resource.context?.id}`)
   );
 
   return {
