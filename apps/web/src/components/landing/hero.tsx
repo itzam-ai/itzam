@@ -152,7 +152,7 @@ export function Hero() {
 					>
 						<StarBorder
 							as={Link}
-							href="https://x.com/grimcodes/status/1937442615479472385"
+							href="https://x.com/grimcodes/status/1928167975766610178"
 							target="_blank"
 							rel="noopener noreferrer"
 							color="#f97316"
