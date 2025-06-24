@@ -92,7 +92,7 @@ export const CreateContextButton = ({ workflowId }: { workflowId: string }) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button type="button" variant="secondary" size="sm">
+        <Button type="button" variant="outline" size="sm">
           <PlusIcon className="size-3" />
           Add context
         </Button>

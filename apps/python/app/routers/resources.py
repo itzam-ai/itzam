@@ -28,7 +28,7 @@ async def create_resource_task(request: CreateResourceRequest, background_tasks:
         # Queue background tasks for embedding generation
         for resource in request.resources:
             logger.info(f"Queuing embedding generation for resource {resource.id}")
-            background_tasks.add_task(process_resource_embeddings, background_tasks=background_tasks, resource=resource, knowledge_id=request.knowledge_id, workflow_id=request.workflow_id, save_to_db=True)
+            background_tasks.add_task(process_resource_embeddings, background_tasks=background_tasks, resource=resource, knowledge_id=request.knowledge_id, workflow_id=request.workflow_id, context_id=request.context_id, save_to_db=True)
         
         logger.info(f"Queued {len(request.resources)} embedding tasks for background processing")
 

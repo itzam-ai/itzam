@@ -85,7 +85,7 @@ export function ThreadDrawer({
                     <div className="bg-muted text-foreground rounded-full px-4 py-2">
                       <p className="text-sm">{run.input}</p>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {run.createdAt.toLocaleString()}
                     </p>
                   </div>
@@ -97,7 +97,7 @@ export function ThreadDrawer({
                     <p className="text-sm">{run.output}</p>
                     <div className="flex gap-1.5 items-center">
                       <ModelIcon tag={run.model?.tag ?? ""} size="us" />
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {run.model?.name}
                       </p>
                     </div>

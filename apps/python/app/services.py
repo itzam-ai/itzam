@@ -136,7 +136,7 @@ async def generate_file_title(text: str, original_filename: str) -> str:
     else:
         return text.strip() or original_filename
 
-async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: str, workflow_id: str):
+async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: tiktoken.Encoding, knowledge_id: Optional[str], workflow_id: str, context_id: Optional[str]):
     """Extract text from resource and generate chunks."""
     try:
         logger.info(f"Starting chunk generation for resource {resource.id}")
@@ -162,7 +162,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "fileSize": file_size,
             "totalChunks": 0,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "contextId": context_id
         })
         
         # Send usage update
@@ -183,7 +184,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "fileSize": file_size,
             "totalChunks": 0,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "contextId": context_id
         })
         
         # Update resource with title, file size and content hash
@@ -208,7 +210,8 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "fileSize": file_size,
             "totalChunks": chunk_length,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "contextId": context_id
         })
         
         logger.info(f"Generated {chunk_length} chunks for resource {resource.id}")
@@ -237,12 +240,13 @@ async def generate_chunks(resource: ResourceBase, chunk_size: int, tokenizer: ti
             "totalChunks": 0,
             "fileSize": 0,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "contextId": context_id
         })
         
         raise
 
-async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str, file_size: int, title: Optional[str] = None, save_to_db: bool = False) -> Dict[str, Any]:
+async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workflow_id: str, knowledge_id: str, context_id: str, file_size: int, title: Optional[str] = None, save_to_db: bool = False) -> Dict[str, Any]:
     """Generate embeddings for chunks and optionally save to database."""
     try:
         # Use provided title or generate a fallback
@@ -328,7 +332,8 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "processedChunks": len(chunks),
             "fileSize": file_size,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id,
+            "knowledgeId": knowledge_id,    
+            "contextId": context_id
         })
         
         return result
@@ -346,7 +351,8 @@ async def generate_embeddings(chunks: List[Chunk], resource: ResourceBase, workf
             "title": title,
             "fileSize": 0,
             "resourceId": resource.id,
-            "knowledgeId": knowledge_id
+            "knowledgeId": knowledge_id,
+            "contextId": context_id
         })
         
         raise
@@ -356,6 +362,7 @@ async def process_resource_embeddings(
     resource: ResourceBase,
     workflow_id: str,
     knowledge_id: str,
+    context_id: str,
     save_to_db: bool = False
 ) -> Dict[str, Any]:
     """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
@@ -365,7 +372,7 @@ async def process_resource_embeddings(
 
         tokenizer = tiktoken.get_encoding("cl100k_base")
         # First generate chunks
-        chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id, workflow_id)
+        chunks_data = await generate_chunks(resource, chunk_size, tokenizer, knowledge_id, workflow_id, context_id)
 
         chunks: List[Chunk] = chunks_data["chunks"]
         file_size = chunks_data["file_size"]
@@ -413,7 +420,8 @@ async def process_resource_embeddings(
                 knowledge_id=knowledge_id,
                 file_size=file_size,
                 title=chunks_data["title"],
-                save_to_db=save_to_db
+                save_to_db=save_to_db,
+                context_id=context_id
             )
 
         return {"success": True, "batches": len(batches)}
@@ -426,7 +434,8 @@ async def rescrape_resource_embeddings(
     background_tasks: BackgroundTasks,
     resource: ResourceBase,
     workflow_id: str,
-    knowledge_id: str,
+    knowledge_id: Optional[str],
+    context_id: Optional[str],
     save_to_db: bool = False
 ) -> Dict[str, Any]:
     """Rescrape pipeline: check if content has changed before processing."""
@@ -458,6 +467,7 @@ async def rescrape_resource_embeddings(
             "totalChunks": existing_resource.total_chunks,
             "resourceId": resource.id,
             "knowledgeId": knowledge_id,
+            "contextId": context_id,
             "message": "Starting rescrape process"
         })
         
@@ -483,6 +493,7 @@ async def rescrape_resource_embeddings(
                 "totalChunks": existing_resource.total_chunks,
                 "resourceId": resource.id,
                 "knowledgeId": knowledge_id,
+                "contextId": context_id,
                 "message": "Content unchanged, skipping rescrape"
             })
             
@@ -509,6 +520,7 @@ async def rescrape_resource_embeddings(
             resource,
             workflow_id,
             knowledge_id,
+            context_id,
             save_to_db
         )
         
