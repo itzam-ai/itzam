@@ -403,6 +403,15 @@ export async function getRunsByThreadIdWithResourcesAndAttachments(
               url: true,
               type: true,
             },
+            with: {
+              context: {
+                columns: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
           },
         },
       },

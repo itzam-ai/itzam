@@ -49,7 +49,8 @@ export const threadsRoute = new Hono()
     async (c) => {
       try {
         const userId = c.get("userId");
-        const { name, lookupKeys, workflowSlug } = c.req.valid("json");
+        const { name, lookupKeys, workflowSlug, contextSlugs } =
+          c.req.valid("json");
 
         // Find the workflow by slug and userId
         const workflow = await db.query.workflows.findFirst({
@@ -67,11 +68,21 @@ export const threadsRoute = new Hono()
           );
         }
 
-        const thread = await createThread({
-          workflowId: workflow.id,
-          lookupKeys,
-          name,
-        });
+        let thread;
+
+        try {
+          thread = await createThread({
+            workflowId: workflow.id,
+            lookupKeys,
+            name,
+            contextSlugs,
+          });
+        } catch (error) {
+          if (error instanceof Error) {
+            return c.json(createErrorResponse(error), 404);
+          }
+          throw error;
+        }
 
         if (!thread) {
           return c.json(
@@ -84,6 +95,7 @@ export const threadsRoute = new Hono()
           id: thread.id,
           name: thread.name,
           lookupKeys: thread.lookupKeys,
+          contextSlugs: thread.contextSlugs,
           createdAt: thread.createdAt.toISOString(),
           updatedAt: thread.updatedAt.toISOString(),
         });
@@ -126,6 +138,9 @@ export const threadsRoute = new Hono()
             id: thread.id,
             name: thread.name,
             lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
+            contextSlugs: thread.threadContexts.map(
+              (context) => context.context.slug
+            ),
             createdAt: thread.createdAt.toISOString(),
             updatedAt: thread.updatedAt.toISOString(),
           })),
@@ -186,7 +201,14 @@ export const threadsRoute = new Hono()
               title: resource.resource.title,
               url: resource.resource.url,
               type: resource.resource.type,
-              // In the future: context property -- null if no context, object if it's from context
+              // if the resource is from a context, return the context object
+              context: resource.resource.context
+                ? {
+                    id: resource.resource.context.id,
+                    slug: resource.resource.context.slug,
+                    name: resource.resource.context.name,
+                  }
+                : null,
             })),
             workflowId: run.workflowId ?? "",
             createdAt: run.createdAt.toISOString(),
