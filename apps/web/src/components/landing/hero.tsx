@@ -10,15 +10,25 @@ import { CodeBlockCode } from "../ui/code-block";
 import { Input } from "../ui/input";
 import { TextLoop } from "../ui/text-loop";
 
+interface StarBorderProps {
+	as?: React.ElementType;
+	className?: string;
+	color?: string;
+	speed?: string;
+	thickness?: number;
+	children: React.ReactNode;
+	[key: string]: any; // Allow any additional props to be passed through
+}
+
 const StarBorder = ({
-	as: Component = "button" as any,
+	as: Component = "button",
 	className = "",
 	color = "white",
 	speed = "6s",
 	thickness = 1,
 	children,
 	...rest
-}: any) => {
+}: StarBorderProps) => {
 	return (
 		<Component
 			className={`relative inline-block overflow-hidden rounded-[20px] ${className}`}
@@ -42,7 +52,7 @@ const StarBorder = ({
 					animationDuration: speed,
 				}}
 			></div>
-			<div className="relative z-[1] bg-gradient-to-b from-gray-100 to-gray-200 border border-gray-300 text-gray-700 text-center text-xs py-2 px-4 rounded-[20px]">
+			<div className="relative z-[1] bg-gradient-to-b from-gray-100 to-gray-200 dark:from-stone-900 dark:to-gray-800 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-center text-xs py-2 px-4 rounded-[20px]">
 				{children}
 			</div>
 		</Component>
@@ -142,11 +152,11 @@ export function Hero() {
 					>
 						<StarBorder
 							as={Link}
-							href="https://x.com"
+							href="https://x.com/grimcodes/status/1937442615479472385"
 							target="_blank"
 							rel="noopener noreferrer"
 							color="#f97316"
-							speed="4s"
+							speed="2s"
 							thickness={1}
 							className="text-xs"
 						>
