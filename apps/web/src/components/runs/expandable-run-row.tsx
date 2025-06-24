@@ -28,6 +28,33 @@ export function ExpandableRunRow({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  const contexts = run?.workflow?.contexts;
+
+  const resourcesFromKnowledge = run?.runResources.filter(
+    (resource) => resource.resource.knowledgeId
+  );
+  const resourcesFromContexts = run?.runResources.filter(
+    (resource) => resource.resource.contextId
+  );
+
+  const contextResourcesGroupedByContext = resourcesFromContexts?.reduce(
+    (acc, resource) => {
+      const contextId = resource.resource.contextId;
+      if (!contextId) {
+        return acc;
+      }
+      if (!acc[contextId]) {
+        acc[contextId] = [];
+      }
+      acc[contextId].push(resource);
+      return acc;
+    },
+    {} as Record<
+      string,
+      RunWithModelAndResourcesAndAttachmentsAndThreads["runResources"]
+    >
+  );
+
   if (!run) {
     return null;
   }
@@ -130,32 +157,74 @@ export function ExpandableRunRow({
                         {run.prompt}
                       </p>
                     </div>
-                    {run.runResources.length > 0 && (
-                      <div className="flex flex-col gap-2">
-                        <h4 className="text-muted-foreground text-sm">
-                          Knowledge
-                        </h4>
-                        <div className="flex flex-col gap-1">
-                          {run.runResources.map((resource) => (
-                            <Link
-                              href={resource.resource.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              key={resource.resource.id}
-                            >
-                              <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
-                                {resource.resource.type === "FILE" ? (
-                                  <FileIcon className="size-3 text-muted-foreground" />
-                                ) : (
-                                  <GlobeIcon className="size-3 text-muted-foreground" />
-                                )}
-                                {resource.resource.title}
-                              </div>
-                            </Link>
-                          ))}
+                    {resourcesFromKnowledge &&
+                      resourcesFromKnowledge.length > 0 && (
+                        <div className="flex flex-col gap-2">
+                          <h4 className="text-muted-foreground text-sm">
+                            Knowledge
+                          </h4>
+                          <div className="flex flex-col gap-1">
+                            {run.runResources.map((resource) => (
+                              <Link
+                                href={resource.resource.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                key={resource.resource.id}
+                              >
+                                <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
+                                  {resource.resource.type === "FILE" ? (
+                                    <FileIcon className="size-3 text-muted-foreground" />
+                                  ) : (
+                                    <GlobeIcon className="size-3 text-muted-foreground" />
+                                  )}
+                                  {resource.resource.title}
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    {contextResourcesGroupedByContext &&
+                      Object.keys(contextResourcesGroupedByContext).length >
+                        0 &&
+                      Object.keys(contextResourcesGroupedByContext).map(
+                        (contextId) => {
+                          const context = contexts?.find(
+                            (context) => context.id === contextId
+                          );
+                          return (
+                            <div
+                              className="flex flex-col gap-2"
+                              key={contextId}
+                            >
+                              <h4 className="text-muted-foreground text-sm">
+                                {context?.name}
+                              </h4>
+                              <div className="flex flex-col gap-1">
+                                {contextResourcesGroupedByContext[
+                                  contextId
+                                ]?.map((resource) => (
+                                  <Link
+                                    href={resource.resource.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    key={resource.resource.id}
+                                  >
+                                    <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
+                                      {resource.resource.type === "FILE" ? (
+                                        <FileIcon className="size-3 text-muted-foreground" />
+                                      ) : (
+                                        <GlobeIcon className="size-3 text-muted-foreground" />
+                                      )}
+                                      {resource.resource.title}
+                                    </div>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Input</h4>
                       <p className="mt-1 whitespace-pre-wrap text-sm">
