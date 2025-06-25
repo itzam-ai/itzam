@@ -1,0 +1,15 @@
+{
+    "extends": [
+        "//"
+    ],
+    "tasks": {
+        "db:push": {
+            "outputs": [
+                "app/models.py"
+            ],
+            "dependsOn": [
+                "@itzam/server#db:push"
+            ]
+        }
+    }
+}
