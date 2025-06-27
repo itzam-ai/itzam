@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
@@ -46,30 +46,61 @@ export async function getKnowledgeByWorkflowId(workflowId: string) {
   return knowledgeFromWorkflow;
 }
 
-export async function checkPlanLimits(knowledgeId: string) {
+export async function checkPlanLimits(workflowId: string) {
   const user = await getUser();
 
   if (user.error || !user.data.user) {
     throw new Error("User not found");
   }
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
-
-  const resourcesSize = await db.query.resources.findMany({
-    where: and(
-      eq(resources.knowledgeId, knowledgeId),
-
-      eq(resources.active, true)
-    ),
-    columns: {
-      fileSize: true,
+  const workflow = await db.query.workflows.findFirst({
+    where: eq(workflows.id, workflowId),
+    with: {
+      knowledge: {
+        with: {
+          resources: {
+            where: eq(resources.active, true),
+            columns: {
+              fileSize: true,
+            },
+          },
+        },
+      },
+      contexts: {
+        with: {
+          resources: {
+            where: eq(resources.active, true),
+            columns: {
+              fileSize: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  const totalSize = resourcesSize.reduce(
+  if (!workflow) {
+    throw new Error("Workflow not found");
+  }
+
+  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+
+  const totalKnowledgeResourcesSize = workflow.knowledge?.resources.reduce(
     (acc, resource) => acc + (resource.fileSize ?? 0),
     0
   );
+
+  const totalContextsResourcesSize = workflow.contexts?.reduce(
+    (acc, context) =>
+      acc +
+      (context.resources.reduce(
+        (acc, resource) => acc + (resource.fileSize ?? 0),
+        0
+      ) ?? 0),
+    0
+  );
+
+  const totalSize = totalKnowledgeResourcesSize + totalContextsResourcesSize;
 
   // check if the user has reached the limit in this workflow (50MB or 500MB)
   const maxSize = isSubscribedToItzamPro.isSubscribed
@@ -77,7 +108,9 @@ export async function checkPlanLimits(knowledgeId: string) {
     : 50 * 1024 * 1024;
 
   if (totalSize > maxSize) {
-    throw new Error(`Your plan has a limit of ${maxSize / 1024 / 1024}MB.`);
+    throw new Error(
+      `Your plan has a limit of ${maxSize / 1024 / 1024}MB. You have ${totalSize / 1024 / 1024}MB in your workflow.`
+    );
   }
 }
 
@@ -95,18 +128,4 @@ export async function getMaxLimit() {
     : 50 * 1024 * 1024;
 
   return maxSize;
-}
-
-export async function deleteResource(resourceId: string) {
-  // delete the resource
-  await db
-    .update(resources)
-    .set({ active: false })
-    .where(eq(resources.id, resourceId));
-
-  // delete the chunks
-  await db
-    .update(chunks)
-    .set({ active: false })
-    .where(eq(chunks.resourceId, resourceId));
 }

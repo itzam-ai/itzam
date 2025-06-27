@@ -5,7 +5,8 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "noErrorTruncation": true
   },
   "include": ["src"],
   "exclude": ["node_modules"]

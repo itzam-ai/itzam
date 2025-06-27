@@ -8,6 +8,8 @@ export type PreRunDetails = {
   threadId: string | null;
   modelId: string;
   workflowId: string;
+  knowledgeId: string;
   resourceIds: string[];
   attachments: AttachmentWithUrl[];
+  contextSlugs: string[];
 };

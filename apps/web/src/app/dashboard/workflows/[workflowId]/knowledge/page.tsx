@@ -2,9 +2,12 @@ import {
   getKnowledgeByWorkflowId,
   getMaxLimit,
 } from "@itzam/server/db/knowledge/actions";
+import { ArrowRightIcon } from "lucide-react";
+import Link from "next/link";
 import { FileInput } from "~/components/knowledge/file-input";
 import { LinkInput } from "~/components/knowledge/link-input";
 import { Usage } from "~/components/knowledge/usage";
+import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 
 export default async function KnowledgePage({
@@ -28,22 +31,37 @@ export default async function KnowledgePage({
 
   return (
     <Card className="p-6 flex flex-col">
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start mb-4">
         <div className="flex flex-col gap-1">
           <h1 className="text font-medium">Knowledge</h1>
-          <p className="text-xs text-muted-foreground mb-8">
+          <p className="text-xs text-muted-foreground">
             Add files and links to the model&apos;s knowledge base.
           </p>
         </div>
-        <Usage
-          workflowId={workflowId}
-          totalSize={totalSize ?? 0}
-          availableStorage={availableStorage ?? 0}
-        />
+        <div className="flex flex-col gap-2 items-end">
+          <Usage
+            workflowId={workflowId}
+            totalSize={totalSize ?? 0}
+            availableStorage={availableStorage ?? 0}
+          />
+          <Link href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}>
+            <Button variant="ghost" size="sm">
+              Contexts <ArrowRightIcon className="size-3" />
+            </Button>
+          </Link>
+        </div>
       </div>
       <div className="flex flex-col gap-4">
-        <FileInput workflowId={workflowId} knowledge={knowledge} />
-        <LinkInput workflowId={workflowId} knowledge={knowledge} />
+        <FileInput
+          workflowId={workflowId}
+          resources={knowledge.resources}
+          knowledgeId={knowledge.id}
+        />
+        <LinkInput
+          workflowId={workflowId}
+          resources={knowledge.resources}
+          knowledgeId={knowledge.id}
+        />
       </div>
     </Card>
   );

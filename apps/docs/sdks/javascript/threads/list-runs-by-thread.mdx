@@ -56,6 +56,11 @@ type RunsResponse = {
       title: string | null; // The title of the knowledge
       url: string | null; // The URL of the knowledge
       type: string | null; // The type of the knowledge
+      context: {
+        id: string; // The ID of the context
+        slug: string; // The slug of the context
+        name: string; // The name of the context
+      } | null; // The context if the knowledge is from a context
     }>;
     workflowId: string; // The ID of the workflow
     createdAt: string; // The date and time the run was created/executed

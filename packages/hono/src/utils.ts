@@ -6,13 +6,14 @@ import {
 } from "@itzam/server/db/api-keys/actions";
 import { db } from "@itzam/server/db/index";
 import { threads } from "@itzam/server/db/schema";
-import { getWorkflowBySlugAndUserIdWithModelAndModelSettings } from "@itzam/server/db/workflow/actions";
+import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
 import { notifyDiscordError } from "@itzam/utils";
 import { tryCatch } from "@itzam/utils/try-catch";
 import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
+import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 
 export type PreRunDetails = {
   id: string;
@@ -24,6 +25,8 @@ export type PreRunDetails = {
   workflowId: string;
   resourceIds: string[];
   attachments: AttachmentWithUrl[];
+  knowledgeId: string;
+  contextSlugs: string[];
 };
 
 type ValidationError = {
@@ -78,6 +81,7 @@ export const setupRunGeneration = async ({
   schema,
   input,
   attachments,
+  contextSlugs,
 }: {
   userId: string;
   workflowSlug?: string;
@@ -85,33 +89,26 @@ export const setupRunGeneration = async ({
   schema?: NonLiteralJson | null;
   input: string;
   attachments?: Attachment[];
+  contextSlugs?: string[];
 }) => {
   let workflow;
 
-  if (workflowSlug) {
-    // Get workflow by slug
-    workflow = await getWorkflowBySlugAndUserIdWithModelAndModelSettings(
-      userId,
-      workflowSlug
-    );
-  } else if (threadId) {
-    const thread = await db.query.threads.findFirst({
-      where: eq(threads.id, threadId),
-      with: {
-        workflow: {
-          with: {
-            model: true,
-            modelSettings: true,
-          },
-        },
-      },
-    });
-
-    if (!thread) {
-      return { error: "Thread not found", status: 404 as StatusCode };
-    }
-
+  if (threadId) {
+    const thread = await getThreadByIdAndUserIdWithContexts(threadId, userId);
     workflow = thread.workflow;
+
+    // Add thread context slugs to contextSlugs
+    contextSlugs = [
+      ...(contextSlugs || []),
+      ...thread.threadContexts.map((c) => c.context.slug),
+    ];
+  } else if (workflowSlug) {
+    // Get workflow by slug
+    workflow =
+      await getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts(
+        userId,
+        workflowSlug
+      );
   } else {
     return {
       error: "Either workflowSlug or threadId is required",
@@ -119,7 +116,7 @@ export const setupRunGeneration = async ({
     };
   }
 
-  if (!workflow || "error" in workflow) {
+  if (!workflow) {
     return { error: "Workflow not found", status: 404 as StatusCode };
   }
 
@@ -133,6 +130,8 @@ export const setupRunGeneration = async ({
     workflowId: workflow.id,
     resourceIds: [],
     attachments: [],
+    knowledgeId: workflow.knowledgeId,
+    contextSlugs: contextSlugs || [],
   };
 
   let processedAttachments: AttachmentWithUrl[] = [];

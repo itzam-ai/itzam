@@ -15,6 +15,7 @@ const thread = await itzam.threads.create({
   workflowSlug: "customer-support",
   name: "Chat for user 123",
   lookupKeys: ["user-123", "platform-web-app"],
+  contextSlugs: ["financial-docs", "admin-docs"],
 });
 
 console.log(thread.id); // Use this ID for subsequent messages
@@ -27,6 +28,7 @@ console.log(thread.id); // Use this ID for subsequent messages
 | `workflowSlug` | `string`   | **Yes**  | The slug of the workflow this thread belongs to.        |
 | `name`         | `string`   | No       | The name of the thread. Auto-generated if not provided. |
 | `lookupKeys`   | `string[]` | No       | A custom lookup key for finding the thread later.       |
+| `contextSlugs` | `string[]` | No       | The slugs of the contexts to link to the thread.        |
 
 ### Return Value
 
@@ -35,6 +37,7 @@ type Thread = {
   id: string; // The unique thread ID
   name: string; // The thread name
   lookupKeys: string[]; // The lookup keys if provided
+  contextSlugs: string[]; // The slugs of the contexts if provided
   createdAt: string; // ISO 8601 timestamp
   updatedAt: string; // ISO 8601 timestamp
 };

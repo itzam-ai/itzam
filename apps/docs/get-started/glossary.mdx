@@ -44,7 +44,7 @@ A Run contains:
 
 ### Playground
 
-The playground is a tool that allows you to test your workflow with different parameters.
+The playground is a tool that allows you to test your workflow with different settings without changing your live workflow.
 
 ### Providers
 
@@ -63,9 +63,27 @@ Providers tokens are the tokens used to interact with the AI model. There are 2 
 
 Here you can check more details about providers tokens: [AI Tokens Explained](https://blogs.nvidia.com/blog/ai-tokens-explained/).
 
+### Threads
+
+Threads allow you to easily create a conversation inside a Workflow.
+
+A thread is a collection of messages between a user and the AI.
+
+You can create as many threads as you want inside a Workflow:
+
 ### Knowledge
 
 Knowledge is the data you provide to the AI model to use to answer a question (e.g. documents, links).
+
+This data can be global (used in every run) or specific to a context (used only if the context slug is provided or if the thread is linked to a context).
+
+### Contexts
+
+Contexts are a way to group knowledge. You can use contexts to provide knowledge to the AI only when you want to.
+
+For example, you can have a context for "Customer Support" and a context for "Sales". Then, you can use the "Customer Support" context only if the user is from the Customer Support team
+
+You can also link a thread to any context. This will make the context available to the AI model in the whole thread.
 
 ### Prompt
 

@@ -24,7 +24,7 @@ import { createResourceAndSendoToAPI } from "@itzam/server/db/resource/actions";
 import EmptyStateDetails from "../empty-state/empty-state-detais";
 import { Button } from "../ui/button";
 import { FileUpload, FileUploadContent } from "../ui/file-upload";
-import { KnowledgeItem } from "./knowledge-item";
+import { Resource } from "../resource/resource";
 interface ExtendedFile extends File {
   id: string;
   url: string | null;
@@ -59,23 +59,25 @@ const uploadFileToSupabase = async (
 
 export const FileInput = ({
   workflowId,
-  knowledge,
+  resources,
+  knowledgeId,
+  contextId,
 }: {
   workflowId: string;
-  knowledge: Knowledge;
+  resources: Knowledge["resources"];
+  knowledgeId?: string;
+  contextId?: string;
 }) => {
   const [workflowFiles, setWorkflowFiles] = useState<
     (Knowledge["resources"][number] & {
       processedChunks?: number;
-      totalChunks?: number;
     })[]
   >(
-    knowledge?.resources
+    resources
       .filter((resource) => resource.type === "FILE")
       .map((resource) => ({
         ...resource,
         processedChunks: resource.chunks.length ?? 0,
-        totalChunks: resource.totalChunks ?? 0,
       })) ?? []
   );
 
@@ -163,7 +165,7 @@ export const FileInput = ({
       mimeType: file.type,
       type: "FILE" as const,
       fileSize: file.size,
-      knowledgeId: knowledge?.id ?? "",
+      knowledgeId: knowledgeId || null,
       workflowId,
       active: true,
       totalChunks: 0,
@@ -173,6 +175,7 @@ export const FileInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
+      contextId: contextId || null,
     }));
 
     setWorkflowFiles((prevFiles) => {
@@ -182,8 +185,9 @@ export const FileInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
+        knowledgeId: knowledgeId ?? "",
+        contextId: contextId ?? "",
       });
     } catch (error) {
       console.error(error);
@@ -200,7 +204,9 @@ export const FileInput = ({
     );
   };
 
-  const channelId = `knowledge-${knowledge?.id}-files`;
+  const channelId = knowledgeId
+    ? `knowledge-${knowledgeId}-files`
+    : `context-${contextId}-files`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -317,9 +323,6 @@ export const FileInput = ({
                   {files.map((file) => {
                     const isUploaded = file.url !== null;
 
-                    console.log("file:", file);
-                    console.log("isUploaded:", isUploaded);
-
                     return (
                       <motion.div
                         initial={{ opacity: 0 }}
@@ -378,7 +381,7 @@ export const FileInput = ({
                   disabled={isUploading || isSubmitting || files.length === 0}
                 >
                   <ArrowDown className="size-3" />
-                  Add to knowledge
+                  Add to {knowledgeId ? "knowledge" : "context"}
                 </Button>
               </div>
             </motion.div>
@@ -388,7 +391,7 @@ export const FileInput = ({
         {workflowFiles && workflowFiles.length > 0 ? (
           <motion.div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
             {workflowFiles.map((resource) => (
-              <KnowledgeItem
+              <Resource
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}
@@ -396,10 +399,12 @@ export const FileInput = ({
             ))}
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
+          <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-lg border border-dashed border-border mt-2">
             <EmptyStateDetails
               title="No files added"
-              description="Drop files to the model's knowledge base"
+              description={`Drop files to ${
+                knowledgeId ? "the model's knowledge base" : "this context"
+              }`}
               icon={<FileIcon />}
             />
             <div className="relative">
@@ -439,7 +444,8 @@ export const FileInput = ({
               Drop files to upload
             </h3>
             <p className="text-muted-foreground text-center text-sm">
-              Release to add files to your knowledge base
+              Release to add files to your{" "}
+              {knowledgeId ? "knowledge base" : "context"}
             </p>
           </div>
         </div>

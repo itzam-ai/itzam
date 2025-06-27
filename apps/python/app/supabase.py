@@ -20,16 +20,22 @@ async def get_supabase_async_client() -> AsyncClient:
     
     return await create_async_client(settings.NEXT_PUBLIC_SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
-def get_channel_id(resource: Dict[str, Any], knowledge_id: str) -> str:
+def get_channel_id(resource: Dict[str, Any], knowledge_id: str, context_id: str) -> str:
     """Generate channel ID for Supabase realtime updates."""
     channel_type = "files" if resource.get("type") == "FILE" else "links"
-    return f"knowledge-{knowledge_id}-{channel_type}"
+
+    if knowledge_id:
+        return f"knowledge-{knowledge_id}-{channel_type}"
+    elif context_id:
+        return f"context-{context_id}-{channel_type}"
+    else:
+        raise ValueError("Either knowledge_id or context_id must be provided")
 
 async def send_update(resource: Dict[str, Any], payload: Dict[str, Any], event_type: str = "update"):
     """Send real-time update via Supabase channel."""
     try:
         supabase = await get_supabase_async_client()
-        channel_id = get_channel_id(resource, payload["knowledgeId"])
+        channel_id = get_channel_id(resource, payload["knowledgeId"], payload["contextId"])
         
         # Create channel and subscribe
         channel = supabase.channel(channel_id)

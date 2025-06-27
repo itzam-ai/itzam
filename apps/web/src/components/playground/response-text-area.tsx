@@ -75,10 +75,7 @@ export function ResponseTextArea({
 
   return (
     <div className="relative" ref={scrollAreaRef}>
-      <ScrollArea
-        className={cn("rounded-lg px-6", className)}
-        style={{ height: "450px" }}
-      >
+      <ScrollArea className={cn("rounded-lg px-6 max-h-[800px]", className)}>
         <div
           className="pr-6 pb-8 prose prose-sm dark:prose-invert prose-neutral max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2"
           ref={contentRef}
@@ -95,7 +92,7 @@ export function ResponseTextArea({
 
       {hasOverflow && (
         <>
-          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-16 rounded-b-xl bg-gradient-to-t from-background to-transparent px-1" />
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 rounded-b-xl bg-gradient-to-t from-background to-transparent px-1" />
 
           <Dialog>
             <DialogTrigger asChild>
@@ -112,7 +109,7 @@ export function ResponseTextArea({
                 <DialogTitle>Response</DialogTitle>
               </DialogHeader>
               <ScrollArea className="max-h-[calc(80vh-4rem)]">
-                <div className="p-0 prose prose-sm prose-neutral dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+                <div className="p-0 pb-8 pr-4 prose prose-sm prose-neutral dark:prose-invert max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
                   {markdownContent ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {markdownContent}

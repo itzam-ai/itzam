@@ -52,6 +52,13 @@ const BaseInput = z.object({
       ],
       description: "Optional attachments to include in the generation",
     }),
+  contextSlugs: z
+    .array(z.string())
+    .optional()
+    .openapi({
+      example: ["special-docs", "admin-files"],
+      description: "Optional context slugs to add contexts to the run",
+    }),
   workflowSlug: z.string().optional().openapi({
     example: "my_great_workflow",
     description:
@@ -478,6 +485,14 @@ export const CreateThreadInputSchema = z
         example: ["user-123", "platform-web-app"],
         description: "Optional lookup keys for finding the thread later",
       }),
+    contextSlugs: z
+      .array(z.string())
+      .optional()
+      .openapi({
+        example: ["special-docs", "admin-files"],
+        description:
+          "Optional context slugs to append the context to the thread",
+      }),
     workflowSlug: z.string().min(1).openapi({
       example: "my_great_workflow",
       description: "The slug of the workflow this thread belongs to",
@@ -501,6 +516,13 @@ export const CreateThreadResponseSchema = z
       .openapi({
         example: ["user-123", "platform-web-app"],
         description: "The lookup keys of the thread",
+      }),
+    contextSlugs: z
+      .array(z.string())
+      .nullable()
+      .openapi({
+        example: ["special-docs", "admin-files"],
+        description: "The context slugs of the thread",
       }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
@@ -529,6 +551,13 @@ export const GetThreadResponseSchema = z
       .openapi({
         example: ["user-123-session"],
         description: "The lookup keys of the thread",
+      }),
+    contextSlugs: z
+      .array(z.string())
+      .nullable()
+      .openapi({
+        example: ["special-docs", "admin-files"],
+        description: "The context slugs of the thread",
       }),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",

@@ -2,13 +2,15 @@ import { generateTextOrObjectStream } from "@itzam/server/ai/generate/text";
 import { createAiParams } from "@itzam/server/ai/utils";
 import { getUser } from "@itzam/server/db/auth/actions";
 import { type Model, getModelById } from "@itzam/server/db/model/actions";
+import { getWorkflowByIdWithRelations } from "@itzam/server/db/workflow/actions";
 import type { PreRunDetails } from "@itzam/server/types";
 import { NextRequest } from "next/server";
 import { v7 as uuidv7 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, prompt, modelId, workflowId, userId } = await request.json();
+    const { input, prompt, modelId, workflowId, userId, contextSlugs } =
+      await request.json();
 
     if (!input || !prompt || !userId || !workflowId) {
       return Response.json(
@@ -29,6 +31,12 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "Model not found" }, { status: 404 });
     }
 
+    const workflow = await getWorkflowByIdWithRelations(workflowId);
+
+    if (!workflow || "error" in workflow) {
+      return Response.json({ error: "Workflow not found" }, { status: 404 });
+    }
+
     const run: PreRunDetails = {
       id: uuidv7(),
       origin: "WEB" as const,
@@ -39,6 +47,8 @@ export async function POST(request: NextRequest) {
       workflowId: workflowId,
       resourceIds: [],
       attachments: [],
+      knowledgeId: workflow.knowledgeId,
+      contextSlugs: contextSlugs || [],
     };
 
     const aiParams = await createAiParams({

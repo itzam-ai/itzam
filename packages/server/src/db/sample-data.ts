@@ -4,7 +4,6 @@ import { v7 as v4 } from "uuid";
 import { db } from "./index";
 import type { Run } from "./run/actions";
 import {
-  contextItems,
   contexts,
   knowledge,
   modelSettings,
@@ -99,170 +98,6 @@ async function createSampleData() {
     xAI?.id ?? "",
   ];
 
-  // Create sample contexts and context items
-  console.log("📚 Creating sample contexts and context items...");
-
-  const contextIds: string[] = [];
-
-  // Context 1: Customer Support
-  const customerSupportContextId = v4();
-  contextIds.push(customerSupportContextId);
-
-  await db.insert(contexts).values({
-    id: customerSupportContextId,
-  });
-
-  await db.insert(contextItems).values([
-    {
-      id: v4(),
-      name: "Product Information",
-      description: "Details about our product lineup",
-      content:
-        "Our company offers three main products: Basic ($9.99/mo), Pro ($19.99/mo), and Enterprise ($49.99/mo). All plans include 24/7 support, but only Pro and Enterprise include priority support.",
-      type: "TEXT",
-      contextId: customerSupportContextId,
-    },
-    {
-      id: v4(),
-      name: "Refund Policy",
-      description: "Our company refund policy",
-      content:
-        "We offer a 30-day money-back guarantee on all plans. Refunds are processed within 5-7 business days.",
-      type: "TEXT",
-      contextId: customerSupportContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Docs",
-      description: "Company documentation",
-      content: "https://docs.google.com/document/d/1234567890/edit?usp=sharing",
-      type: "URL",
-      contextId: customerSupportContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Logo",
-      description: "Company logo",
-      content:
-        "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-      type: "IMAGE",
-      contextId: customerSupportContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Dialect",
-      description: "Company dialect",
-      content:
-        "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-      type: "FILE",
-      contextId: customerSupportContextId,
-    },
-    {
-      id: v4(),
-      name: "Support FAQ",
-      description: "Frequently asked support questions",
-      content:
-        'Q: How do I reset my password? A: Visit the login page and click "Forgot Password".\nQ: How do I upgrade my plan? A: Go to Account Settings > Subscription > Upgrade.',
-      type: "TEXT",
-      contextId: customerSupportContextId,
-    },
-  ]);
-
-  // Context 2: Content Creation
-  const contentCreationContextId = v4();
-  contextIds.push(contentCreationContextId);
-
-  await db.insert(contexts).values({
-    id: contentCreationContextId,
-  });
-
-  await db.insert(contextItems).values([
-    {
-      id: v4(),
-      name: "Brand Voice Guidelines",
-      description: "How our brand should sound in communications",
-      content:
-        "Our brand voice is friendly but professional. We avoid jargon and speak directly to customers. We use contractions and an active voice. We are helpful, clear, and concise.",
-      type: "TEXT",
-      contextId: contentCreationContextId,
-    },
-    {
-      id: v4(),
-      name: "Content Calendar",
-      description: "Upcoming content themes",
-      content:
-        "January: New Year, New Goals\nFebruary: Customer Success Stories\nMarch: Product Updates\nApril: Industry Trends",
-      type: "TEXT",
-      contextId: contentCreationContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Logo",
-      description: "Company logo",
-      content:
-        "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-      type: "IMAGE",
-      contextId: contentCreationContextId,
-    },
-  ]);
-
-  // Context 3: Code Assistant
-  const codeAssistantContextId = v4();
-  contextIds.push(codeAssistantContextId);
-
-  await db.insert(contexts).values({
-    id: codeAssistantContextId,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-
-  await db.insert(contextItems).values([
-    {
-      id: v4(),
-      name: "Coding Standards",
-      description: "Our company coding standards",
-      content:
-        "We follow the Airbnb JavaScript Style Guide. We use TypeScript for all new projects. We use ESLint and Prettier for code formatting. All code must have unit tests with at least 80% coverage.",
-      type: "TEXT",
-      contextId: codeAssistantContextId,
-    },
-    {
-      id: v4(),
-      name: "Project Structure",
-      description: "How our projects are structured",
-      content:
-        "We use a monorepo structure with packages for shared code. Frontend code is in /apps/web, backend code is in /apps/api, and shared code is in /packages.",
-      type: "TEXT",
-      contextId: codeAssistantContextId,
-    },
-    {
-      id: v4(),
-      name: "Common Libraries",
-      description: "Libraries we commonly use",
-      content:
-        "Frontend: React, Next.js, TailwindCSS\nBackend: Node.js, Express, Prisma\nTesting: Jest, React Testing Library\nState Management: Zustand or Redux Toolkit",
-      type: "TEXT",
-      contextId: codeAssistantContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Logo",
-      description: "Company logo",
-      content:
-        "https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png",
-      type: "IMAGE",
-      contextId: codeAssistantContextId,
-    },
-    {
-      id: v4(),
-      name: "Company Repo",
-      description: "Company repo",
-      content: "https://github.com/company/repo",
-      type: "URL",
-      contextId: codeAssistantContextId,
-    },
-  ]);
-
   // Create model settings
   console.log("⚙️ Creating model settings...");
 
@@ -299,7 +134,6 @@ async function createSampleData() {
     description: "AI assistant that helps answer customer support questions",
     prompt:
       "You are a helpful customer support assistant. Use the provided context to answer customer questions accurately and professionally. If you don't know the answer, politely say so and offer to connect them with a human agent.",
-    contextId: customerSupportContextId,
     modelId: gtp4o?.id ?? "",
     modelSettingsId: modelSettingsId,
     knowledgeId: knowledgeId,
@@ -317,7 +151,6 @@ async function createSampleData() {
     description: "AI assistant that helps create marketing content",
     prompt:
       "You are a creative content assistant. Use the provided brand voice guidelines and content calendar to help create engaging marketing content. Focus on being concise, engaging, and aligned with our brand voice.",
-    contextId: contentCreationContextId,
     modelId: claude37Sonnet?.id ?? "",
     modelSettingsId: modelSettingsId,
     knowledgeId: knowledgeId,
@@ -335,7 +168,6 @@ async function createSampleData() {
     description: "AI assistant that helps with coding tasks",
     prompt:
       "You are a coding assistant. Help developers write, debug, and optimize code according to our coding standards. Provide explanations for your suggestions and follow best practices.",
-    contextId: codeAssistantContextId,
     modelId: gtp4o?.id ?? "",
     modelSettingsId: modelSettingsId,
     knowledgeId: knowledgeId,

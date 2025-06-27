@@ -15,6 +15,7 @@
     "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
+    "noErrorTruncation": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",

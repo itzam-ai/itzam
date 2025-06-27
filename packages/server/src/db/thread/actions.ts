@@ -3,9 +3,43 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../index";
 import { getRunsByThreadIdWithResourcesAndAttachments } from "../run/actions";
-import { threadLookupKeys, threads, workflows } from "../schema";
+import {
+  contexts,
+  threadContexts,
+  threadLookupKeys,
+  threads,
+  workflows,
+} from "../schema";
 import { getUser } from "../auth/actions";
 import { v7 } from "uuid";
+
+export async function getThreadByIdAndUserIdWithContexts(
+  threadId: string,
+  userId: string
+) {
+  const thread = await db.query.threads.findFirst({
+    where: eq(threads.id, threadId),
+    with: {
+      workflow: {
+        with: {
+          model: true,
+          modelSettings: true,
+        },
+      },
+      threadContexts: {
+        with: {
+          context: true,
+        },
+      },
+    },
+  });
+
+  if (!thread || thread.workflow.userId !== userId) {
+    throw new Error("Thread not found");
+  }
+
+  return thread;
+}
 
 export async function getThreadsByWorkflowSlug(
   workflowSlug: string,
@@ -35,6 +69,15 @@ export async function getThreadsByWorkflowSlug(
       where: eq(threads.workflowId, workflow.id),
       with: {
         lookupKeys: true,
+        threadContexts: {
+          with: {
+            context: {
+              columns: {
+                slug: true,
+              },
+            },
+          },
+        },
       },
       orderBy: (threads, { desc }) => [desc(threads.updatedAt)],
     });
@@ -69,6 +112,15 @@ export async function getThreadsByWorkflowSlug(
     where: inArray(threads.id, threadIds),
     with: {
       lookupKeys: true,
+      threadContexts: {
+        with: {
+          context: {
+            columns: {
+              slug: true,
+            },
+          },
+        },
+      },
     },
     orderBy: (threads, { desc }) => [desc(threads.updatedAt)],
   });
@@ -83,6 +135,15 @@ export async function getThreadById(threadId: string, userId: string) {
     with: {
       workflow: true,
       lookupKeys: true,
+      threadContexts: {
+        with: {
+          context: {
+            columns: {
+              slug: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -94,6 +155,7 @@ export async function getThreadById(threadId: string, userId: string) {
     id: thread.id,
     name: thread.name,
     lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
+    contextSlugs: thread.threadContexts.map((context) => context.context.slug),
     createdAt: thread.createdAt.toISOString(),
     updatedAt: thread.updatedAt.toISOString(),
   };
@@ -133,13 +195,37 @@ export async function createThread({
   workflowId,
   lookupKeys,
   name,
+  contextSlugs,
 }: {
   workflowId: string;
   lookupKeys: string[] | undefined;
   name: string | undefined;
+  contextSlugs: string[] | undefined;
 }) {
   const threadId = `thread_${v7()}`;
   const threadName = name || `Thread ${threadId.slice(-10)}`;
+
+  // Contexts to be linked to the thread
+  let contextIds: string[] = [];
+
+  if (contextSlugs) {
+    contextIds = await db.query.contexts
+      .findMany({
+        where: and(
+          inArray(contexts.slug, contextSlugs),
+          eq(contexts.isActive, true),
+          eq(contexts.workflowId, workflowId)
+        ),
+        columns: {
+          id: true,
+        },
+      })
+      .then((res) => res.map((r) => r.id));
+
+    if (contextIds.length !== contextSlugs.length) {
+      throw new Error("Context slugs not found");
+    }
+  }
 
   const [thread] = await db
     .insert(threads)
@@ -164,8 +250,19 @@ export async function createThread({
     );
   }
 
+  if (contextIds.length > 0) {
+    await db.insert(threadContexts).values(
+      contextIds.map((contextId) => ({
+        id: `thread_context_${v7()}`,
+        threadId: thread.id,
+        contextId,
+      }))
+    );
+  }
+
   return {
     ...thread,
     lookupKeys: lookupKeys || [],
+    contextSlugs: contextSlugs || [],
   };
 }

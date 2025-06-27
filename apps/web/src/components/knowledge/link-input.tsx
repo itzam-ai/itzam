@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { KnowledgeItem } from "./knowledge-item";
+import { Resource } from "../resource/resource";
 
 type LinkToAdd = {
   id: string;
@@ -51,23 +51,25 @@ const isValidUrl = (url: string) => {
 
 export const LinkInput = ({
   workflowId,
-  knowledge,
+  resources,
+  knowledgeId,
+  contextId,
 }: {
   workflowId: string;
-  knowledge: Knowledge;
+  resources: Knowledge["resources"];
+  knowledgeId?: string;
+  contextId?: string;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & {
       processedChunks?: number;
-      totalChunks?: number;
     })[]
   >(
-    knowledge?.resources
+    resources
       .filter((resource) => resource.type === "LINK")
       .map((resource) => ({
         ...resource,
         processedChunks: resource.chunks.length ?? 0,
-        totalChunks: resource.totalChunks ?? 0,
       })) ?? []
   );
 
@@ -128,7 +130,7 @@ export const LinkInput = ({
       mimeType: "text/html",
       type: "LINK" as const,
       fileSize: 0,
-      knowledgeId: knowledge?.id ?? "",
+      knowledgeId: knowledgeId || null,
       workflowId,
       active: true,
       totalChunks: 0,
@@ -138,6 +140,7 @@ export const LinkInput = ({
       totalBatches: 0,
       processedBatches: 0,
       contentHash: null,
+      contextId: contextId || null,
     }));
 
     setWorkflowLinks((prevLinks) => [...resourcesToAdd, ...prevLinks]);
@@ -145,8 +148,9 @@ export const LinkInput = ({
     try {
       await createResourceAndSendoToAPI({
         resources: resourcesToAdd,
-        knowledgeId: knowledge?.id ?? "",
         workflowId: workflowId,
+        knowledgeId: knowledgeId ?? "",
+        contextId: contextId ?? "",
       });
     } catch (error) {
       setWorkflowLinks((prevLinks) => {
@@ -162,7 +166,9 @@ export const LinkInput = ({
     setIsSubmitting(false);
   };
 
-  const channelId = `knowledge-${knowledge?.id}-links`;
+  const channelId = knowledgeId
+    ? `knowledge-${knowledgeId}-links`
+    : `context-${contextId}-links`;
 
   useEffect(() => {
     const unsubscribe = subscribeToResourceUpdates(
@@ -378,17 +384,19 @@ export const LinkInput = ({
                 disabled={isSubmitting || linksToAdd.length === 0}
               >
                 <ArrowDown className="size-3" />
-                Add to knowledge
+                Add to {knowledgeId ? "knowledge" : "context"}
               </Button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
       {!workflowLinks || workflowLinks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
+        <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-lg border border-dashed border-border mt-2">
           <EmptyStateDetails
             title="No links added"
-            description="Add links to the model's knowledge base"
+            description={`Add links to ${
+              knowledgeId ? "the model's knowledge base" : "this context"
+            }`}
             icon={<Globe className="size-4" />}
           />
           <Dialog
@@ -411,7 +419,8 @@ export const LinkInput = ({
               <DialogHeader>
                 <DialogTitle>Links</DialogTitle>
                 <DialogDescription>
-                  Add URLs to the model&apos;s knowledge.
+                  Add URLs to{" "}
+                  {knowledgeId ? "the model's knowledge" : "this context"}.
                 </DialogDescription>
               </DialogHeader>
 
@@ -493,7 +502,7 @@ export const LinkInput = ({
       ) : (
         <motion.div className="flex flex-col gap-2 mt-2 rounded-lg border border-border shadow-sm bg-muted-foreground/5 p-2">
           {workflowLinks.map((resource) => (
-            <KnowledgeItem
+            <Resource
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}

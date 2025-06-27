@@ -120,6 +120,12 @@
             ],
             "description": "Optional attachments to include in the generation"
           },
+          "contextSlugs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "Optional context slugs to add contexts to the run"
+          },
           "workflowSlug": {
             "type": "string",
             "example": "my_great_workflow",
@@ -234,6 +240,12 @@
               { "file": "https://example.com/image.jpg" }
             ],
             "description": "Optional attachments to include in the generation"
+          },
+          "contextSlugs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "Optional context slugs to add contexts to the run"
           },
           "workflowSlug": {
             "type": "string",
@@ -671,6 +683,12 @@
             "example": ["user-123", "platform-web-app"],
             "description": "The lookup keys of the thread"
           },
+          "contextSlugs": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "The context slugs of the thread"
+          },
           "createdAt": {
             "type": "string",
             "example": "2021-01-01T00:00:00.000Z",
@@ -682,7 +700,14 @@
             "description": "The last update date of the thread"
           }
         },
-        "required": ["id", "name", "lookupKeys", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "name",
+          "lookupKeys",
+          "contextSlugs",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "CreateThreadInput": {
         "type": "object",
@@ -697,6 +722,12 @@
             "items": { "type": "string" },
             "example": ["user-123", "platform-web-app"],
             "description": "Optional lookup keys for finding the thread later"
+          },
+          "contextSlugs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "Optional context slugs to append the context to the thread"
           },
           "workflowSlug": {
             "type": "string",
@@ -737,6 +768,12 @@
             "example": ["user-123-session"],
             "description": "The lookup keys of the thread"
           },
+          "contextSlugs": {
+            "type": ["array", "null"],
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "The context slugs of the thread"
+          },
           "createdAt": {
             "type": "string",
             "example": "2021-01-01T00:00:00.000Z",
@@ -748,7 +785,14 @@
             "description": "The last update date of the thread"
           }
         },
-        "required": ["id", "name", "lookupKeys", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "name",
+          "lookupKeys",
+          "contextSlugs",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "GetRunsByThreadResponse": {
         "type": "object",

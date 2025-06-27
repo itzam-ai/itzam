@@ -1,10 +1,11 @@
 "use client";
 
-import { RunWithModelAndResourcesAndAttachmentsAndThreads } from "@itzam/server/db/run/actions";
+import { RunWithResourcesAndAttachments } from "@itzam/server/db/run/actions";
 import { getThreadRunsHistory } from "@itzam/server/db/thread/actions";
 import { FileIcon, MessagesSquare } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import ModelIcon from "public/models/svgs/model-icon";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import {
@@ -15,39 +16,42 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "../ui/drawer";
-import ModelIcon from "public/models/svgs/model-icon";
 
 export function ThreadDrawer({
-  run,
+  thread,
 }: {
-  run: RunWithModelAndResourcesAndAttachmentsAndThreads;
+  thread: {
+    id: string;
+    name: string;
+    lookupKeys: {
+      lookupKey: string;
+    }[];
+  };
 }) {
-  const [runs, setRuns] = useState<
-    RunWithModelAndResourcesAndAttachmentsAndThreads[]
-  >([]);
+  const [runs, setRuns] = useState<RunWithResourcesAndAttachments[]>([]);
 
   useEffect(() => {
     const fetchRuns = async () => {
-      const runs = await getThreadRunsHistory(run.thread?.id ?? "");
-      setRuns(runs as RunWithModelAndResourcesAndAttachmentsAndThreads[]);
+      const runs = await getThreadRunsHistory(thread.id);
+      setRuns(runs as RunWithResourcesAndAttachments[]);
     };
     fetchRuns();
-  }, [run.thread?.id]);
+  }, [thread.id]);
 
   return (
     <Drawer direction="right" shouldScaleBackground>
       <DrawerTrigger>
         <div className="text-sm flex gap-2 items-center hover:opacity-70 transition-opacity cursor-pointer">
           <MessagesSquare className="size-3.5 text-muted-foreground" />
-          {run.thread?.name}
+          {thread.name}
         </div>
       </DrawerTrigger>
       <DrawerContent className="w-[600px]">
         <div className="p-6">
           <DrawerHeader>
-            <DrawerTitle className="text-base">{run.thread?.name}</DrawerTitle>
+            <DrawerTitle className="text-base">{thread.name}</DrawerTitle>
             <DrawerDescription>
-              {run.thread?.lookupKeys?.map((key) => key.lookupKey).join(", ")}
+              {thread.lookupKeys?.map((key) => key.lookupKey).join(", ")}
             </DrawerDescription>{" "}
           </DrawerHeader>
           <div className="flex flex-col gap-6 mt-4 max-h-[calc(100vh-6rem)] overflow-y-scroll hide-scrollbar pb-4">
@@ -85,7 +89,7 @@ export function ThreadDrawer({
                     <div className="bg-muted text-foreground rounded-full px-4 py-2">
                       <p className="text-sm">{run.input}</p>
                     </div>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {run.createdAt.toLocaleString()}
                     </p>
                   </div>
@@ -97,7 +101,7 @@ export function ThreadDrawer({
                     <p className="text-sm">{run.output}</p>
                     <div className="flex gap-1.5 items-center">
                       <ModelIcon tag={run.model?.tag ?? ""} size="us" />
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {run.model?.name}
                       </p>
                     </div>

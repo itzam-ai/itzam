@@ -13,6 +13,7 @@ import {
   knowledge,
   modelSettings,
   models,
+  resources,
   workflows,
 } from "../schema";
 
@@ -30,13 +31,19 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
             provider: true,
           },
         },
-        context: {
+        contexts: {
+          where: eq(contexts.isActive, true),
+          orderBy: (contexts, { desc }) => [desc(contexts.createdAt)],
           with: {
-            contextItems: {
-              limit: 10,
-              orderBy: (contextItems, { desc }) => [
-                desc(contextItems.updatedAt),
-              ],
+            resources: {
+              where: eq(resources.active, true),
+              columns: {
+                id: true,
+                type: true,
+                title: true,
+                url: true,
+              },
+              orderBy: (resources, { desc }) => [desc(resources.createdAt)],
             },
           },
         },
@@ -96,7 +103,6 @@ export const getUserWorkflows = protectedProcedure(async ({ user }) => {
     where: and(eq(workflows.userId, user.id), eq(workflows.isActive, true)),
     with: {
       model: true,
-      context: true,
       runs: {
         limit: 1,
         orderBy: (runs, { desc }) => [desc(runs.createdAt)],
@@ -111,28 +117,27 @@ export const getUserWorkflows = protectedProcedure(async ({ user }) => {
   };
 });
 
-export const getWorkflowBySlugAndUserIdWithModelAndModelSettings = async (
-  userId: string,
-  slug: string
-) => {
-  const workflow = await db.query.workflows.findFirst({
-    where: and(
-      eq(workflows.slug, slug),
-      eq(workflows.userId, userId),
-      eq(workflows.isActive, true)
-    ),
-    with: {
-      model: true,
-      modelSettings: true,
-    },
-  });
+export const getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts =
+  async (userId: string, slug: string) => {
+    const workflow = await db.query.workflows.findFirst({
+      where: and(
+        eq(workflows.slug, slug),
+        eq(workflows.userId, userId),
+        eq(workflows.isActive, true)
+      ),
+      with: {
+        model: true,
+        modelSettings: true,
+        contexts: true,
+      },
+    });
 
-  if (!workflow) {
-    throw new Error("Workflow not found");
-  }
+    if (!workflow) {
+      throw new Error("Workflow not found");
+    }
 
-  return workflow;
-};
+    return workflow;
+  };
 
 export type CreateWorkflowArgs = {
   name: string;
@@ -147,17 +152,6 @@ export const createWorkflow = protectedProcedure(
     { user },
     { name, description, slug, prompt, modelId }: CreateWorkflowArgs
   ) => {
-    const [context] = await db
-      .insert(contexts)
-      .values({
-        id: uuidv7(),
-      })
-      .returning();
-
-    if (!context) {
-      throw new Error("Failed to create context");
-    }
-
     const model = await db.query.models.findFirst({
       where: eq(models.id, modelId),
     });
@@ -204,7 +198,6 @@ export const createWorkflow = protectedProcedure(
         prompt,
         modelId,
         userId: user.id,
-        contextId: context?.id,
         modelSettingsId: modelSetting?.id,
         knowledgeId: knowledgeSaved?.id,
       })

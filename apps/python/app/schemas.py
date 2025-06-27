@@ -20,10 +20,10 @@ class LinkResource(ResourceBase):
 
 class CreateResourceRequest(BaseModel):
     resources: List[ResourceBase]
-    knowledge_id: str = Field(..., alias="knowledgeId")
+    knowledge_id: Optional[str] = Field(None, alias="knowledgeId")
     workflow_id: str = Field(..., alias="workflowId")
     user_id: str = Field(..., alias="userId")
-
+    context_id: Optional[str] = Field(None, alias="contextId")
 class RescrapeRequest(BaseModel):
     resources: List[ResourceBase]
     knowledge_id: str = Field(..., alias="knowledgeId")
