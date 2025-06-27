@@ -77,7 +77,6 @@ async function generateObject<T>(
     // All requests are sent as JSON
     const res = await client.api.v1.generate.object.$post(
       {
-        // @ts-expect-error - TODO: fix this
         json: processedRequest,
       },
       {
