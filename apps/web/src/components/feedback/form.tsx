@@ -11,7 +11,7 @@ import { Spinner } from "../ui/spinner";
 import { Textarea } from "../ui/textarea";
 
 const TRANSITION_CONTENT = {
-  ease: "easeOut",
+  ease: "easeOut" as const,
   duration: 0.2,
 };
 

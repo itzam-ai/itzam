@@ -7,7 +7,6 @@
 const config = {
   reactStrictMode: false,
   experimental: {
-    instrumentationHook: true,
     serverActions: {
       bodySizeLimit: "10mb",
     },

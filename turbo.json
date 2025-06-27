@@ -45,8 +45,8 @@
         "PYTHON_KNOWLEDGE_API_URL",
         "RESCRAPE_CRON_SECRET",
         "HYPERDX_API_KEY",
-        "OTEL_SERVICE_NAME",
-        "OTEL_EXPORTER_OTLP_ENDPOINT"
+        "OTEL_EXPORTER_OTLP_ENDPOINT",
+        "OTEL_SERVICE_NAME"
       ],
       "inputs": [
         "$TURBO_DEFAULT$",

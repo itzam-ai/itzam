@@ -18,7 +18,7 @@ import { Button } from "~/components/ui/button";
 
 const slideTransition = {
   duration: 0.4,
-  ease: "easeInOut",
+  ease: "easeInOut" as const,
 };
 
 export const Onboard = ({

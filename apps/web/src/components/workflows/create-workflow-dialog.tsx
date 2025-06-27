@@ -250,7 +250,7 @@ export function CreateWorkflowDialog({
   };
 
   const transition = {
-    type: "spring",
+    type: "spring" as const,
     stiffness: 300,
     damping: 30,
   };
@@ -403,10 +403,10 @@ export function CreateWorkflowDialog({
           animate={{ height: contentHeight, width: contentWidth }}
           transition={{
             height: shouldAnimateHeight
-              ? { type: "spring", stiffness: 300, damping: 30 }
+              ? { type: "spring" as const, stiffness: 300, damping: 30 }
               : { duration: 0 },
             width: shouldAnimateWidth
-              ? { type: "spring", stiffness: 300, damping: 30 }
+              ? { type: "spring" as const, stiffness: 300, damping: 30 }
               : { duration: 0 },
           }}
         >

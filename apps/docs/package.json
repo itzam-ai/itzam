@@ -8,6 +8,6 @@
   "dependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "mintlify": "^4.0.588"
+    "mintlify": "4.0.510"                                                                                                                                                                                                                                                                                                                                                              
   }
 }

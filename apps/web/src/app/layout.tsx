@@ -1,14 +1,15 @@
+import HyperDX from "@hyperdx/browser";
+import { getUser } from "@itzam/server/db/auth/actions";
 import { generateBootstrapValues } from "@itzam/server/statsig/index";
 import { env } from "@itzam/utils/env";
 import { Provider as JotaiProvider } from "jotai";
+import { ArrowDown, ArrowUp, X } from "lucide-react";
 import type { Metadata } from "next";
 import { Figtree as FontSans } from "next/font/google";
 import { cookies } from "next/headers";
 import { ClientProviders } from "~/app/client-providers";
 import { cn } from "~/lib/utils";
 import "../styles/globals.css";
-import { ArrowDown, ArrowUp, X } from "lucide-react";
-import { getUser } from "@itzam/server/db/auth/actions";
 
 export const metadata: Metadata = {
   title: "Itzam",
@@ -34,6 +35,15 @@ export const metadata: Metadata = {
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+HyperDX.init({
+  apiKey: env.HYPERDX_API_KEY,
+  service: "itzam-nextjs",
+  tracePropagationTargets: [env.NEXT_PUBLIC_APP_URL], // Set to link traces from frontend to backend requests
+  consoleCapture: true, // Capture console logs (default false)
+  advancedNetworkCapture: true, // Capture full HTTP request/response headers and bodies (default false)
+  debug: env.NODE_ENV === "development",
 });
 
 export default async function RootLayout({

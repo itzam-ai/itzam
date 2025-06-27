@@ -1,5 +1,13 @@
+import { otel } from "@hono/otel";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+
 import { handle } from "hono/vercel";
 
+import { env } from "@itzam/utils/env";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { Hono } from "hono";
 import { openAPISpecs } from "hono-openapi";
 import { HTTPException } from "hono/http-exception";
@@ -92,7 +100,31 @@ app.get(
   })
 );
 
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter({
+    // optional - default url is http://localhost:4318/v1/traces
+    url: env.OTEL_EXPORTER_OTLP_ENDPOINT,
+    // optional - collection of custom headers to be sent with each request, empty by default
+    headers: {
+      Authorization: `Bearer ${env.HYPERDX_API_KEY}`,
+    },
+  }),
+  metricReader: new PeriodicExportingMetricReader({
+    exporter: new OTLPMetricExporter({
+      url: env.OTEL_EXPORTER_OTLP_ENDPOINT, // url is optional and can be omitted - default is http://localhost:4318/v1/metrics
+      headers: {
+        Authorization: `Bearer ${env.HYPERDX_API_KEY}`,
+      }, // an optional object containing custom headers to be sent with each request
+    }),
+  }),
+
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+
 app.use(logger());
+app.use("*", otel());
 
 export const vercelHonoApp = handle(app);
 export type AppType = typeof app;

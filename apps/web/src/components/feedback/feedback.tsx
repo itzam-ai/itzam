@@ -11,7 +11,7 @@ import {
 import { FeedbackForm } from "./form";
 
 const TRANSITION_POPOVER = {
-  type: "spring",
+  type: "spring" as const,
   bounce: 0.1,
   duration: 0.3,
 };

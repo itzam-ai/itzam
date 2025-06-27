@@ -63,6 +63,7 @@ async function streamObject<T>(
     // All requests are sent as JSON
     const response = await client.api.v1.stream.object.$post(
       {
+        // @ts-expect-error - TODO: fix this
         json: processedRequest,
       },
       {
