@@ -66,7 +66,9 @@ export const CreateContextButton = ({ workflowId }: { workflowId: string }) => {
       toast.success("Context created");
       setIsDialogOpen(false);
       form.reset();
-      router.push(`/dashboard/workflows/${workflowId}/contexts/${context?.id}`);
+      router.push(
+        `/dashboard/workflows/${workflowId}/knowledge/contexts/${context?.id}`
+      );
     } catch (error) {
       toast.error("Failed to create context");
       console.error(error);

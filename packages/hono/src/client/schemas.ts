@@ -52,6 +52,13 @@ const BaseInput = z.object({
       ],
       description: "Optional attachments to include in the generation",
     }),
+  contextSlugs: z
+    .array(z.string())
+    .optional()
+    .openapi({
+      example: ["special-docs", "admin-files"],
+      description: "Optional context slugs to add contexts to the run",
+    }),
   workflowSlug: z.string().optional().openapi({
     example: "my_great_workflow",
     description:

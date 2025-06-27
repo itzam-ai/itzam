@@ -33,8 +33,16 @@ export async function getContextsByWorkflowId(workflowId: string) {
       resources: {
         where: eq(resources.active, true),
         orderBy: desc(resources.createdAt),
+        columns: {
+          id: true,
+          type: true,
+          title: true,
+          url: true,
+          fileSize: true,
+        },
       },
     },
+    orderBy: desc(contexts.createdAt),
   });
 
   return contextsFromWorkflow;

@@ -1,6 +1,7 @@
 import { db } from "@itzam/server/db/index";
-import { threads, workflows } from "@itzam/server/db/schema";
+import { workflows } from "@itzam/server/db/schema";
 import {
+  createThread,
   getThreadById,
   getThreadRunsHistory,
   getThreadsByWorkflowSlug,
@@ -9,8 +10,6 @@ import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
-import { v7 } from "uuid";
-import { createThread } from "@itzam/server/db/thread/actions";
 import {
   CreateThreadResponseSchema,
   GetRunsByThreadResponseSchema,

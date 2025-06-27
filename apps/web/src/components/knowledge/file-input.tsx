@@ -399,7 +399,7 @@ export const FileInput = ({
             ))}
           </motion.div>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
+          <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-lg border border-dashed border-border mt-2">
             <EmptyStateDetails
               title="No files added"
               description={`Drop files to ${

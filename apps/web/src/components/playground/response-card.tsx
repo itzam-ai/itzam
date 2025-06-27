@@ -18,7 +18,7 @@ export function ResponseCard({
   streamStatus: "loading" | "streaming" | "completed" | "error" | null;
 }) {
   return (
-    <Card className="h-full relative">
+    <Card className="h-full relative bg-transparent">
       <CardHeader className="pb-0">
         <CardTitle className="text-sm">Response</CardTitle>
       </CardHeader>

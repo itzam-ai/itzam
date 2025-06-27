@@ -37,7 +37,7 @@ export const generateRoute = new Hono()
     async (c) => {
       try {
         const userId = c.get("userId");
-        const { workflowSlug, threadId, input, attachments } =
+        const { workflowSlug, threadId, input, attachments, contextSlugs } =
           c.req.valid("json");
 
         const setup = await setupRunGeneration({
@@ -46,6 +46,7 @@ export const generateRoute = new Hono()
           threadId: threadId || null,
           input,
           attachments,
+          contextSlugs,
         });
         if ("error" in setup) {
           return c.json({ error: setup.error }, setup.status);
@@ -99,8 +100,14 @@ export const generateRoute = new Hono()
     async (c) => {
       try {
         const userId = c.get("userId");
-        const { workflowSlug, threadId, input, schema, attachments } =
-          c.req.valid("json");
+        const {
+          workflowSlug,
+          threadId,
+          input,
+          schema,
+          attachments,
+          contextSlugs,
+        } = c.req.valid("json");
 
         const setup = await setupRunGeneration({
           userId,
@@ -109,6 +116,7 @@ export const generateRoute = new Hono()
           input,
           schema,
           attachments,
+          contextSlugs,
         });
 
         if ("error" in setup) {

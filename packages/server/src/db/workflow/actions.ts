@@ -13,6 +13,7 @@ import {
   knowledge,
   modelSettings,
   models,
+  resources,
   workflows,
 } from "../schema";
 
@@ -28,6 +29,22 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
         model: {
           with: {
             provider: true,
+          },
+        },
+        contexts: {
+          where: eq(contexts.isActive, true),
+          orderBy: (contexts, { desc }) => [desc(contexts.createdAt)],
+          with: {
+            resources: {
+              where: eq(resources.active, true),
+              columns: {
+                id: true,
+                type: true,
+                title: true,
+                url: true,
+              },
+              orderBy: (resources, { desc }) => [desc(resources.createdAt)],
+            },
           },
         },
         runs: {
@@ -100,28 +117,27 @@ export const getUserWorkflows = protectedProcedure(async ({ user }) => {
   };
 });
 
-export const getWorkflowBySlugAndUserIdWithModelAndModelSettings = async (
-  userId: string,
-  slug: string
-) => {
-  const workflow = await db.query.workflows.findFirst({
-    where: and(
-      eq(workflows.slug, slug),
-      eq(workflows.userId, userId),
-      eq(workflows.isActive, true)
-    ),
-    with: {
-      model: true,
-      modelSettings: true,
-    },
-  });
+export const getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts =
+  async (userId: string, slug: string) => {
+    const workflow = await db.query.workflows.findFirst({
+      where: and(
+        eq(workflows.slug, slug),
+        eq(workflows.userId, userId),
+        eq(workflows.isActive, true)
+      ),
+      with: {
+        model: true,
+        modelSettings: true,
+        contexts: true,
+      },
+    });
 
-  if (!workflow) {
-    throw new Error("Workflow not found");
-  }
+    if (!workflow) {
+      throw new Error("Workflow not found");
+    }
 
-  return workflow;
-};
+    return workflow;
+  };
 
 export type CreateWorkflowArgs = {
   name: string;

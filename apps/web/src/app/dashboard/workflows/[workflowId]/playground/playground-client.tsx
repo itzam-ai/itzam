@@ -2,6 +2,7 @@
 
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import { AnimatePresence } from "framer-motion";
+import { CheckIcon, FileIcon, GlobeIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useState } from "react";
@@ -14,6 +15,7 @@ import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { useKeyboardShortcut } from "~/lib/shortcut";
+import { cn } from "~/lib/utils";
 import type { Workflow } from "~/lib/workflows";
 
 // Type for the metadata returned by the stream
@@ -47,6 +49,7 @@ export default function PlaygroundClient({
     "loading" | "streaming" | "completed" | "error" | null
   >(null);
   const [output, setOutput] = useState<string>("");
+  const [contexts, setContexts] = useState<string[]>([]);
   const [prompt, setPrompt] = useState<string>(workflow?.prompt || "");
   const [model, setModel] = useState<ModelWithCostAndProvider | null>(
     workflow?.model || null
@@ -65,6 +68,8 @@ export default function PlaygroundClient({
       });
     }
   };
+
+  console.log(workflow);
 
   const handleSubmit = async () => {
     if (!selectedWorkflow || !input.trim()) {
@@ -88,6 +93,7 @@ export default function PlaygroundClient({
           modelId: model?.id,
           workflowId: selectedWorkflow.id,
           userId: userId,
+          contextSlugs: contexts,
         }),
       });
 
@@ -201,9 +207,93 @@ export default function PlaygroundClient({
               id="prompt"
               placeholder="Enter your prompt here..."
               value={prompt}
-              className="min-h-[250px]"
+              className="min-h-[200px]"
               onChange={(e) => setPrompt(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="contexts"
+              className="text-muted-foreground text-sm font-normal ml-0.5"
+            >
+              Contexts
+            </Label>
+            <div className="flex flex-col gap-2">
+              {workflow.contexts.map((context) => {
+                return (
+                  <div
+                    key={context.id}
+                    className={cn(
+                      "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
+                      contexts.includes(context.slug) &&
+                        "text-primary font-medium opacity-100"
+                    )}
+                    onClick={() => {
+                      setContexts(
+                        contexts.includes(context.slug)
+                          ? contexts.filter((c) => c !== context.slug)
+                          : [...contexts, context.slug]
+                      );
+                    }}
+                  >
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-1">
+                        <Label
+                          htmlFor={context.slug}
+                          className="text-xs font-medium"
+                        >
+                          {context.name}
+                        </Label>
+                        {contexts.includes(context.slug) && (
+                          <CheckIcon
+                            className={cn(
+                              "size-3",
+                              contexts.includes(context.slug)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {context.resources.map((r) => (
+                          <div key={r.id} className="flex items-center gap-1">
+                            {r.type === "FILE" ? (
+                              <FileIcon className="size-2.5" />
+                            ) : (
+                              <GlobeIcon className="size-2.5" />
+                            )}
+                            <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+                              {r.title}
+                            </p>
+                          </div>
+                        ))}
+                        {context.resources.length === 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            No resources
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {workflow.contexts.length === 0 && (
+                <Link
+                  href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-dashed"
+                  >
+                    <PlusIcon className="w-4 h-4 -mr-1" />
+                    Create
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

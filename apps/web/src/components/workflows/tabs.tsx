@@ -24,15 +24,12 @@ export function WorkflowTabs({ id }: { id: string }) {
     if (pathname.includes("/knowledge")) {
       return "knowledge";
     }
-    if (pathname.includes("/contexts")) {
-      return "contexts";
-    }
     return "summary";
   };
 
   return (
     <Tabs value={getActiveTab()} className="mb-6 w-full">
-      <TabsList className="mb-6 grid grid-cols-7">
+      <TabsList className="mb-6 grid grid-cols-6">
         <Link prefetch href={`/dashboard/workflows/${id}`} className="w-full">
           <TabsTrigger value="summary" className="w-full">
             Summary
@@ -63,15 +60,6 @@ export function WorkflowTabs({ id }: { id: string }) {
         >
           <TabsTrigger value="knowledge" className="w-full">
             Knowledge
-          </TabsTrigger>
-        </Link>
-        <Link
-          prefetch
-          href={`/dashboard/workflows/${id}/contexts`}
-          className="w-full"
-        >
-          <TabsTrigger value="contexts" className="w-full">
-            Contexts
           </TabsTrigger>
         </Link>
         <Link

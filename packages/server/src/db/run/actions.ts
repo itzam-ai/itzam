@@ -39,11 +39,33 @@ export async function getRunByIdAndUserId(runId: string, userId: string) {
     where: eq(runs.id, runId),
     with: {
       model: true,
-      workflow: true,
+      workflow: {
+        with: {
+          knowledge: true,
+          contexts: true,
+        },
+      },
       attachments: true,
       runResources: {
         with: {
-          resource: true,
+          resource: {
+            columns: {
+              id: true,
+              title: true,
+              fileName: true,
+              url: true,
+              type: true,
+            },
+            with: {
+              context: {
+                columns: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -380,6 +402,10 @@ export async function getRunsForContextByThreadId(threadId: string) {
     },
   });
 }
+
+export type RunWithResourcesAndAttachments = Awaited<
+  ReturnType<typeof getRunsByThreadIdWithResourcesAndAttachments>
+>[number];
 
 export async function getRunsByThreadIdWithResourcesAndAttachments(
   threadId: string

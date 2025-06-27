@@ -43,6 +43,11 @@ itzam.thread.create({
 
 ### Other improvements
 
+- [ ] SDK
+
+  - [ ] Standard CRUD for _everything_
+  - [ ] Add knowledge used to metadata
+
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)

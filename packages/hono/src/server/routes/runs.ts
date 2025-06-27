@@ -64,7 +64,14 @@ export const runsRoute = new Hono().use(apiKeyMiddleware).get(
           title: resource.resource.title,
           url: resource.resource.url,
           type: resource.resource.type,
-          // In the future: context property -- null if no context, object if it's from context
+          // if the resource is from a context, return the context object
+          context: resource.resource.context
+            ? {
+                id: resource.resource.context.id,
+                slug: resource.resource.context.slug,
+                name: resource.resource.context.name,
+              }
+            : null,
         })),
         workflowId: run.workflowId ?? "",
         createdAt: run.createdAt.toISOString(),

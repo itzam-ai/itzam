@@ -37,7 +37,7 @@ export const streamRoute = new Hono()
     textCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
-      const { workflowSlug, threadId, input, attachments } =
+      const { workflowSlug, threadId, input, attachments, contextSlugs } =
         c.req.valid("json");
 
       try {
@@ -47,6 +47,7 @@ export const streamRoute = new Hono()
           threadId: threadId || null,
           input,
           attachments,
+          contextSlugs,
         });
 
         if ("error" in setup) {
@@ -70,14 +71,17 @@ export const streamRoute = new Hono()
             await stream.writeSSE({
               data: JSON.stringify({
                 error: "Stream processing failed",
-                details: streamError instanceof Error ? streamError.message : "Unknown error"
+                details:
+                  streamError instanceof Error
+                    ? streamError.message
+                    : "Unknown error",
               }),
-              event: "error"
+              event: "error",
             });
-            
+
             // Don't notify Discord here - the AI library's onError callback already handles it
             console.error("Stream processing error:", streamError);
-            
+
             // Close the stream
             await stream.close();
           }
@@ -86,7 +90,7 @@ export const streamRoute = new Hono()
         const errorResponse = createErrorResponse(error, {
           userId,
           workflowSlug,
-          endpoint: "/stream/text"
+          endpoint: "/stream/text",
         });
         return c.json(errorResponse, 500);
       }
@@ -115,8 +119,14 @@ export const streamRoute = new Hono()
     objectCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
-      const { workflowSlug, threadId, input, schema, attachments } =
-        c.req.valid("json");
+      const {
+        workflowSlug,
+        threadId,
+        input,
+        schema,
+        attachments,
+        contextSlugs,
+      } = c.req.valid("json");
 
       try {
         const setup = await setupRunGeneration({
@@ -126,6 +136,7 @@ export const streamRoute = new Hono()
           input,
           schema,
           attachments,
+          contextSlugs,
         });
 
         if ("error" in setup) {
@@ -149,14 +160,17 @@ export const streamRoute = new Hono()
             await stream.writeSSE({
               data: JSON.stringify({
                 error: "Stream processing failed",
-                details: streamError instanceof Error ? streamError.message : "Unknown error"
+                details:
+                  streamError instanceof Error
+                    ? streamError.message
+                    : "Unknown error",
               }),
-              event: "error"
+              event: "error",
             });
-            
+
             // Don't notify Discord here - the AI library's onError callback already handles it
             console.error("Stream processing error:", streamError);
-            
+
             // Close the stream
             await stream.close();
           }
@@ -165,7 +179,7 @@ export const streamRoute = new Hono()
         const errorResponse = createErrorResponse(error, {
           userId,
           workflowSlug,
-          endpoint: "/stream/object"
+          endpoint: "/stream/object",
         });
         return c.json(errorResponse, 500);
       }

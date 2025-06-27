@@ -13,6 +13,34 @@ import {
 import { getUser } from "../auth/actions";
 import { v7 } from "uuid";
 
+export async function getThreadByIdAndUserIdWithContexts(
+  threadId: string,
+  userId: string
+) {
+  const thread = await db.query.threads.findFirst({
+    where: eq(threads.id, threadId),
+    with: {
+      workflow: {
+        with: {
+          model: true,
+          modelSettings: true,
+        },
+      },
+      threadContexts: {
+        with: {
+          context: true,
+        },
+      },
+    },
+  });
+
+  if (!thread || thread.workflow.userId !== userId) {
+    throw new Error("Thread not found");
+  }
+
+  return thread;
+}
+
 export async function getThreadsByWorkflowSlug(
   workflowSlug: string,
   userId: string,
@@ -177,25 +205,26 @@ export async function createThread({
   const threadId = `thread_${v7()}`;
   const threadName = name || `Thread ${threadId.slice(-10)}`;
 
+  // Contexts to be linked to the thread
+  let contextIds: string[] = [];
+
   if (contextSlugs) {
-    const contextIds = await db.query.contexts.findMany({
-      where: inArray(contexts.slug, contextSlugs),
-      columns: {
-        id: true,
-      },
-    });
+    contextIds = await db.query.contexts
+      .findMany({
+        where: and(
+          inArray(contexts.slug, contextSlugs),
+          eq(contexts.isActive, true),
+          eq(contexts.workflowId, workflowId)
+        ),
+        columns: {
+          id: true,
+        },
+      })
+      .then((res) => res.map((r) => r.id));
 
     if (contextIds.length !== contextSlugs.length) {
       throw new Error("Context slugs not found");
     }
-
-    await db.insert(threadContexts).values(
-      contextIds.map((context) => ({
-        id: `thread_context_${v7()}`,
-        threadId,
-        contextId: context.id,
-      }))
-    );
   }
 
   const [thread] = await db
@@ -217,6 +246,16 @@ export async function createThread({
         id: `thread_lookup_key_${v7()}`,
         threadId: thread.id,
         lookupKey: key,
+      }))
+    );
+  }
+
+  if (contextIds.length > 0) {
+    await db.insert(threadContexts).values(
+      contextIds.map((contextId) => ({
+        id: `thread_context_${v7()}`,
+        threadId: thread.id,
+        contextId,
       }))
     );
   }

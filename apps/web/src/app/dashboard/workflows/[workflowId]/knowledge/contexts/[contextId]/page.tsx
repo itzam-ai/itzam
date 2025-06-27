@@ -28,7 +28,7 @@ export default async function ContextPage({
     <Card className="p-6 flex flex-col">
       <div className="flex justify-between items-start mb-8">
         <div className="flex flex-col">
-          <Link href={`/dashboard/workflows/${workflowId}/contexts`}>
+          <Link href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}>
             <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground hover:bg-transparent hover:border-transparent transition-all">
               <ArrowLeftIcon className="size-3" />
               <span className="text-xs">Back</span>

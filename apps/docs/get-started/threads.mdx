@@ -31,6 +31,7 @@ const thread = await itzam.threads.create({
   workflowSlug: "customer-support",
   name: "Chat for user 123", // optional
   lookupKeys: ["user-123", "platform-web-app"], // optional
+  contextSlugs: ["financial-docs", "admin-docs"], // optional
 });
 
 console.log(thread.id); // "thread_424242" (save this ID in your database)
@@ -42,7 +43,7 @@ console.log(thread.id); // "thread_424242" (save this ID in your database)
 curl -X POST https://itz.am/api/v1/threads \
   -H "Authorization: Bearer $ITZAM_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"workflowSlug": "customer-support", "name": "Chat for user 123", "lookupKeys": ["user-123", "platform-web-app"]}'
+  -d '{"workflowSlug": "customer-support", "name": "Chat for user 123", "lookupKeys": ["user-123", "platform-web-app"], "contextSlugs": ["financial-docs", "admin-docs"]}'
 ```
 
 ## Send messages

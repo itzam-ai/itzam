@@ -8,7 +8,7 @@ export const ContextItem = ({ context }: { context: Contexts[number] }) => {
   return (
     <div className="flex justify-between items-center">
       <Link
-        href={`/dashboard/workflows/${context.workflowId}/contexts/${context.id}`}
+        href={`/dashboard/workflows/${context.workflowId}/knowledge/contexts/${context.id}`}
         className="flex gap-2 items-center hover:opacity-80 transition-opacity cursor-pointer"
       >
         <div className="flex justify-center items-center rounded-md bg-card p-2 border border-border">

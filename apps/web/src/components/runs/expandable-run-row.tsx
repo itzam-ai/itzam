@@ -329,7 +329,13 @@ export function ExpandableRunRow({
                       <h4 className="text-muted-foreground text-sm">Thread</h4>
                       <div className="mt-1 flex items-center gap-2">
                         {run.threadId ? (
-                          <ThreadDrawer run={run} />
+                          <ThreadDrawer
+                            thread={{
+                              id: run.threadId,
+                              name: run.thread?.name ?? "",
+                              lookupKeys: run.thread?.lookupKeys ?? [],
+                            }}
+                          />
                         ) : (
                           <p className="text-sm">N/A</p>
                         )}

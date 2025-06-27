@@ -284,6 +284,8 @@ export async function insertKnowledgeInPrompt(
 ) {
   const { similarChunks, resourceIds } = await findRelevantContent(
     input,
+    run.knowledgeId,
+    run.contextSlugs,
     run.workflowId
   );
 
@@ -298,6 +300,7 @@ export async function insertKnowledgeInPrompt(
 
 <context>
 Relevant content found in user's provided knowledge base:
+
 ${similarChunks.map((c) => c.content).join("\n")}
 </context>`;
 }

@@ -15,7 +15,6 @@ import {
 import { createAdminAuthClient } from "./supabase/server";
 
 const ADMIN_USERS = ["abdulhdr1@gmail.com", "gustavo_fior@outlook.com"];
-
 type ModelInput = {
   tag: string;
   name: string;

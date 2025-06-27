@@ -33,6 +33,7 @@ type ThreadsResponse = {
     id: string; // The unique thread ID
     name: string; // The thread name
     lookupKeys: string[]; // The lookup keys if provided
+    contextSlugs: string[]; // The slugs of the contexts if provided
     createdAt: string; // ISO 8601 timestamp
     updatedAt: string; // ISO 8601 timestamp
   }[]; // Array of thread objects

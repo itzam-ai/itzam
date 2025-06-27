@@ -391,7 +391,7 @@ export const LinkInput = ({
         )}
       </AnimatePresence>
       {!workflowLinks || workflowLinks.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 py-16 rounded-lg border border-dashed border-border mt-2">
+        <div className="flex flex-col items-center justify-center gap-4 py-12 rounded-lg border border-dashed border-border mt-2">
           <EmptyStateDetails
             title="No links added"
             description={`Add links to ${

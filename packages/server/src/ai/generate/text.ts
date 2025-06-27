@@ -62,15 +62,15 @@ export async function generateTextOrObjectStream(
             },
             onError: async ({ error }) => {
               console.error("Error during streaming:", error);
-              
+
               // Send Discord notification for streaming errors
               if (error instanceof Error) {
                 await notifyStreamingError(error, {
                   runId: run.id,
-                  streamType: "object"
+                  streamType: "object",
                 });
               }
-              
+
               await handleRunCompletion({
                 run,
                 model,
@@ -121,15 +121,15 @@ export async function generateTextOrObjectStream(
             },
             onError: async ({ error }) => {
               console.error("Error during streaming:", error);
-              
+
               // Send Discord notification for streaming errors
               if (error instanceof Error) {
                 await notifyStreamingError(error, {
                   runId: run.id,
-                  streamType: "text"
+                  streamType: "text",
                 });
               }
-              
+
               await handleRunCompletion({
                 run,
                 model,
@@ -294,8 +294,6 @@ export async function generateTextResponse(
 ) {
   // @ts-expect-error TODO: fix typing
   const response = await generateObject<GenerationResponse>(aiParams);
-
-  const responseTime = Date.now();
 
   // ⏰ End timing
   const endTime = Date.now();
