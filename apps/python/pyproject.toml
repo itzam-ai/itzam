@@ -115,4 +115,4 @@ warn_unused_configs = true
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "I"]  # Error, Flake8, Import sorting
+lint.select = ["E", "F", "I"]  # Error, Flake8, Import sorting

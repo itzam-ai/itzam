@@ -1,15 +1,16 @@
-import logging
 import asyncio
+import logging
 from datetime import datetime
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, status, BackgroundTasks
+from typing import Any, Dict
 
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+
+from ..config import settings
 from ..schemas import (
     CreateResourceResponse,
     RescrapeRequest,
 )
 from ..services import rescrape_resource_embeddings
-from ..config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,8 @@ async def rescrape_resource(
         duration = (end_time - start_time).total_seconds()
 
         logger.info(
-            f"Rescrape completed: {total_resources} total, {cache_hits} cache hits, {regenerated} regenerated, {failed} failed in {duration:.2f}s"
+            f"Rescrape completed: {total_resources} total, {cache_hits} cache hits, "
+            f"{regenerated} regenerated, {failed} failed in {duration:.2f}s"
         )
 
         return CreateResourceResponse(

@@ -1,25 +1,26 @@
+import json
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 import tiktoken
-import json
 import xxhash
-from chonkie import TokenChunker, OpenAIEmbeddings, Chunk  # type: ignore
+from chonkie import Chunk, OpenAIEmbeddings, TokenChunker  # type: ignore
 from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
 from .database import (
+    delete_chunks_for_resource,
+    get_resource_by_id,
+    increment_processed_batches,
     save_chunks_to_db,
     update_resource_status,
     update_resource_total_batches,
-    increment_processed_batches,
-    get_resource_by_id,
-    delete_chunks_for_resource,
 )
-from .models import Resource
-from .supabase import send_update, send_usage_update
-from .schemas import ResourceBase
 from .discord import send_discord_notification
+from .models import Resource
+from .schemas import ResourceBase
+from .supabase import send_update, send_usage_update
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,14 @@ async def get_text_from_tika(
 
     # Headers to mimic a real browser request
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        ),
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,"
+            "image/webp,image/apng,*/*;q=0.8"
+        ),
         "Accept-Language": "en-US,en;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
         "DNT": "1",
@@ -50,7 +57,11 @@ async def get_text_from_tika(
                 if file_response.status == 999:
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
-                        detail="Access denied by the website. This URL may not allow automated access (common with LinkedIn, social media sites, etc.)",
+                        detail=(
+                            "Access denied by the website. This URL may not allow "
+                            "automated access (common with LinkedIn, social media "
+                            "sites, etc.)"
+                        ),
                     )
                 elif file_response.status == 403:
                     raise HTTPException(
@@ -85,7 +96,11 @@ async def get_text_from_tika(
         if "999" in error_message:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied by the website. This URL may not allow automated access (common with LinkedIn, social media sites, etc.)",
+                detail=(
+                    "Access denied by the website. This URL may not allow "
+                    "automated access (common with LinkedIn, social media "
+                    "sites, etc.)"
+                ),
             )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -111,7 +126,10 @@ async def generate_file_title(text: str, original_filename: str) -> str:
             limited_text = text[:1000]
 
             payload = {
-                "input": f"Original file name: {original_filename}\nFile content: {limited_text}",
+                "input": (
+                    f"Original file name: {original_filename}\n"
+                    f"File content: {limited_text}"
+                ),
                 "workflowSlug": "file-title-generator",
             }
 
@@ -126,7 +144,7 @@ async def generate_file_title(text: str, original_filename: str) -> str:
                 ) as response:
                     if response.status == 200:
                         result = await response.json()
-                        generated_title = result.get("text", "").strip()
+                        generated_title: str = result.get("text", "").strip()
                         if generated_title:
                             logger.info(
                                 f"Generated title using Itzam API: {generated_title}"
@@ -354,7 +372,8 @@ async def generate_embeddings(
 
         if all_batches_completed:
             logger.info(
-                f"All embedding batches completed for resource {resource.id}. Resource fully processed."
+                f"All embedding batches completed for resource {resource.id}. "
+                "Resource fully processed."
             )
             # The last_scraped_at was already updated in increment_processed_batches
 
@@ -423,7 +442,9 @@ async def process_resource_embeddings(
     context_id: str,
     save_to_db: bool = False,
 ) -> Dict[str, Any]:
-    """Complete pipeline: generate chunks and embeddings for a resource, batching by embedding token limits."""
+    """Complete pipeline: generate chunks and embeddings for a resource,
+    batching by embedding token limits.
+    """
     try:
         chunk_size = 512
         embeddings_limit_per_request = 300000
@@ -551,7 +572,8 @@ async def rescrape_resource_embeddings(
                 f"Content hash unchanged for resource {resource.id}, skipping rescrape"
             )
 
-            # Update status back to PROCESSED (lastScrapedAt already updated by TypeScript)
+            # Update status back to PROCESSED
+            # (lastScrapedAt already updated by TypeScript)
             if resource.id:
                 update_resource_status(resource.id, "PROCESSED")
 
@@ -572,7 +594,10 @@ async def rescrape_resource_embeddings(
 
             # Send Discord notification for cache hit
             await send_discord_notification(
-                content=f"🎯 - cache hit for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
+                content=(
+                f"🎯 - cache hit for {resource.id}, with rescrape set to "
+                f"{existing_resource.scrape_frequency}"
+            ),
                 username="Itzam Rescrape Bot",
             )
 
@@ -601,7 +626,10 @@ async def rescrape_resource_embeddings(
 
         # Send Discord notification for content refresh
         await send_discord_notification(
-            content=f"🔄 - refreshed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency}",
+            content=(
+                f"🔄 - refreshed for {resource.id}, with rescrape set to "
+                f"{existing_resource.scrape_frequency}"
+            ),
             username="Itzam Rescrape Bot",
         )
 
@@ -611,8 +639,13 @@ async def rescrape_resource_embeddings(
         logger.error(f"Error rescraping resource {resource.id}: {str(e)}")
 
         # Send Discord notification for failure
+        scrape_freq = (
+            existing_resource.scrape_frequency if existing_resource else "UNKNOWN"
+        )
         await send_discord_notification(
-            content=f"❌ - failed for {resource.id}, with rescrape set to {existing_resource.scrape_frequency if existing_resource else 'UNKNOWN'}",
+            content=(
+                f"❌ - failed for {resource.id}, with rescrape set to {scrape_freq}"
+            ),
             username="Itzam Rescrape Bot",
         )
 

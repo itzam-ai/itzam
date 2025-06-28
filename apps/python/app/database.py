@@ -1,9 +1,10 @@
-import uuid
 import logging
+import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from sqlalchemy import create_engine, select, update
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 
 from .config import settings
 from .models import Chunks, Resource
@@ -213,7 +214,8 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
                 )
             )
             logger.info(
-                f"All {resource.total_batches} batches completed for resource {resource_id}. Updated last_scraped_at."
+                f"All {resource.total_batches} batches completed for resource "
+                f"{resource_id}. Updated last_scraped_at."
             )
         else:
             # Update only processed_batches
@@ -226,7 +228,8 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
                 )
             )
             logger.info(
-                f"Processed batch for resource {resource_id}. Progress: {new_processed_batches}/{resource.total_batches}"
+                f"Processed batch for resource {resource_id}. Progress: "
+                f"{new_processed_batches}/{resource.total_batches}"
             )
 
         session.execute(update_stmt)
@@ -237,7 +240,8 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
 
     except Exception as e:
         logger.error(
-            f"Failed to increment processed_batches for resource {resource_id}: {str(e)}"
+            f"Failed to increment processed_batches for resource "
+            f"{resource_id}: {str(e)}"
         )
         if session:
             session.rollback()

@@ -1,4 +1,7 @@
 # Using pgvector 0.4.1
+import datetime
+import decimal
+import uuid
 from typing import Any, List, Optional
 
 from pgvector.sqlalchemy.vector import VECTOR  # type: ignore
@@ -26,9 +29,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import JSONB, OID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-import datetime
-import decimal
-import uuid
 
 
 class Base(DeclarativeBase):
@@ -65,7 +65,10 @@ class Users(Base):
     is_sso_user: Mapped[bool] = mapped_column(
         Boolean,
         server_default=text("false"),
-        comment="Auth: Set this column to true when the account comes from SSO. These accounts can have duplicate emails.",
+        comment=(
+            "Auth: Set this column to true when the account comes from SSO. "
+            "These accounts can have duplicate emails."
+        ),
     )
     is_anonymous: Mapped[bool] = mapped_column(Boolean, server_default=text("false"))
     instance_id: Mapped[Optional[uuid.UUID]] = mapped_column(Uuid)

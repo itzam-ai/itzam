@@ -1,6 +1,7 @@
-import os
 import logging
-from typing import Optional, List, Dict, Any
+import os
+from typing import Any, Dict, List, Optional
+
 import aiohttp
 
 from .config import settings

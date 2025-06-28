@@ -25,7 +25,7 @@ def test_imports():
         ("app.routers.health", "Health router"),
         ("app.routers.resources", "Resources router"),
     ]
-    
+
     all_passed = True
     for module_path, description in modules_to_test:
         if test_module_availability(module_path):
@@ -33,7 +33,7 @@ def test_imports():
         else:
             print(f"❌ {description} ({module_path}) - import failed")
             all_passed = False
-    
+
     return all_passed
 
 
@@ -43,16 +43,16 @@ def test_app_creation():
         # Actually import and use the app to test it
         app_module = importlib.import_module("app.main")
         app = getattr(app_module, "app", None)
-        
+
         if app is None:
             print("❌ FastAPI app not found in app.main")
             return False
-            
+
         # Verify it's a FastAPI instance
         if not hasattr(app, "routes"):
             print("❌ App object doesn't have routes attribute")
             return False
-            
+
         print("✅ FastAPI app created successfully")
         return True
     except Exception as e:
@@ -66,13 +66,13 @@ def test_routes():
         # Import the necessary modules
         app_module = importlib.import_module("app.main")
         app = getattr(app_module, "app")
-        
+
         # Import APIRoute for type checking
         from fastapi.routing import APIRoute
-        
+
         routes = [route for route in app.routes if isinstance(route, APIRoute)]
         route_paths = [route.path for route in routes]
-        
+
         expected_routes = [
             "/health/",
             "/api/v1/create-resource",
@@ -80,16 +80,16 @@ def test_routes():
             "/",
             "/items/{item_id}",
         ]
-        
+
         missing_routes = []
         for expected_route in expected_routes:
             if expected_route not in route_paths:
                 missing_routes.append(expected_route)
-        
+
         if missing_routes:
             print(f"❌ Missing routes: {', '.join(missing_routes)}")
             return False
-        
+
         print(f"✅ All {len(expected_routes)} routes configured correctly")
         print("   Routes found:")
         for route in routes:
@@ -107,18 +107,20 @@ def test_config():
         # Import and use the settings
         config_module = importlib.import_module("app.config")
         settings = getattr(config_module, "settings")
-        
+
         required_attributes = ["API_TITLE", "API_VERSION", "TIKA_URL"]
         missing_attributes = []
-        
+
         for attr in required_attributes:
             if not hasattr(settings, attr):
                 missing_attributes.append(attr)
-        
+
         if missing_attributes:
-            print(f"❌ Missing configuration attributes: {', '.join(missing_attributes)}")
+            print(
+                f"❌ Missing configuration attributes: {', '.join(missing_attributes)}"
+            )
             return False
-        
+
         print("✅ Configuration loaded successfully")
         print(f"   API Title: {settings.API_TITLE}")
         print(f"   API Version: {settings.API_VERSION}")
@@ -133,26 +135,26 @@ def main():
     """Run all tests."""
     print("🧪 Testing FastAPI Application Structure")
     print("=" * 50)
-    
+
     tests = [
         ("Module Imports", test_imports),
         ("App Creation", test_app_creation),
         ("Route Configuration", test_routes),
         ("Settings Configuration", test_config),
     ]
-    
+
     passed = 0
     total = len(tests)
-    
+
     for test_name, test_func in tests:
         print(f"\n📋 Testing: {test_name}")
         if test_func():
             passed += 1
         print()
-    
+
     print("=" * 50)
     print(f"📊 Test Results: {passed}/{total} tests passed")
-    
+
     if passed == total:
         print("🎉 All tests passed! FastAPI structure is working correctly.")
         return True

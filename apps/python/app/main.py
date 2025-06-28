@@ -1,8 +1,9 @@
 import logging
+
 from fastapi import FastAPI
 
 from .config import settings
-from .routers import health, resources, rescrape
+from .routers import health, rescrape, resources
 from .schemas import HealthResponse
 
 # Configure logging

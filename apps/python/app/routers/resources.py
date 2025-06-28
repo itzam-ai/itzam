@@ -1,5 +1,6 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from ..dependencies import verify_auth_token
 from ..schemas import (
@@ -20,8 +21,8 @@ async def create_resource_task(
     request: CreateResourceRequest, background_tasks: BackgroundTasks
 ):
     """
-    Create and process multiple resources with chunking, embeddings, and database storage.
-    Equivalent to the TypeScript createResourceTask.
+    Create and process multiple resources with chunking, embeddings, and
+    database storage. Equivalent to the TypeScript createResourceTask.
     """
     try:
         logger.info(

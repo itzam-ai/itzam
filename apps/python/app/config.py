@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -29,7 +30,10 @@ class Settings(BaseSettings):
 
     # API Configuration
     API_TITLE: str = "Itzam Processing API"
-    API_DESCRIPTION: str = "API for document processing, chunking, embedding generation, and storage with Supabase integration"
+    API_DESCRIPTION: str = (
+        "API for document processing, chunking, embedding generation, "
+        "and storage with Supabase integration"
+    )
     API_VERSION: str = "2.0.0"
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
