@@ -3,6 +3,11 @@
   "scripts": {
     "dev:gen-models": "dotenv -- bash -c 'sqlacodegen $POSTGRES_URL | sed \"1s/^/# /\" > ./app/models.py'",
     "db:push": "pnpm run dev:gen-models",
+    "lint": "ruff check .",
+    "lint:write": "uv run ruff check --fix .",
+    "format": "uv run ruff format .",
+    "typecheck": "uv run mypy .",
+    "build": "pnpm typecheck && pnpm lint",
     "dev": "fastapi run --workers 4 main.py"
   },
   "devDependencies": {

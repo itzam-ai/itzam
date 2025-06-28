@@ -1,6 +1,3 @@
-import type { ZodType, ZodTypeDef } from "zod";
-import { type JsonSchema7Type } from "zod-to-json-schema";
-
 import type { AppType } from "@itzam/hono/client/index.d";
 import { hc, type InferRequestType } from "hono/client";
 import { createThread } from "./methods/createThread";
@@ -13,6 +10,8 @@ import { getThreadById } from "./methods/getThreadById";
 import { getThreadsByWorkflow } from "./methods/getThreadsByWorkflow";
 import { streamObject } from "./methods/streamObject";
 import { streamText } from "./methods/streamText";
+import type { JsonOrZodSchema } from "./types";
+
 export type { InferRequestType, InferResponseType } from "hono/client";
 
 // File attachment type
@@ -46,15 +45,14 @@ type StreamResponse<T = string> = {
 // Create a temporary client for type inference
 const tempClient = hc<AppType>("");
 
-export type GenerateObjectRequest<T> = WithAttachments<
+export type GenerateObjectRequest<T extends JsonOrZodSchema> = WithAttachments<
   Omit<
     InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"],
     "schema"
   > & {
-    schema: ZodType<T, ZodTypeDef, unknown> | JsonSchema7Type;
+    schema: T;
   }
 >;
-
 /**
  *
  * @class Itzam
@@ -85,7 +83,9 @@ class Itzam {
     return generateText(this.client, this.apiKey, generateTextRequest);
   }
 
-  async generateObject<T>(request: GenerateObjectRequest<T>) {
+  async generateObject<T extends JsonOrZodSchema>(
+    request: GenerateObjectRequest<T>
+  ) {
     return generateObject<T>(this.client, this.apiKey, request);
   }
   async streamText(
@@ -94,7 +94,9 @@ class Itzam {
     return streamText(this.client, this.apiKey, input);
   }
 
-  async streamObject<T>(input: GenerateObjectRequest<T>) {
+  async streamObject<T extends JsonOrZodSchema>(
+    input: GenerateObjectRequest<T>
+  ) {
     return streamObject<T>(this.client, this.apiKey, input);
   }
 

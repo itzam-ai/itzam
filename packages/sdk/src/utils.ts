@@ -1,4 +1,12 @@
 import type { StreamEvent } from "@itzam/hono/client/index.d";
+import zodToJsonSchema from "zod-to-json-schema";
+import * as z4 from "zod/v4/core";
+import type {
+  JsonOrZodSchema,
+  JsonSchema,
+  ZodSchema,
+  ZodV4Schema,
+} from "./types";
 
 type StreamMetadata = {
   runId: string;
@@ -83,4 +91,35 @@ export async function* createEventStream<T extends StreamEvent["type"]>(
       }
     }
   }
+}
+
+// https://zod.dev/library-authors?id=how-to-support-zod-3-and-zod-4-simultaneously
+export function isZodV4Schema(schema: ZodSchema): schema is ZodV4Schema {
+  if ("_zod" in schema) {
+    schema._zod.def;
+    return true;
+  }
+
+  schema._def;
+  return false;
+}
+
+export function isJsonSchema(schema: JsonOrZodSchema): schema is JsonSchema {
+  if (typeof schema === "object" && schema !== null) {
+    return "type" in schema;
+  }
+
+  return false;
+}
+
+export function getJsonSchema(schema: JsonOrZodSchema): JsonSchema {
+  if (isJsonSchema(schema)) {
+    return schema;
+  }
+
+  if (isZodV4Schema(schema)) {
+    return z4.toJSONSchema(schema);
+  }
+
+  return zodToJsonSchema(schema) as z4.JSONSchema.JSONSchema;
 }

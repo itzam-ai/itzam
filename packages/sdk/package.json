@@ -1,6 +1,6 @@
 {
   "name": "itzam",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "Itzam SDK",
   "author": "Itzam",
   "repository": {
@@ -27,10 +27,11 @@
   "dependencies": {
     "hono": "^4.7.4",
     "json-schema": "^0.4.0",
-    "zod-to-json-schema": "^3.24.5"
+    "json-schema-to-ts": "^3.1.1",
+    "zod-to-json-schema": "^3.24.6"
   },
   "peerDependencies": {
-    "zod": "^3.24.2"
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@itzam/hono": "workspace:*",
@@ -42,6 +43,6 @@
     "eslint": "^9.24.0",
     "tsup": "^8.4.0",
     "typescript": "^5.8.3",
-    "zod": "^3.24.2"
+    "zod": "^3.25.67"
   }
 }

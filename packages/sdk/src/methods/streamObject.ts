@@ -1,25 +1,34 @@
 import type { AppType } from "@itzam/hono/client/index.d";
 import { hc } from "hono/client";
-import zodToJsonSchema from "zod-to-json-schema";
 import { createItzamError } from "../errors";
 import type {
   GenerateObjectRequest,
   StreamMetadata,
   StreamResponse,
 } from "../index";
-import type { RecursivePartial } from "../types";
-import { blobToBase64, createEventStream, type EventHandler } from "../utils";
+import type {
+  InferReturnFromSchema,
+  JsonOrZodSchema,
+  RecursivePartial,
+} from "../types";
+import {
+  blobToBase64,
+  createEventStream,
+  getJsonSchema,
+  isJsonSchema,
+  type EventHandler,
+} from "../utils";
 
-async function streamObject<T>(
+async function streamObject<T extends JsonOrZodSchema>(
   client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   input: GenerateObjectRequest<T>
 ): Promise<StreamResponse<RecursivePartial<T>>> {
   try {
-    const schema =
-      "parse" in input.schema ? zodToJsonSchema(input.schema) : input.schema;
+    const schema = getJsonSchema(input.schema);
 
-    const isArraySchema = "type" in schema && schema.type === "array";
+    // @ts-expect-error - TODO: fix this
+    const isArraySchema = isJsonSchema(schema) && schema.type === "array";
 
     // Create a copy of the request to avoid mutating the original
     const processedRequest = { ...input, schema };
@@ -47,6 +56,7 @@ async function streamObject<T>(
     // All requests are sent as JSON
     const response = await client.api.v1.stream.object.$post(
       {
+        // @ts-expect-error - TODO: fix this
         json: processedRequest,
       },
       {
@@ -79,9 +89,9 @@ async function streamObject<T>(
             return data.object;
           } else {
             currentObject = {
-              ...currentObject,
+              ...(currentObject as Record<string, unknown>),
               ...(data as ObjectEvent).object,
-            };
+            } as T;
             return currentObject as T;
           }
         },
@@ -93,7 +103,9 @@ async function streamObject<T>(
       metadata: metadataPromise,
     };
 
-    return streamResponse as StreamResponse<RecursivePartial<T>>;
+    return streamResponse as StreamResponse<
+      RecursivePartial<InferReturnFromSchema<T>>
+    >;
   } catch (error) {
     throw createItzamError(error);
   }
