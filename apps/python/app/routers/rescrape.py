@@ -23,7 +23,8 @@ async def track_rescrape_with_stats(
     background_tasks: BackgroundTasks,
     resource,
     workflow_id: str,
-    knowledge_id: str
+    knowledge_id: str,
+    context_id: str
 ) -> Dict[str, Any]:
     """Wrapper to track rescrape statistics."""
     try:
@@ -32,6 +33,7 @@ async def track_rescrape_with_stats(
             resource=resource,
             workflow_id=workflow_id,
             knowledge_id=knowledge_id,
+            context_id=context_id,
             save_to_db=True
         )
         return {
@@ -71,7 +73,8 @@ async def rescrape_resource(request: RescrapeRequest, background_tasks: Backgrou
                 background_tasks=background_tasks,
                 resource=resource,
                 workflow_id=request.workflow_id,
-                knowledge_id=request.knowledge_id
+                knowledge_id=request.knowledge_id,
+                context_id=request.context_id
             )
             tasks.append(task)
         
