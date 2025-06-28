@@ -36,10 +36,12 @@ console.log(metadata); // Metadata about the run
 
 ### Parameters
 
+<Note>When using a JSON schema, you must add `as const` to the schema object for it to be properly typed. [More info](https://www.npmjs.com/package/json-schema-to-ts#fromschema)</Note>
+
 | Parameter      | Type           | Required | Description                                                                               |
 | -------------- | -------------- | -------- | ----------------------------------------------------------------------------------------- |
 | `input`        | `string`       | **Yes**  | The input text to generate a response for.                                                |
-| `schema`       | `object`       | **Yes**  | The JSON schema that defines the structure of the expected response.                      |
+| `schema`       | `object`       | **Yes**  | The Zod v3, v4 or JSON schema that defines the structure of the expected response.        |
 | `workflowSlug` | `string`       | No       | The slug of the workflow to use for generation (not required if you're using a threadId). |
 | `threadId`     | `string`       | No       | Identifier for associating runs with a conversation thread.                               |
 | `attachments`  | `Attachment[]` | No       | Array of attachments to include in the generation.                                        |
