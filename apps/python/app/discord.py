@@ -53,14 +53,14 @@ async def send_discord_notification(
             ) as response:
                 if response.ok:
                     logger.info(
-                        f"Discord notification sent successfully via Next.js API"
+                        "Discord notification sent successfully via Next.js API"
                     )
                     return True
                 else:
                     try:
                         error_data = await response.json()
                         error_msg = error_data.get("error", "Unknown error")
-                    except:
+                    except Exception:
                         error_msg = await response.text()
                     logger.error(
                         f"Discord API failed with status {response.status}: {error_msg}"

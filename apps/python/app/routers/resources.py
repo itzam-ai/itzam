@@ -35,9 +35,9 @@ async def create_resource_task(
                 process_resource_embeddings,
                 background_tasks=background_tasks,
                 resource=resource,
-                knowledge_id=request.knowledge_id,
+                knowledge_id=request.knowledge_id or "",
                 workflow_id=request.workflow_id,
-                context_id=request.context_id,
+                context_id=request.context_id or "",
                 save_to_db=True,
             )
 

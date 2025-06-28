@@ -1,11 +1,10 @@
 import logging
-from typing import Dict, Any, List, Union, Optional
-from datetime import datetime
+from typing import Dict, Any, List, Optional
 import aiohttp
 import tiktoken
 import json
 import xxhash
-from chonkie import TokenChunker, OpenAIEmbeddings, Chunk
+from chonkie import TokenChunker, OpenAIEmbeddings, Chunk  # type: ignore
 from fastapi import BackgroundTasks, HTTPException, status
 
 from .config import settings
@@ -15,12 +14,11 @@ from .database import (
     update_resource_total_batches,
     increment_processed_batches,
     get_resource_by_id,
-    get_db_session,
     delete_chunks_for_resource,
 )
 from .models import Resource
 from .supabase import send_update, send_usage_update
-from .schemas import LinkResource, FileResource, ResourceBase
+from .schemas import ResourceBase
 from .discord import send_discord_notification
 
 logger = logging.getLogger(__name__)
@@ -318,7 +316,7 @@ async def generate_embeddings(
                     for idx, chunk in enumerate(chunks)
                 ]
 
-            except Exception as e:
+            except Exception:
                 raise
         else:
             raise HTTPException(
@@ -441,7 +439,7 @@ async def process_resource_embeddings(
 
         # Batch chunks so that each batch does not exceed embeddings_limit_per_request
         batches = []
-        current_batch = []
+        current_batch: List[Chunk] = []
         current_tokens = 0
 
         for chunk in chunks:
@@ -596,8 +594,8 @@ async def rescrape_resource_embeddings(
             background_tasks,
             resource,
             workflow_id,
-            knowledge_id,
-            context_id,
+            knowledge_id or "",
+            context_id or "",
             save_to_db,
         )
 

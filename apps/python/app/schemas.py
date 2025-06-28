@@ -36,6 +36,7 @@ class RescrapeRequest(BaseModel):
     workflow_id: str = Field(..., alias="workflowId")
     user_id: str = Field(..., alias="userId")
     rescrape_secret: str = Field(..., alias="rescrapeSecret")
+    context_id: Optional[str] = Field(None, alias="contextId")
 
 
 class ChunkRequest(BaseModel):

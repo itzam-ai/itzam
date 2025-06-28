@@ -75,7 +75,7 @@ async def rescrape_resource(
                 resource=resource,
                 workflow_id=request.workflow_id,
                 knowledge_id=request.knowledge_id,
-                context_id=request.context_id,
+                context_id=request.context_id or "",
             )
             tasks.append(task)
 

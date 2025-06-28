@@ -1,7 +1,7 @@
 # Using pgvector 0.4.1
 from typing import Any, List, Optional
 
-from pgvector.sqlalchemy.vector import VECTOR
+from pgvector.sqlalchemy.vector import VECTOR  # type: ignore
 from sqlalchemy import (
     BigInteger,
     Boolean,

@@ -1,6 +1,5 @@
 import logging
 from fastapi import FastAPI
-from typing import Union
 
 from .config import settings
 from .routers import health, resources, rescrape

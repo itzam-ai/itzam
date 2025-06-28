@@ -186,8 +186,8 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
         session = get_db_session()
 
         # Get current resource state
-        stmt = select(Resource).where(Resource.id == resource_id)
-        resource = session.execute(stmt).scalar_one_or_none()
+        select_stmt = select(Resource).where(Resource.id == resource_id)
+        resource = session.execute(select_stmt).scalar_one_or_none()
 
         if not resource:
             logger.error(f"Resource {resource_id} not found")
@@ -201,7 +201,7 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
 
         if all_batches_completed:
             # Update both processed_batches and last_scraped_at
-            stmt = (
+            update_stmt = (
                 update(Resource)
                 .where(Resource.id == resource_id)
                 .values(
@@ -217,7 +217,7 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
             )
         else:
             # Update only processed_batches
-            stmt = (
+            update_stmt = (
                 update(Resource)
                 .where(Resource.id == resource_id)
                 .values(
@@ -229,7 +229,7 @@ def increment_processed_batches(resource_id: str, batch_count: int = 1) -> bool:
                 f"Processed batch for resource {resource_id}. Progress: {new_processed_batches}/{resource.total_batches}"
             )
 
-        session.execute(stmt)
+        session.execute(update_stmt)
         session.commit()
         session.close()
 
