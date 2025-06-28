@@ -1,40 +1,36 @@
 import type { AppType } from "@itzam/hono/client/index.d";
 import { hc } from "hono/client";
-import type { ZodType, ZodTypeDef } from "zod";
-import zodToJsonSchema, { type JsonSchema7Type } from "zod-to-json-schema";
 import {
   type InferRequestType,
   type StreamMetadata,
   type WithAttachments,
 } from "..";
 import { createItzamError } from "../errors";
-import { blobToBase64 } from "../utils";
+import type { InferReturnFromSchema, JsonOrZodSchema } from "../types";
+import { blobToBase64, getJsonSchema } from "../utils";
 
 // Create a temporary client for type inference
 const tempClient = hc<AppType>("");
 
-type GenerateObjectRequest<T> = WithAttachments<
+type GenerateObjectRequest<T extends JsonOrZodSchema> = WithAttachments<
   Omit<
     InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"],
     "schema"
   > & {
-    schema: ZodType<T, ZodTypeDef, unknown> | JsonSchema7Type;
+    schema: T;
   }
 >;
 
-async function generateObject<T>(
+async function generateObject<T extends JsonOrZodSchema>(
   client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
   request: GenerateObjectRequest<T>
 ): Promise<{
   metadata: StreamMetadata;
-  object: T;
+  object: InferReturnFromSchema<T>;
 }> {
   try {
-    const schema =
-      "parse" in request.schema
-        ? zodToJsonSchema(request.schema)
-        : request.schema;
+    const schema = getJsonSchema(request.schema);
 
     // Create a copy of the request to avoid mutating the original
     const processedRequest = { ...request, schema };
@@ -62,6 +58,7 @@ async function generateObject<T>(
     // All requests are sent as JSON
     const res = await client.api.v1.generate.object.$post(
       {
+        // @ts-expect-error - TODO: fix this
         json: processedRequest,
       },
       {
@@ -81,7 +78,7 @@ async function generateObject<T>(
 
     return {
       metadata: data.metadata,
-      object: data.object as T,
+      object: data.object as InferReturnFromSchema<T>,
     };
   } catch (error) {
     throw createItzamError(error);
