@@ -116,3 +116,12 @@ warn_unused_configs = true
 [tool.ruff]
 line-length = 88
 lint.select = ["E", "F", "I"]  # Error, Flake8, Import sorting
+
+[build-system]
+requires = ["maturin"]
+build-backend = "maturin"
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+module-name = "tiktoken._tiktoken"
+python-packages = ["tiktoken", "tiktoken_ext"]

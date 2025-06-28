@@ -1,6 +1,6 @@
 
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm
-
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
+RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 
 WORKDIR /code
 
