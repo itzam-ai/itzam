@@ -1,5 +1,5 @@
 
-FROM ghcr.io/astral-sh/uv:alpine3.21
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
 
 
 WORKDIR /code

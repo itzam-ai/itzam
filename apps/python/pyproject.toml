@@ -108,3 +108,11 @@ dev = [
     "mypy>=1.16.1",
     "ruff>=0.12.1",
 ]
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "I"]  # Error, Flake8, Import sorting
