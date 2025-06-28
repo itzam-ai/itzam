@@ -1,4 +1,4 @@
-import { vercelHonoApp } from "@itzam/hono/server/index";
+import { vercelHonoApp } from "@itzam/api/server/index";
 
 export const runtime = "nodejs";
 

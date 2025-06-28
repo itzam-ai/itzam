@@ -6,12 +6,19 @@
     "outDir": "./dist",
     "strict": true,
     "paths": {
-      "@itzam/hono": ["../hono/client/*"]
+      "@itzam/api": [
+        "../hono/client/*"
+      ]
     }
   },
   "typeAcquisition": {
     "enable": true,
   },
-  "include": ["src", "../hono/client/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    "../hono/client/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

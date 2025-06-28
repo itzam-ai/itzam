@@ -12,7 +12,7 @@
         "./*": "./utils/*.ts"
     },
     "dependencies": {
-        "@itzam/hono": "workspace:*",
+        "@itzam/api": "workspace:*",
         "@itzam/server": "workspace:*",
         "@itzam/utils": "workspace:*",
         "@repo/typescript-config": "workspace:*",

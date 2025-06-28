@@ -33,7 +33,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@itzam/hono": "workspace:*",
+    "@itzam/api": "workspace:*",
     "@microsoft/api-extractor": "^7.52.5",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",

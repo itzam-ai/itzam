@@ -1,4 +1,4 @@
-import type { AppType } from "@itzam/hono/client/index.d";
+import type { AppType } from "@itzam/api/client/index.d";
 import { hc } from "hono/client";
 import { createItzamError } from "../errors";
 
@@ -6,30 +6,30 @@ import { createItzamError } from "../errors";
 const tempClient = hc<AppType>("");
 
 async function getRunsByThread(
-  client: ReturnType<typeof hc<AppType>>,
-  apiKey: string,
-  threadId: string
+	client: ReturnType<typeof hc<AppType>>,
+	apiKey: string,
+	threadId: string,
 ) {
-  try {
-    const response = await client.api.v1.threads[":threadId"].runs.$get(
-      {
-        param: { threadId },
-      },
-      {
-        headers: {
-          "Api-Key": apiKey,
-        },
-      }
-    );
+	try {
+		const response = await client.api.v1.threads[":threadId"].runs.$get(
+			{
+				param: { threadId },
+			},
+			{
+				headers: {
+					"Api-Key": apiKey,
+				},
+			},
+		);
 
-    if (!response.ok) throw createItzamError(response);
+		if (!response.ok) throw createItzamError(response);
 
-    const data = await response.json();
+		const data = await response.json();
 
-    return data;
-  } catch (error) {
-    throw createItzamError(error);
-  }
+		return data;
+	} catch (error) {
+		throw createItzamError(error);
+	}
 }
 
 export { getRunsByThread };

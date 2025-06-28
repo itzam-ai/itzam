@@ -20,7 +20,7 @@
     "@hookform/resolvers": "^4.1.3",
     "@hyperdx/browser": "^0.21.2",
     "@hyperdx/node-opentelemetry": "^0.8.2",
-    "@itzam/hono": "workspace:*",
+    "@itzam/api": "workspace:*",
     "@itzam/server": "workspace:*",
     "@itzam/supabase": "workspace:*",
     "@itzam/utils": "workspace:*",
