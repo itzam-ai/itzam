@@ -1,4 +1,5 @@
 import { generateTextResponse } from "@itzam/server/ai/generate/text";
+import { runsQueue } from "@itzam/server/queues/runs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -47,11 +48,37 @@ export const generateRoute = new Hono()
           input,
           attachments,
         });
+
         if ("error" in setup) {
           return c.json({ error: setup.error }, setup.status);
         }
 
         const { aiParams, run, workflow } = setup;
+
+        runsQueue.enqueue({
+          id: run.id,
+          origin: "SDK",
+          status: "RUNNING",
+          input: input,
+          prompt: workflow.prompt,
+          inputTokens: 0,
+          outputTokens: 0,
+          cost: "0",
+          durationInMs: 0,
+          attachments: run.attachments.map((attachment) => ({
+            runId: run.id,
+            id: attachment.id,
+            url: attachment.url,
+            mimeType: attachment.mimeType ?? "",
+          })),
+          metadata: {
+            model: {
+              name: workflow.model.name,
+              tag: workflow.model.tag,
+            },
+          },
+        });
+
         const startTime = Date.now();
 
         const result = await generateTextResponse(

@@ -9,11 +9,12 @@ type UrlFile = string;
 
 export type Attachment = {
   file: Base64File | UrlFile;
-  mimeType?: string;
+  mimeType: string;
 };
 
 export type AttachmentWithUrl = Attachment & {
   url: string;
+  id: string;
 };
 
 type CreateAiParamsInput = {

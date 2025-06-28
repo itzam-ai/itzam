@@ -1,6 +1,7 @@
 import { jsonSchema, type UserContent, zodSchema } from "ai";
 import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
+import { v7 } from "uuid";
 import { z } from "zod";
 import type { Model } from "../db/model/actions";
 import {
@@ -309,6 +310,7 @@ export async function processAttachments(
   const processedAttachments: AttachmentWithUrl[] = [];
 
   for (const attachment of attachments) {
+    const id = v7();
     // Get file extension from mime type
     const fileExt = extension(
       attachment.mimeType || "application/octet-stream"
@@ -326,6 +328,7 @@ export async function processAttachments(
 
     processedAttachments.push({
       ...attachment,
+      id,
       url: imageUrl,
       mimeType: attachment.mimeType || file.type,
     });
