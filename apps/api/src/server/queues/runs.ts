@@ -2,8 +2,8 @@ import { db } from "@itzam/server/db/index";
 import { attachments, runs } from "@itzam/server/db/schema";
 import Queue from "bull";
 
-type NewRun = typeof runs.$inferSelect & {
-	attachments: (typeof attachments.$inferSelect)[];
+type NewRun = typeof runs.$inferInsert & {
+	attachments: (typeof attachments.$inferInsert)[];
 };
 
 const newRunQueue = new Queue<NewRun>("create-run");

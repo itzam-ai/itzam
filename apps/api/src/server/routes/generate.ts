@@ -1,173 +1,173 @@
 import { generateTextResponse } from "@itzam/server/ai/generate/text";
-import { runsQueue } from "@itzam/server/queues/runs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import {
-  GenerateObjectResponseSchema,
-  GenerateTextResponseSchema,
+	GenerateObjectResponseSchema,
+	GenerateTextResponseSchema,
 } from "../../client/schemas";
 import { createErrorResponse, setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
+import { createRunInDb } from "../queues/runs";
 import {
-  objectCompletionValidator,
-  textCompletionValidator,
+	objectCompletionValidator,
+	textCompletionValidator,
 } from "../validators";
 
 export const generateRoute = new Hono()
-  .use(apiKeyMiddleware)
-  .post(
-    "/text",
-    describeRoute({
-      summary: "Generate text",
-      description: "Generate text for a specific workflow",
-      validateResponse: true,
-      operationId: "generateText",
-      responses: createOpenApiErrors({
-        content: {
-          "application/json": {
-            schema: resolver(GenerateTextResponseSchema),
-          },
-        },
-        description:
-          "Successfully generated content (we also return the run ID in the header X-Run-ID)",
-      }),
-    }),
-    textCompletionValidator,
-    async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { workflowSlug, threadId, input, attachments } =
-          c.req.valid("json");
+	.use(apiKeyMiddleware)
+	.post(
+		"/text",
+		describeRoute({
+			summary: "Generate text",
+			description: "Generate text for a specific workflow",
+			validateResponse: true,
+			operationId: "generateText",
+			responses: createOpenApiErrors({
+				content: {
+					"application/json": {
+						schema: resolver(GenerateTextResponseSchema),
+					},
+				},
+				description:
+					"Successfully generated content (we also return the run ID in the header X-Run-ID)",
+			}),
+		}),
+		textCompletionValidator,
+		async (c) => {
+			try {
+				const userId = c.get("userId");
+				const { workflowSlug, threadId, input, attachments } =
+					c.req.valid("json");
 
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          attachments,
-        });
+				const setup = await setupRunGeneration({
+					userId,
+					workflowSlug,
+					threadId: threadId || null,
+					input,
+					attachments,
+				});
 
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
-        }
+				if ("error" in setup) {
+					return c.json({ error: setup.error }, setup.status);
+				}
 
-        const { aiParams, run, workflow } = setup;
+				const { aiParams, run, workflow } = setup;
 
-        runsQueue.enqueue({
-          id: run.id,
-          origin: "SDK",
-          status: "RUNNING",
-          input: input,
-          prompt: workflow.prompt,
-          inputTokens: 0,
-          outputTokens: 0,
-          cost: "0",
-          durationInMs: 0,
-          attachments: run.attachments.map((attachment) => ({
-            runId: run.id,
-            id: attachment.id,
-            url: attachment.url,
-            mimeType: attachment.mimeType ?? "",
-          })),
-          metadata: {
-            model: {
-              name: workflow.model.name,
-              tag: workflow.model.tag,
-            },
-          },
-        });
+				await createRunInDb({
+					id: run.id,
+					origin: "SDK",
+					status: "RUNNING",
+					input: input,
+					prompt: workflow.prompt,
+					inputTokens: 0,
+					outputTokens: 0,
+					cost: "0",
+					durationInMs: 0,
+					attachments: run.attachments.map((attachment) => ({
+						runId: run.id,
+						id: attachment.id,
+						url: attachment.url,
+						mimeType: attachment.mimeType ?? "",
+					})),
+					metadata: {
+						model: {
+							name: workflow.model.name,
+							tag: workflow.model.tag,
+						},
+					},
+				});
 
-        const startTime = Date.now();
+				const startTime = Date.now();
 
-        const result = await generateTextResponse(
-          aiParams,
-          run,
-          workflow.model,
-          startTime
-        );
+				const result = await generateTextResponse(
+					aiParams,
+					run,
+					workflow.model,
+					startTime,
+				);
 
-        return c.json({
-          text: result.output.text,
-          metadata: result.metadata,
-        });
-      } catch (error) {
-        const userId = c.get("userId");
-        const body = c.req.valid("json");
-        return c.json(
-          createErrorResponse(error, {
-            userId,
-            workflowSlug: body.workflowSlug,
-            endpoint: "/generate/text",
-          }),
-          500
-        );
-      }
-    }
-  )
-  .post(
-    "/object",
-    describeRoute({
-      summary: "Generate object",
-      description: "Generate a structured object for a specific workflow",
-      operationId: "generateObject",
-      responses: createOpenApiErrors({
-        content: {
-          "application/json": {
-            schema: resolver(GenerateObjectResponseSchema),
-          },
-        },
-        description:
-          "Successfully generated object (we also return the run ID in the header X-Run-ID)",
-      }),
-    }),
-    objectCompletionValidator,
-    async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { workflowSlug, threadId, input, schema, attachments } =
-          c.req.valid("json");
+				return c.json({
+					text: result.output.text,
+					metadata: result.metadata,
+				});
+			} catch (error) {
+				const userId = c.get("userId");
+				const body = c.req.valid("json");
+				return c.json(
+					createErrorResponse(error, {
+						userId,
+						workflowSlug: body.workflowSlug,
+						endpoint: "/generate/text",
+					}),
+					500,
+				);
+			}
+		},
+	)
+	.post(
+		"/object",
+		describeRoute({
+			summary: "Generate object",
+			description: "Generate a structured object for a specific workflow",
+			operationId: "generateObject",
+			responses: createOpenApiErrors({
+				content: {
+					"application/json": {
+						schema: resolver(GenerateObjectResponseSchema),
+					},
+				},
+				description:
+					"Successfully generated object (we also return the run ID in the header X-Run-ID)",
+			}),
+		}),
+		objectCompletionValidator,
+		async (c) => {
+			try {
+				const userId = c.get("userId");
+				const { workflowSlug, threadId, input, schema, attachments } =
+					c.req.valid("json");
 
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          schema,
-          attachments,
-        });
+				const setup = await setupRunGeneration({
+					userId,
+					workflowSlug,
+					threadId: threadId || null,
+					input,
+					schema,
+					attachments,
+				});
 
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
-        }
+				if ("error" in setup) {
+					return c.json({ error: setup.error }, setup.status);
+				}
 
-        const { aiParams, run, workflow } = setup;
-        const startTime = Date.now();
+				const { aiParams, run, workflow } = setup;
+				const startTime = Date.now();
 
-        const result = await generateTextResponse(
-          aiParams,
-          run,
-          workflow.model,
-          startTime,
-          "object"
-        );
+				const result = await generateTextResponse(
+					aiParams,
+					run,
+					workflow.model,
+					startTime,
+					"object",
+				);
 
-        return c.json({
-          object: result.output,
-          metadata: result.metadata,
-        });
-      } catch (error) {
-        const userId = c.get("userId");
-        const body = c.req.valid("json");
-        return c.json(
-          createErrorResponse(error, {
-            userId,
-            workflowSlug: body.workflowSlug,
-            endpoint: "/generate/object",
-          }),
-          500
-        );
-      }
-    }
-  );
+				return c.json({
+					object: result.output,
+					metadata: result.metadata,
+				});
+			} catch (error) {
+				const userId = c.get("userId");
+				const body = c.req.valid("json");
+				return c.json(
+					createErrorResponse(error, {
+						userId,
+						workflowSlug: body.workflowSlug,
+						endpoint: "/generate/object",
+					}),
+					500,
+				);
+			}
+		},
+	);
