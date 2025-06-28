@@ -2,7 +2,7 @@
 
 Now you can integrate AI in 2 minutes
 
-[[video da implementacao em 2 min https://www.youtube.com/watch?v=wZ9aajZyNOk]] 
+[[https://www.youtube.com/watch?v=wZ9aajZyNOk]] 
 
 My cofounder and I noticed that even in the age of AI, the experience and speed on integrating it to our products is still quite bad. 
 

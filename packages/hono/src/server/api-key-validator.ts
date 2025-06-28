@@ -26,7 +26,8 @@ export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
         const error: UnauthorizedAPIError = {
           error: "UNAUTHORIZED",
           message: "API key is required",
-          documentation: "https://docs.itz.am/errors/UNAUTHORIZED",
+          documentation:
+            "https://docs.itz.am/api-reference/errors/UNAUTHORIZED",
           status: 401,
         };
 
@@ -39,7 +40,8 @@ export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
         const apiKeyError: UnauthorizedAPIError = {
           error: "UNAUTHORIZED",
           message: error || "API key is required",
-          documentation: "https://docs.itz.am/errors/UNAUTHORIZED",
+          documentation:
+            "https://docs.itz.am/api-reference/errors/UNAUTHORIZED",
           status: 401,
         };
 

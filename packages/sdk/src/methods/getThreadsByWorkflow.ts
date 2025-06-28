@@ -36,6 +36,8 @@ async function getThreadsByWorkflow(
 
     return data;
   } catch (error) {
+    console.log(error);
+
     throw createItzamError(error);
   }
 }

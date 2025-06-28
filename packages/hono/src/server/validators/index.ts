@@ -81,7 +81,7 @@ export const zValidator = <
               status: 400,
               error: errorCode,
               message: errorMessage,
-              documentation: `https://docs.itz.am/errors/${errorCode}`,
+              documentation: `https://docs.itz.am/api-reference/errors/${errorCode}`,
               path: e.path,
               received: (e as any).received,
               expected: (e as any).expected,
