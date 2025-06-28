@@ -130,9 +130,10 @@ function Roadmap() {
           <p className="mt-6 flex items-center gap-2.5 text-lg">
             <Paperclip className="size-4 text-orange-600" />
             Context
+            <Badge variant="green">Shipped</Badge>
           </p>
           <p className="text-muted-foreground">
-            Add context to your workflows with custom metadata.
+            Add context to your workflows with custom files and links.
           </p>
         </div>
 

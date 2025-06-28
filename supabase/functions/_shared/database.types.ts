@@ -232,58 +232,40 @@ export type Database = {
       context: {
         Row: {
           created_at: string
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          updated_at: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      context_item: {
-        Row: {
-          content: string
-          context_id: string | null
-          created_at: string
           description: string | null
           id: string
+          is_active: boolean
           name: string
-          type: Database["public"]["Enums"]["context_item_type"]
+          slug: string
           updated_at: string
+          workflow_id: string
         }
         Insert: {
-          content: string
-          context_id?: string | null
           created_at?: string
           description?: string | null
           id: string
+          is_active?: boolean
           name: string
-          type: Database["public"]["Enums"]["context_item_type"]
+          slug: string
           updated_at: string
+          workflow_id: string
         }
         Update: {
-          content?: string
-          context_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           name?: string
-          type?: Database["public"]["Enums"]["context_item_type"]
+          slug?: string
           updated_at?: string
+          workflow_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "context_item_context_id_context_id_fk"
-            columns: ["context_id"]
+            foreignKeyName: "context_workflow_id_workflow_id_fk"
+            columns: ["workflow_id"]
             isOneToOne: false
-            referencedRelation: "context"
+            referencedRelation: "workflow"
             referencedColumns: ["id"]
           },
         ]
@@ -502,6 +484,7 @@ export type Database = {
         Row: {
           active: boolean
           content_hash: string | null
+          context_id: string | null
           created_at: string
           file_name: string | null
           file_size: number | null
@@ -522,6 +505,7 @@ export type Database = {
         Insert: {
           active?: boolean
           content_hash?: string | null
+          context_id?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -542,6 +526,7 @@ export type Database = {
         Update: {
           active?: boolean
           content_hash?: string | null
+          context_id?: string | null
           created_at?: string
           file_name?: string | null
           file_size?: number | null
@@ -560,6 +545,13 @@ export type Database = {
           url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "resource_context_id_context_id_fk"
+            columns: ["context_id"]
+            isOneToOne: false
+            referencedRelation: "context"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "resource_knowledge_id_knowledge_id_fk"
             columns: ["knowledge_id"]
@@ -722,6 +714,45 @@ export type Database = {
           },
         ]
       }
+      thread_context: {
+        Row: {
+          context_id: string
+          created_at: string
+          id: string
+          thread_id: string
+          updated_at: string
+        }
+        Insert: {
+          context_id: string
+          created_at?: string
+          id: string
+          thread_id: string
+          updated_at: string
+        }
+        Update: {
+          context_id?: string
+          created_at?: string
+          id?: string
+          thread_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_context_context_id_context_id_fk"
+            columns: ["context_id"]
+            isOneToOne: false
+            referencedRelation: "context"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "thread_context_thread_id_thread_id_fk"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "thread"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       thread_lookup_key: {
         Row: {
           created_at: string
@@ -753,7 +784,6 @@ export type Database = {
       }
       workflow: {
         Row: {
-          context_id: string
           created_at: string
           description: string | null
           id: string
@@ -768,7 +798,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          context_id: string
           created_at?: string
           description?: string | null
           id: string
@@ -783,7 +812,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          context_id?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -798,13 +826,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "workflow_context_id_context_id_fk"
-            columns: ["context_id"]
-            isOneToOne: false
-            referencedRelation: "context"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "workflow_knowledge_id_knowledge_id_fk"
             columns: ["knowledge_id"]

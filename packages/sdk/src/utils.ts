@@ -12,6 +12,21 @@ type StreamMetadata = {
   cost: string;
 };
 
+export function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(blob);
+    reader.onload = function () {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.substring(dataUrl.indexOf(",") + 1);
+      resolve(base64);
+    };
+    reader.onerror = function (error) {
+      reject(error);
+    };
+  });
+}
+
 export type EventHandler<T extends StreamEvent["type"]> = {
   type: T;
   handler: (data: Extract<StreamEvent, { type: T }>) => unknown;

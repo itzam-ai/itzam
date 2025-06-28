@@ -8,22 +8,7 @@ import {
   type WithAttachments,
 } from "..";
 import { createItzamError } from "../errors";
-
-// Helper function to convert Blob/File to base64
-function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onload = function () {
-      const dataUrl = reader.result as string;
-      const base64 = dataUrl.substring(dataUrl.indexOf(",") + 1);
-      resolve(base64);
-    };
-    reader.onerror = function (error) {
-      reject(error);
-    };
-  });
-}
+import { blobToBase64 } from "../utils";
 
 // Create a temporary client for type inference
 const tempClient = hc<AppType>("");

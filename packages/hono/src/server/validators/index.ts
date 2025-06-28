@@ -36,8 +36,8 @@ export const zValidator = <
   schema: T
 ) =>
   zv(target, schema, (result, c) => {
-    console.log(result);
-    console.log(schema);
+    console.log("result", result);
+    console.log("schema", schema);
 
     if (!result.success) {
       throw new HTTPException(400, {
@@ -52,7 +52,9 @@ export const zValidator = <
 
             const expected = zodToJsonSchema(schema);
 
-            console.log(expected);
+            console.log("expected", expected);
+            console.log("inputPath", inputPath);
+            console.log("inputValue", inputValue);
 
             return {
               ...messages["FILE_PROPERTY_REQUIRED"],

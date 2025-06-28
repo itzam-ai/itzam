@@ -5,6 +5,7 @@ import "server-only";
 import { v7 } from "uuid";
 import { db } from "..";
 import { chunks, contexts, resources, workflows } from "../schema";
+import { sendDiscordNotification } from "../../discord/actions";
 
 export type Contexts = NonNullable<
   Awaited<ReturnType<typeof getContextsByWorkflowId>>
@@ -105,6 +106,10 @@ export async function createContext(
       slug,
     })
     .returning();
+
+  await sendDiscordNotification({
+    content: `📚 **NEW CONTEXT:**\n${name} - ${slug}`,
+  });
 
   return context;
 }
