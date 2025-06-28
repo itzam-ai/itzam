@@ -8,7 +8,7 @@ type NewRun = typeof runs.$inferSelect & {
 
 const newRunQueue = new Queue<NewRun>("create-run");
 
-export const createRun = async (run: NewRun) => {
+export const createRunInDb = async (run: NewRun) => {
 	const job = await newRunQueue.add(run);
 	return job;
 };
