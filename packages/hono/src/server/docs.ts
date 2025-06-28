@@ -25,8 +25,7 @@ export function createOpenApiErrors(successfulResponse: {
       description: "Unauthorized - invalid API key",
     },
     403: {
-      description:
-        "Forbidden - organization does not have an active subscription",
+      description: "Forbidden - you do not have access to this workflow",
     },
     404: {
       description: "Not found - workflow not found",

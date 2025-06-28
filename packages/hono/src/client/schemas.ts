@@ -29,20 +29,32 @@ const AttachmentSchema = z.object({
         }),
     ],
     {
-      required_error: "FILE_PROPERTY_REQUIRED",
-      invalid_type_error: "FILE_PROPERTY_INVALID",
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
     }
   ),
-  mimeType: z.string().optional(),
+  mimeType: z
+    .string({
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .optional(),
 });
 
 const BaseInput = z.object({
-  input: z.string().min(1).openapi({
-    example: "Tell me about renewable energy",
-    description: "The input text to generate a response for",
-  }),
+  input: z
+    .string({
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .min(1)
+    .openapi({
+      example: "Tell me about renewable energy",
+      description: "The input text to generate a response for",
+    }),
   attachments: z
-    .array(AttachmentSchema)
+    .array(AttachmentSchema, {
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
     .optional()
     .openapi({
       example: [
@@ -53,22 +65,40 @@ const BaseInput = z.object({
       description: "Optional attachments to include in the generation",
     }),
   contextSlugs: z
-    .array(z.string())
+    .array(
+      z.string({
+        invalid_type_error: "INVALID_TYPE_ERROR",
+      }),
+      {
+        invalid_type_error: "INVALID_TYPE_ERROR",
+      }
+    )
     .optional()
     .openapi({
       example: ["special-docs", "admin-files"],
       description: "Optional context slugs to add contexts to the run",
     }),
-  workflowSlug: z.string().optional().openapi({
-    example: "my_great_workflow",
-    description:
-      "The slug of the Workflow to use for generation (required if threadId is not provided)",
-  }),
-  threadId: z.string().optional().openapi({
-    example: "thread_1234567890",
-    description:
-      "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
-  }),
+  workflowSlug: z
+    .string({
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .optional()
+    .openapi({
+      example: "my_great_workflow",
+      description:
+        "The slug of the Workflow to use for generation (required if threadId is not provided)",
+    }),
+  threadId: z
+    .string({
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .optional()
+    .openapi({
+      example: "thread_1234567890",
+      description:
+        "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
+    }),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({
@@ -88,28 +118,64 @@ export const TextCompletionInputSchema = BaseInput.openapi({
 
 export const ObjectCompletionInputSchema = BaseInput.extend({
   schema: z
-    .custom<NonLiteralJson>((data) => {
-      if (!data) return false;
+    .custom<NonLiteralJson>(
+      (data) => {
+        if (!data) return false;
 
-      switch (data["type"]) {
-        case "object":
-        case "array":
-          return true;
-        case "string":
-          if (data["enum"]) {
-            return false;
-          }
-        default:
+        // Must be an object with a type property
+        if (typeof data !== "object" || !data["type"]) {
           return false;
+        }
+
+        const schemaType = data["type"];
+
+        // Valid JSON Schema types for structured output
+        switch (schemaType) {
+          case "object":
+          case "array":
+            return true;
+          case "string":
+            // String schemas with enum are valid for structured output
+            return Array.isArray(data["enum"]) && data["enum"].length > 0;
+          default:
+            return false;
+        }
+      },
+      {
+        message:
+          "Must be a valid JSON Schema object with type 'object', 'array', or 'string' with enum values. See https://json-schema.org/ for specification.",
+        params: {
+          required_error: "FIELD_REQUIRED",
+          invalid_type_error: "INVALID_TYPE_ERROR",
+        },
       }
-    }, "A schema must be an object, array or string with an enum")
+    )
     .openapi({
       example: {
-        title: "My great response",
-        description: "The response to the input",
         type: "object",
+        title: "User Profile",
+        description: "A user profile object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The user's full name",
+          },
+          age: {
+            type: "number",
+            description: "The user's age",
+          },
+          interests: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description: "List of user interests",
+          },
+        },
+        required: ["name", "age"],
       },
-      description: "The schema of the response, JSON Schema",
+      description:
+        "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification.",
     }),
 })
   .refine(
@@ -223,7 +289,7 @@ export const GenerateTextResponseSchema = z
 
 export const GenerateObjectResponseSchema = z
   .object({
-    object: z.unknown().openapi({
+    object: z.record(z.any()).openapi({
       description: "The generated object based on the provided schema",
     }),
     metadata: z.object({
@@ -464,39 +530,69 @@ export const GetRunByIdResponseSchema = z
   .openapi({ ref: "GetRunByIdResponse" });
 
 export const GetRunByIdParamsSchema = z.object({
-  id: z.string().openapi({
-    example: "run_1234567890",
-    description: "The ID of the run to retrieve",
-  }),
+  id: z
+    .string({
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .openapi({
+      example: "run_1234567890",
+      description: "The ID of the run to retrieve",
+    }),
 });
 
 // -------- THREADS --------
 export const CreateThreadInputSchema = z
   .object({
-    name: z.string().optional().openapi({
-      example: "My Thread",
-      description:
-        "The name of the thread (optional, will auto-generate if not provided)",
-    }),
+    name: z
+      .string({
+        invalid_type_error: "INVALID_TYPE_ERROR",
+      })
+      .optional()
+      .openapi({
+        example: "My Thread",
+        description:
+          "The name of the thread (optional, will auto-generate if not provided)",
+      }),
     lookupKeys: z
-      .array(z.string())
+      .array(
+        z.string({
+          invalid_type_error: "INVALID_TYPE_ERROR",
+        }),
+        {
+          invalid_type_error: "INVALID_TYPE_ERROR",
+        }
+      )
       .optional()
       .openapi({
         example: ["user-123", "platform-web-app"],
         description: "Optional lookup keys for finding the thread later",
       }),
     contextSlugs: z
-      .array(z.string())
+      .array(
+        z.string({
+          invalid_type_error: "INVALID_TYPE_ERROR",
+        }),
+        {
+          invalid_type_error: "INVALID_TYPE_ERROR",
+        }
+      )
       .optional()
       .openapi({
         example: ["special-docs", "admin-files"],
         description:
           "Optional context slugs to append the context to the thread",
       }),
-    workflowSlug: z.string().min(1).openapi({
-      example: "my_great_workflow",
-      description: "The slug of the workflow this thread belongs to",
-    }),
+    workflowSlug: z
+      .string({
+        required_error: "FIELD_REQUIRED",
+        invalid_type_error: "INVALID_TYPE_ERROR",
+      })
+      .min(1)
+      .openapi({
+        example: "my_great_workflow",
+        description: "The slug of the workflow this thread belongs to",
+      }),
   })
   .openapi({ ref: "CreateThreadInput" });
 
@@ -571,15 +667,39 @@ export const GetThreadResponseSchema = z
   .openapi({ ref: "GetThreadResponse" });
 
 export const GetThreadsByWorkflowParamsSchema = z.object({
-  workflowSlug: z.string().openapi({
-    example: "my_great_workflow",
-    description: "The slug of the workflow to get threads for",
-  }),
+  workflowSlug: z
+    .string({
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .openapi({
+      example: "my_great_workflow",
+      description: "The slug of the workflow to get threads for",
+    }),
 });
 
 export const GetThreadsByWorkflowQuerySchema = z.object({
   lookupKeys: z
-    .union([z.string().transform((val) => [val]), z.array(z.string())])
+    .union(
+      [
+        z
+          .string({
+            invalid_type_error: "INVALID_TYPE_ERROR",
+          })
+          .transform((val) => [val]),
+        z.array(
+          z.string({
+            invalid_type_error: "INVALID_TYPE_ERROR",
+          }),
+          {
+            invalid_type_error: "INVALID_TYPE_ERROR",
+          }
+        ),
+      ],
+      {
+        invalid_type_error: "INVALID_TYPE_ERROR",
+      }
+    )
     .optional()
     .openapi({
       example: ["user-123", "platform-web-app"],
@@ -596,10 +716,15 @@ export const GetThreadsByWorkflowResponseSchema = z
   .openapi({ ref: "GetThreadsByWorkflowResponse" });
 
 export const GetRunsByThreadParamsSchema = z.object({
-  threadId: z.string().openapi({
-    example: "thread_1234567890",
-    description: "The ID of the thread to get runs for",
-  }),
+  threadId: z
+    .string({
+      required_error: "FIELD_REQUIRED",
+      invalid_type_error: "INVALID_TYPE_ERROR",
+    })
+    .openapi({
+      example: "thread_1234567890",
+      description: "The ID of the thread to get runs for",
+    }),
 });
 
 export const GetRunsByThreadResponseSchema = z

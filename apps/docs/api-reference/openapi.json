@@ -143,6 +143,8 @@
         "type": "object",
         "properties": {
           "object": {
+            "type": "object",
+            "additionalProperties": {},
             "description": "The generated object based on the provided schema"
           },
           "metadata": {
@@ -200,7 +202,7 @@
             ]
           }
         },
-        "required": ["metadata"]
+        "required": ["object", "metadata"]
       },
       "ObjectCompletionInput": {
         "type": "object",
@@ -259,11 +261,24 @@
           },
           "schema": {
             "example": {
-              "title": "My great response",
-              "description": "The response to the input",
-              "type": "object"
+              "type": "object",
+              "title": "User Profile",
+              "description": "A user profile object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The user's full name"
+                },
+                "age": { "type": "number", "description": "The user's age" },
+                "interests": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "List of user interests"
+                }
+              },
+              "required": ["name", "age"]
             },
-            "description": "The schema of the response, JSON Schema"
+            "description": "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification."
           }
         },
         "required": ["input", "schema"]

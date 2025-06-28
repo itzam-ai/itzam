@@ -1,4 +1,10 @@
-import { generateObject, streamObject, streamText } from "ai";
+import {
+  generateObject,
+  generateText,
+  JSONValue,
+  streamObject,
+  streamText,
+} from "ai";
 import type { SSEStreamingApi } from "hono/streaming";
 import "server-only";
 import { Model } from "../../db/model/actions";
@@ -292,8 +298,10 @@ export async function generateTextResponse(
   startTime: number,
   type: "text" | "object" = "text"
 ) {
-  // @ts-expect-error TODO: fix typing
-  const response = await generateObject<GenerationResponse>(aiParams);
+  const response =
+    type === "object"
+      ? await generateObject(aiParams)
+      : await generateText(aiParams);
 
   // ⏰ End timing
   const endTime = Date.now();
@@ -310,15 +318,19 @@ export async function generateTextResponse(
     runId: run.id,
   };
 
+  let output: JSONValue = "";
+  if (type === "object" && "object" in response) {
+    output = response.object;
+  } else if (type === "text" && "text" in response) {
+    output = response.text;
+  }
+
   await createRunWithCost({
     ...run,
     metadata: { metadata, aiParams },
     model: model,
     status: "COMPLETED",
-    output:
-      type === "object"
-        ? JSON.stringify(response.object)
-        : response.object.text,
+    output: type === "object" ? JSON.stringify(output) : (output as string),
     inputTokens: response.usage?.promptTokens || 0,
     outputTokens: response.usage?.completionTokens || 0,
     durationInMs,
@@ -333,7 +345,7 @@ export async function generateTextResponse(
   );
 
   return {
-    output: response.object,
+    output,
     metadata: {
       cost: cost.toString(),
       ...metadata,

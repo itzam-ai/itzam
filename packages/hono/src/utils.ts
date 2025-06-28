@@ -29,22 +29,7 @@ export type PreRunDetails = {
   contextSlugs: string[];
 };
 
-type ValidationError = {
-  error: string;
-  status: 401 | 403 | 404;
-  userId: null;
-  startTime: null;
-};
-
-type ValidationSuccess = {
-  error: null;
-  userId: string;
-  startTime: number;
-};
-
 export type StatusCode = 200 | 400 | 401 | 404 | 500;
-
-type ValidationResult = ValidationError | ValidationSuccess;
 
 // Common error response function
 export const createErrorResponse = (
@@ -163,18 +148,11 @@ export const setupRunGeneration = async ({
 };
 
 // Common validation function
-export const validateRequest = async (
-  apiKey: string | undefined | null
-): Promise<ValidationResult> => {
+export const validateRequest = async (apiKey: string | undefined | null) => {
   const startTime = Date.now();
 
   if (!apiKey) {
-    return {
-      error: "API key is required",
-      status: 401,
-      userId: null,
-      startTime: null,
-    };
+    return { error: "API key is required" };
   }
 
   // Validate API Key
@@ -183,15 +161,10 @@ export const validateRequest = async (
   );
 
   if (error) {
-    return {
-      error: "Invalid API key",
-      status: 401,
-      userId: null,
-      startTime: null,
-    };
+    return { error: "Invalid API key" };
   }
 
   void updateApiKeyLastUsed(validatedApiKey.id);
 
-  return { error: null, userId: validatedApiKey.userId, startTime };
+  return { userId: validatedApiKey.userId };
 };

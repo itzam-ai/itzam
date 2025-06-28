@@ -2,7 +2,6 @@ import type { ValidationTargets } from "hono";
 import { validator as zv } from "hono-openapi/zod";
 import { HTTPException } from "hono/http-exception";
 import { ZodSchema } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   CreateThreadInputSchema,
   GetRunsByThreadParamsSchema,
@@ -11,22 +10,22 @@ import {
   ObjectCompletionInputSchema,
   TextCompletionInputSchema,
 } from "../../client/schemas";
+import { ValidationAPIError } from "../../errors";
 
 const messages = {
-  FILE_PROPERTY_REQUIRED: {
-    error: "FILE_PROPERTY_REQUIRED",
-    message: "The file property is required in the attachments array",
-    documentation: "https://docs.itz.am/errors/FILE_PROPERTY_REQUIRED",
+  INVALID_TYPE_ERROR: {
+    error: "INVALID_TYPE_ERROR",
+    message: "The provided value has an invalid type",
+  },
+  FIELD_REQUIRED: {
+    error: "FIELD_REQUIRED",
+    message: "This field is required",
+  },
+  VALIDATION_ERROR: {
+    error: "VALIDATION_ERROR",
+    message: "Validation failed for the provided input",
   },
 };
-
-function getDescendantProp(obj: object, desc: string) {
-  const arr = desc.split(".");
-  while (arr.length) {
-    obj = obj[arr.shift() as keyof typeof obj];
-  }
-  return obj;
-}
 
 export const zValidator = <
   T extends ZodSchema,
@@ -35,36 +34,60 @@ export const zValidator = <
   target: Target,
   schema: T
 ) =>
-  zv(target, schema, (result, c) => {
-    console.log("result", result);
-    console.log("schema", schema);
-
+  zv(target, schema, (result) => {
     if (!result.success) {
       throw new HTTPException(400, {
         cause: result.error,
         message: JSON.stringify(
           result.error.issues.map((e) => {
-            const inputPath = e.path.join(".");
-            const inputValue = getDescendantProp(
-              result.data,
-              e.path.slice(0, -1).join(".")
-            );
+            let errorCode: string;
 
-            const expected = zodToJsonSchema(schema);
+            if (e.code === "invalid_type") {
+              // For invalid type errors, check if we have custom error params
+              const customParams = (e as any).params;
+              errorCode =
+                customParams?.invalid_type_error || "INVALID_TYPE_ERROR";
+            } else if (e.code === "custom") {
+              // For custom validation errors, params should be available
+              const customParams = (e as any).params;
+              if (customParams) {
+                if (
+                  e.message.includes("required") &&
+                  customParams.required_error
+                ) {
+                  errorCode = customParams.required_error;
+                } else if (customParams.invalid_type_error) {
+                  errorCode = customParams.invalid_type_error;
+                } else {
+                  errorCode = "VALIDATION_ERROR";
+                }
+              } else {
+                errorCode = "VALIDATION_ERROR";
+              }
+            } else if (e.code === "too_small" && (e as any).minimum === 1) {
+              // Handle required string fields (min length 1)
+              const customParams = (e as any).params;
+              errorCode = customParams?.required_error || "FIELD_REQUIRED";
+            } else {
+              // Default fallback
+              errorCode = "VALIDATION_ERROR";
+            }
+            const errorMessage =
+              errorCode === e.message
+                ? messages[errorCode as keyof typeof messages].message
+                : e.message;
 
-            console.log("expected", expected);
-            console.log("inputPath", inputPath);
-            console.log("inputValue", inputValue);
-
-            return {
-              ...messages["FILE_PROPERTY_REQUIRED"],
-              path: inputPath,
-              received: inputValue,
-              expected: {
-                file: "string:base64",
-                type: "file",
-              },
+            const error: ValidationAPIError = {
+              status: 400,
+              error: errorCode,
+              message: errorMessage,
+              documentation: `https://docs.itz.am/errors/${errorCode}`,
+              path: e.path,
+              received: (e as any).received,
+              expected: (e as any).expected,
             };
+
+            return error;
           }),
           null,
           2

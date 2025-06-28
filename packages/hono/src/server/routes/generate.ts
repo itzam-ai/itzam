@@ -63,7 +63,7 @@ export const generateRoute = new Hono()
         );
 
         return c.json({
-          text: result.output.text,
+          text: result.output,
           metadata: result.metadata,
         });
       } catch (error) {
