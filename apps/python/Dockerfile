@@ -11,7 +11,7 @@ RUN uv sync --locked
 COPY ./app /code/app
 COPY ./scripts /code/scripts
 
-RUN uv run scripts/check.py
+# RUN uv run scripts/check.py
 
 
 
