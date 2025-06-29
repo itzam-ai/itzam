@@ -1,20 +1,11 @@
-
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
-RUN curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+FROM python:3.13
 
 WORKDIR /code
 
-COPY ./pyproject.toml /code/pyproject.toml
-COPY ./uv.lock /code/uv.lock
+COPY ./requirements.txt /code/requirements.txt
 
-RUN uv sync --locked
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
 COPY ./app /code/app
-COPY ./scripts /code/scripts
 
-# RUN uv run scripts/check.py
-
-
-
-
-
-CMD ["uvicorn", "app/main:app", "--port", "80", "--workers", "4"]
+CMD ["fastapi", "run", "app/main.py", "--port", "80", "--workers", "4"]
