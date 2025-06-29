@@ -47,14 +47,11 @@ async function generateText(
       }
     );
 
-    if (!res.ok) throw createItzamError(res);
-
     const data = await res.json();
 
-    if ("error" in data) {
+    if (!res.ok || "error" in data) {
       throw createItzamError(data);
     }
-
     return data;
   } catch (error) {
     throw createItzamError(error);

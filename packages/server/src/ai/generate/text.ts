@@ -1,10 +1,5 @@
-import {
-  generateObject,
-  generateText,
-  JSONValue,
-  streamObject,
-  streamText,
-} from "ai";
+import { notifyStreamingError } from "@itzam/utils";
+import { generateObject, generateText, streamObject, streamText } from "ai";
 import type { SSEStreamingApi } from "hono/streaming";
 import "server-only";
 import { Model } from "../../db/model/actions";
@@ -12,8 +7,7 @@ import { createRunWithCost } from "../../db/run/actions";
 import { calculateRunCost } from "../../db/run/utils";
 import { PreRunDetails } from "../../types";
 import type { AiParams } from "../types";
-import { type GenerationResponse, handleRunCompletion } from "../utils";
-import { notifyStreamingError } from "@itzam/utils";
+import { handleRunCompletion } from "../utils";
 
 export async function generateTextOrObjectStream(
   aiParams: AiParams,
@@ -295,13 +289,9 @@ export async function generateTextResponse(
   aiParams: AiParams,
   run: PreRunDetails,
   model: Model,
-  startTime: number,
-  type: "text" | "object" = "text"
+  startTime: number
 ) {
-  const response =
-    type === "object"
-      ? await generateObject(aiParams)
-      : await generateText(aiParams);
+  const response = await generateText(aiParams);
 
   // ⏰ End timing
   const endTime = Date.now();
@@ -318,19 +308,12 @@ export async function generateTextResponse(
     runId: run.id,
   };
 
-  let output: JSONValue = "";
-  if (type === "object" && "object" in response) {
-    output = response.object;
-  } else if (type === "text" && "text" in response) {
-    output = response.text;
-  }
-
   await createRunWithCost({
     ...run,
     metadata: { metadata, aiParams },
     model: model,
     status: "COMPLETED",
-    output: type === "object" ? JSON.stringify(output) : (output as string),
+    output: response.text,
     inputTokens: response.usage?.promptTokens || 0,
     outputTokens: response.usage?.completionTokens || 0,
     durationInMs,
@@ -345,7 +328,62 @@ export async function generateTextResponse(
   );
 
   return {
-    output,
+    text: response.text,
+    metadata: {
+      cost: cost.toString(),
+      ...metadata,
+    },
+  };
+}
+
+export async function generateObjectResponse(
+  aiParams: AiParams,
+  run: PreRunDetails,
+  model: Model,
+  startTime: number
+) {
+  const response = await generateObject({
+    ...aiParams,
+    // @ts-expect-error TODO: fix typing
+    schema: aiParams.schema,
+  });
+
+  // ⏰ End timing
+  const endTime = Date.now();
+  const durationInMs = endTime - startTime;
+
+  const metadata = {
+    model: {
+      name: model.name,
+      tag: model.tag,
+    },
+    durationInMs,
+    inputTokens: response.usage?.promptTokens || 0,
+    outputTokens: response.usage?.completionTokens || 0,
+    runId: run.id,
+  };
+
+  await createRunWithCost({
+    ...run,
+    metadata: { metadata, aiParams },
+    model: model,
+    status: "COMPLETED",
+    output: JSON.stringify(response.object),
+    inputTokens: response.usage?.promptTokens || 0,
+    outputTokens: response.usage?.completionTokens || 0,
+    durationInMs,
+    fullResponse: response,
+  });
+
+  const cost = calculateRunCost(
+    model.inputPerMillionTokenCost ?? "0",
+    model.outputPerMillionTokenCost ?? "0",
+    response.usage?.promptTokens || 0,
+    response.usage?.completionTokens || 0
+  );
+
+  return {
+    object: response.object,
     metadata: {
       cost: cost.toString(),
       ...metadata,

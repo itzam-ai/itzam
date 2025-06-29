@@ -58,6 +58,7 @@ async function generateObject<T extends JsonOrZodSchema>(
     // All requests are sent as JSON
     const res = await client.api.v1.generate.object.$post(
       {
+        // @ts-expect-error TODO: fix typing
         json: processedRequest,
       },
       {
@@ -67,16 +68,17 @@ async function generateObject<T extends JsonOrZodSchema>(
       }
     );
 
-    if (!res.ok) throw createItzamError(res);
-
     const data = await res.json();
 
-    if ("error" in data) {
+    if (!res.ok) {
+      const data = await res.json();
       throw createItzamError(data);
     }
 
     return {
+      // @ts-expect-error TODO: fix typing
       metadata: data.metadata,
+      // @ts-expect-error TODO: fix typing
       object: data.object as InferReturnFromSchema<T>,
     };
   } catch (error) {

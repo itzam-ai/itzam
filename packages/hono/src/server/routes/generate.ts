@@ -1,4 +1,7 @@
-import { generateTextResponse } from "@itzam/server/ai/generate/text";
+import {
+  generateObjectResponse,
+  generateTextResponse,
+} from "@itzam/server/ai/generate/text";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -55,7 +58,7 @@ export const generateRoute = new Hono()
         const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
 
-        const result = await generateTextResponse(
+        const { text, metadata } = await generateTextResponse(
           aiParams,
           run,
           workflow.model,
@@ -63,8 +66,8 @@ export const generateRoute = new Hono()
         );
 
         return c.json({
-          text: result.output,
-          metadata: result.metadata,
+          text,
+          metadata,
         });
       } catch (error) {
         const userId = c.get("userId");
@@ -126,17 +129,16 @@ export const generateRoute = new Hono()
         const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
 
-        const result = await generateTextResponse(
+        const { object, metadata } = await generateObjectResponse(
           aiParams,
           run,
           workflow.model,
-          startTime,
-          "object"
+          startTime
         );
 
         return c.json({
-          object: result.output,
-          metadata: result.metadata,
+          object,
+          metadata,
         });
       } catch (error) {
         const userId = c.get("userId");

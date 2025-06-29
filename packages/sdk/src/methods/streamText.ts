@@ -51,7 +51,10 @@ async function streamText(
       }
     );
 
-    if (!response.ok) throw createItzamError(response);
+    if (!response.ok) {
+      const data = await response.json();
+      throw createItzamError(data);
+    }
 
     const reader = (
       response.body as unknown as ReadableStream<Uint8Array>

@@ -144,5 +144,14 @@ class Itzam {
   };
 }
 
+// Errors
+export {
+  ItzamError,
+  ItzamAuthenticationError,
+  ItzamValidationError,
+  ItzamNotFoundError,
+  ItzamServerError,
+} from "./errors";
+
 export { Itzam, type ResponseMetadata as StreamMetadata, type StreamResponse };
 export default Itzam;

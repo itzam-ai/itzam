@@ -1,7 +1,6 @@
-import { jsonSchema, type UserContent, zodSchema } from "ai";
+import { CoreMessage, jsonSchema, type UserContent, zodSchema } from "ai";
 import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
-import { z } from "zod";
 import type { Model } from "../db/model/actions";
 import {
   createRunWithCost,
@@ -13,13 +12,6 @@ import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
 import type { Attachment, AttachmentWithUrl, CreateAiParamsFn } from "./types";
-
-const defaultSchema = z.object({
-  text: z.string().describe("The generated output text"),
-});
-
-export type GenerationResponse = z.infer<typeof defaultSchema>;
-export type StructuredGenerationResponse = unknown;
 
 // return a promise that resolves with a File instance
 export async function getFileFromString(
@@ -109,9 +101,8 @@ export const createAiParams: CreateAiParamsFn = async ({
   run,
   ...rest
 }) => {
-  let schema: ReturnType<typeof zodSchema> | undefined =
-    zodSchema(defaultSchema);
-  let output: "object" | "array" | "enum" = "object" as const;
+  let schema: ReturnType<typeof zodSchema> | undefined = undefined;
+  let output: "no-schema" | "object" | "array" | "enum" = "no-schema";
 
   if (schemaProp) {
     const schemaPropType = schemaProp["type"];
@@ -127,6 +118,7 @@ export const createAiParams: CreateAiParamsFn = async ({
       output = "enum";
     } else {
       schema = jsonSchema(schemaProp);
+      output = "object";
     }
   }
 
@@ -149,10 +141,7 @@ export const createAiParams: CreateAiParamsFn = async ({
     }
   }
 
-  const messages: {
-    role: "user" | "assistant";
-    content: UserContent | string;
-  }[] = [
+  const messages: CoreMessage[] = [
     {
       role: "user",
       content,

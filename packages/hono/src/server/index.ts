@@ -30,7 +30,6 @@ const app = new Hono()
   .onError((err, c) => {
     // Handle HTTPException (including validation errors)
     if (err instanceof HTTPException) {
-      const validationError = new Error(`Validation error: ${err.message}`);
       // Try to get userId if it exists, otherwise undefined
       let userId: string | undefined;
       try {
@@ -39,14 +38,7 @@ const app = new Hono()
         userId = undefined;
       }
 
-      const errorResponse = createErrorResponse(validationError, {
-        endpoint: c.req.path,
-        userId,
-      });
-
-      // Return the original HTTPException response but log to Discord
-      const response = err.getResponse();
-      return response;
+      return err.getResponse();
     }
 
     // Handle all other errors

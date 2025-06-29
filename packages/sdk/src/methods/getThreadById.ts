@@ -22,14 +22,15 @@ async function getThreadById(
       }
     );
 
-    if (!response.ok) throw createItzamError(response);
+    if (!response.ok) {
+      const data = await response.json();
+      throw createItzamError(data);
+    }
 
     const data = await response.json();
 
     return data;
   } catch (error) {
-    console.log(error);
-
     throw createItzamError(error);
   }
 }

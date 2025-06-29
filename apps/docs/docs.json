@@ -109,7 +109,8 @@
               "api-reference/errors/UNAUTHORIZED",
               "api-reference/errors/VALIDATION_ERROR",
               "api-reference/errors/FIELD_REQUIRED",
-              "api-reference/errors/INVALID_TYPE_ERROR"
+              "api-reference/errors/INVALID_TYPE_ERROR",
+              "api-reference/errors/NOT_FOUND_ERROR"
             ]
           }
         ]

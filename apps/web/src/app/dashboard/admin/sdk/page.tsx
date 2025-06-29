@@ -2,8 +2,7 @@
 
 import { GetRunByIdResponseSchema } from "@itzam/hono/client/schemas";
 import { env } from "@itzam/utils";
-import Itzam from "itzam";
-import { ItzamError } from "itzam/errors";
+import Itzam, { ItzamAuthenticationError, ItzamError } from "itzam";
 import { History, Plus } from "lucide-react";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -221,7 +220,7 @@ export default function AdminSdkPage() {
 
       setStreamStatus("completed");
       setIsLoading(false);
-    } catch {
+    } catch (error) {
       toast.error("Error streaming text");
       setIsLoading(false);
     }
@@ -239,8 +238,9 @@ export default function AdminSdkPage() {
       setIsLoading(false);
       handleGetRunById({ runId: response.metadata.runId });
       setMetadata(response.metadata);
-    } catch {
+    } catch (error: any) {
       toast.error("Error generating object");
+      console.error(error);
       setIsLoading(false);
     }
   }
@@ -264,8 +264,9 @@ export default function AdminSdkPage() {
 
       setStreamStatus("completed");
       setIsLoading(false);
-    } catch {
+    } catch (error) {
       toast.error("Error streaming object");
+      console.error(error);
       setIsLoading(false);
     }
   }
@@ -285,9 +286,6 @@ export default function AdminSdkPage() {
       );
     } catch (error) {
       toast.error("Error fetching models");
-      if (error instanceof ItzamError) {
-        console.error(error.message + " " + error.code);
-      }
     }
   }, [itzam]);
 
@@ -475,8 +473,8 @@ export default function AdminSdkPage() {
         <div className="grid grid-cols-6 gap-2">
           {models.map((model) => (
             <div className="flex items-center gap-2" key={model.name}>
-              <ModelIcon size="xs" tag={model.tag} />
-              <p className="font-semibold text-sm">{model.name}</p>
+              <ModelIcon size="us" tag={model.tag} />
+              <p className="font-normal text-xs">{model.name}</p>
             </div>
           ))}
         </div>

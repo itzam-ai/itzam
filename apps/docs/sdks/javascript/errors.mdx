@@ -6,11 +6,9 @@ keywords:
   ["errors", "error handling", "JavaScript", "SDK", "debugging", "exceptions"]
 ---
 
-# Error Handling
-
-The Itzam SDK provides a robust error handling system that helps you handle different types of errors that may occur during API calls. All errors thrown by the SDK extend from the base `ItzamError` class.
-
 ## Error Types
+
+All errors thrown by the SDK extend from the base `ItzamError` class and are structured based on the API response format.
 
 ### ItzamError
 
@@ -18,9 +16,10 @@ The base error class that all other error types extend from. Contains common pro
 
 ```typescript
 class ItzamError extends Error {
-  code: number; // HTTP status code
+  status: number; // HTTP status code
   type: string; // Error type name (e.g., "ItzamAuthenticationError")
   timestamp: Date; // When the error occurred
+  documentation: string; // Link to relevant documentation
 }
 ```
 
@@ -34,14 +33,15 @@ try {
 } catch (error) {
   if (error instanceof ItzamAuthenticationError) {
     console.log("Authentication failed:", error.message);
-    console.log("Status code:", error.code); // 401
+    console.log("Status code:", error.status); // 401
+    console.log("Documentation:", error.documentation);
   }
 }
 ```
 
 ### ItzamValidationError
 
-Thrown when the request is invalid (HTTP 400).
+Thrown when the request is invalid (HTTP 400). Includes additional validation details.
 
 ```typescript
 try {
@@ -51,14 +51,18 @@ try {
 } catch (error) {
   if (error instanceof ItzamValidationError) {
     console.log("Invalid request:", error.message);
-    console.log("Status code:", error.code); // 400
+    console.log("Status code:", error.status); // 400
+    console.log("Expected:", error.expected);
+    console.log("Received:", error.received);
+    console.log("Path:", error.path); // Array showing where the error occurred
+    console.log("Documentation:", error.documentation);
   }
 }
 ```
 
 ### ItzamNotFoundError
 
-Thrown when a requested resource is not found (HTTP 404).
+Thrown when a requested resource is not found (HTTP 404). Includes possible valid values.
 
 ```typescript
 try {
@@ -66,7 +70,9 @@ try {
 } catch (error) {
   if (error instanceof ItzamNotFoundError) {
     console.log("Resource not found:", error.message);
-    console.log("Status code:", error.code); // 404
+    console.log("Status code:", error.status); // 404
+    console.log("Possible values:", error.possibleValues); // Array of valid options
+    console.log("Documentation:", error.documentation);
   }
 }
 ```
@@ -83,40 +89,8 @@ try {
 } catch (error) {
   if (error instanceof ItzamServerError) {
     console.log("Server error:", error.message);
-    console.log("Status code:", error.code); // 500
+    console.log("Status code:", error.status); // 500
+    console.log("Documentation:", error.documentation);
   }
-}
-```
-
-## Handling Multiple Error Types
-
-You can handle multiple error types in a single try-catch block:
-
-```typescript
-try {
-  const models = await itzam.getModels();
-  // Use models...
-} catch (error) {
-  if (error instanceof ItzamAuthenticationError) {
-    // Handle authentication errors
-    console.log("Authentication failed:", error.message);
-  } else if (error instanceof ItzamValidationError) {
-    // Handle validation errors
-    console.log("Invalid request:", error.message);
-  } else if (error instanceof ItzamNotFoundError) {
-    // Handle not found errors
-    console.log("Resource not found:", error.message);
-  } else if (error instanceof ItzamServerError) {
-    // Handle server errors
-    console.log("Server error:", error.message);
-  } else {
-    // Handle unknown errors
-    console.log("Unknown error:", error.message);
-  }
-
-  // All errors have these properties
-  console.log("Error code:", error.code);
-  console.log("Error type:", error.type);
-  console.log("Error timestamp:", error.timestamp);
 }
 ```

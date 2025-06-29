@@ -12,7 +12,10 @@ async function getModels(
         "Api-Key": apiKey,
       },
     });
-    if (!res.ok) throw await createItzamError(res);
+    if (!res.ok) {
+      const data = await res.json();
+      throw createItzamError(data);
+    }
     const data = await res.json();
     return data;
   } catch (error) {

@@ -27,6 +27,7 @@ async function streamObject<T extends JsonOrZodSchema>(
   try {
     const schema = getJsonSchema(input.schema);
 
+    // @ts-expect-error TODO: fix typing
     const isArraySchema = isJsonSchema(schema) && schema.type === "array";
 
     // Create a copy of the request to avoid mutating the original
@@ -55,6 +56,7 @@ async function streamObject<T extends JsonOrZodSchema>(
     // All requests are sent as JSON
     const response = await client.api.v1.stream.object.$post(
       {
+        // @ts-expect-error TODO: fix typing
         json: processedRequest,
       },
       {
@@ -64,6 +66,11 @@ async function streamObject<T extends JsonOrZodSchema>(
         },
       }
     );
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw createItzamError(data);
+    }
 
     const reader = (
       response.body as unknown as ReadableStream<Uint8Array>

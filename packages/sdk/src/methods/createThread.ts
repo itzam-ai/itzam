@@ -24,7 +24,10 @@ async function createThread(
       }
     );
 
-    if (!response.ok) throw createItzamError(response);
+    if (!response.ok) {
+      const data = await response.json();
+      throw createItzamError(data);
+    }
 
     const data = await response.json();
 
