@@ -1,10 +1,10 @@
 # Using pgvector 0.4.1
 from typing import Any, List, Optional
 
-from pgvector.sqlalchemy.vector import VECTOR
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Computed, DateTime, Double, Enum, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, SmallInteger, String, Table, Text, UniqueConstraint, Uuid, text
-from sqlalchemy.dialects.postgresql import JSONB, OID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from pgvector.sqlalchemy.vector import VECTOR # type: ignore
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Computed, DateTime, Double, Enum, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, SmallInteger, String, Table, Text, UniqueConstraint, Uuid, text # type: ignore
+from sqlalchemy.dialects.postgresql import JSONB, OID # type: ignore
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship # type: ignore    
 import datetime
 import decimal
 import uuid

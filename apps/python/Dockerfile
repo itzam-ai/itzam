@@ -17,4 +17,4 @@ RUN uv run scripts/check.py
 
 
 
-CMD ["fastapi", "run", "app/main.py", "--port", "80", "--workers", "4"]
+CMD ["uvicorn", "app/main:app", "--port", "80", "--workers", "4"]

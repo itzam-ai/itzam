@@ -8,7 +8,7 @@
     "format": "uv run ruff format .",
     "typecheck": "uv run mypy .",
     "build": "pnpm typecheck && pnpm lint",
-    "dev": "fastapi run --workers 4 main.py"
+    "dev": "uvicorn main:app --workers 4"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0"
