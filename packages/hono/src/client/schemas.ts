@@ -1,13 +1,18 @@
 import { z } from "zod";
 import "zod-openapi/extend";
 
+const invalid_type_error = "INVALID_TYPE_ERROR";
+const required_error = "FIELD_REQUIRED";
+
+const errConfig = {
+  invalid_type_error,
+  required_error,
+};
+
 const attachmentFile = z.union(
   [
     z
-      .string({
-        invalid_type_error: "file must be a string",
-        required_error: "file is required",
-      })
+      .string(errConfig)
       .base64({
         message: "file must be a base64 encoded string",
       })
@@ -17,7 +22,7 @@ const attachmentFile = z.union(
         description: "Base64 encoded file",
       }),
     z
-      .string()
+      .string(errConfig)
       .url({
         message: "file must be a valid URL",
       })
@@ -27,19 +32,9 @@ const attachmentFile = z.union(
         description: "Remote URI to the file",
       }),
   ],
-  {
-    required_error: "FIELD_REQUIRED",
-    invalid_type_error: "INVALID_TYPE_ERROR",
-  }
+  errConfig
 );
-
-const invalid_type_error = "INVALID_TYPE_ERROR";
-const required_error = "FIELD_REQUIRED";
-
-const baseString = z.string({
-  required_error,
-  invalid_type_error,
-});
+const baseString = z.string(errConfig);
 
 const AttachmentSchema = z
   .object({
@@ -55,22 +50,18 @@ const AttachmentSchema = z
     },
   });
 
-const AttachmentListSchema = z
-  .array(AttachmentSchema, {
-    invalid_type_error,
-  })
-  .openapi({
-    example: [
-      { file: "file_data", mimeType: "application/pdf" },
-      { file: "image_data", mimeType: "image/png" },
-      { file: "https://example.com/image.jpg", mimeType: "image/jpeg" },
-    ],
-    description: "Optional attachments to include in the generation",
-  });
+const AttachmentListSchema = z.array(AttachmentSchema, errConfig).openapi({
+  example: [
+    { file: "file_data", mimeType: "application/pdf" },
+    { file: "image_data", mimeType: "image/png" },
+    { file: "https://example.com/image.jpg", mimeType: "image/jpeg" },
+  ],
+  description: "Optional attachments to include in the generation",
+});
 
 const ContextSlugList = z.array(baseString).openapi({
   example: ["special-docs", "admin-files"],
-  description: "Optional context slugs to add contexts to the run",
+  description: "Optional context slugs to add contexts to a run or thread",
 });
 
 const WorkflowSlug = baseString.openapi({
@@ -78,6 +69,12 @@ const WorkflowSlug = baseString.openapi({
   description:
     "The slug of the Workflow to use for generation (required if threadId is not provided)",
   ref: "WorkflowSlug",
+});
+
+const ThreadId = baseString.openapi({
+  example: "thread_1234567890",
+  description:
+    "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
 });
 
 const BaseInput = z.object({
@@ -88,17 +85,7 @@ const BaseInput = z.object({
   attachments: AttachmentListSchema.optional(),
   contextSlugs: ContextSlugList.optional(),
   workflowSlug: WorkflowSlug,
-  threadId: z
-    .string({
-      required_error: "FIELD_REQUIRED",
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .optional()
-    .openapi({
-      example: "thread_1234567890",
-      description:
-        "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
-    }),
+  threadId: ThreadId.optional(),
 });
 
 export const TextCompletionInputSchema = BaseInput.openapi({
@@ -144,10 +131,7 @@ export const ObjectCompletionInputSchema = BaseInput.extend({
       {
         message:
           "Must be a valid JSON Schema object with type 'object', 'array', or 'string' with enum values. See https://json-schema.org/ for specification.",
-        params: {
-          required_error: "FIELD_REQUIRED",
-          invalid_type_error: "INVALID_TYPE_ERROR",
-        },
+        params: errConfig,
       }
     )
     .openapi({
@@ -246,9 +230,20 @@ export const StreamEventSchema = z
 
 export type StreamEvent = z.infer<typeof StreamEventSchema>;
 
+const ModelSchema = z.object({
+  name: z.string().openapi({
+    example: "gpt-4o",
+    description: "The name of the model used for this generation",
+  }),
+  tag: z.string().openapi({
+    example: "openai:gpt-4o",
+    description: "The tag of the model used for this generation",
+  }),
+});
+
 const RunMetadataSchema = z
   .object({
-    runId: z.string().openapi({
+    id: z.string().openapi({
       example: "run_1234567890",
       description: "The ID of the run created for this generation",
     }),
@@ -256,16 +251,7 @@ const RunMetadataSchema = z
       example: "0.001",
       description: "The cost of the run",
     }),
-    model: z.object({
-      name: z.string().openapi({
-        example: "gpt-4o",
-        description: "The name of the model used for this generation",
-      }),
-      tag: z.string().openapi({
-        example: "openai:gpt-4o",
-        description: "The tag of the model used for this generation",
-      }),
-    }),
+    model: ModelSchema,
     durationInMs: z.number().openapi({
       example: 1000,
       description: "The duration of the run in milliseconds",
@@ -303,15 +289,7 @@ export const GenerateObjectResponseSchema = z
 export const GetModelsResponseSchema = z
   .object({
     models: z.array(
-      z.object({
-        name: z.string().openapi({
-          example: "gpt-4o",
-          description: "The name of the model",
-        }),
-        tag: z.string().openapi({
-          example: "gpt-4o",
-          description: "The tag of the model",
-        }),
+      ModelSchema.extend({
         deprecated: z.boolean().openapi({
           example: false,
           description: "Whether the model is deprecated",
@@ -395,204 +373,99 @@ export const StreamTextEventSchema = z
   ])
   .openapi({ ref: "StreamTextEvent" });
 
-export const GetRunByIdResponseSchema = z
-  .object({
-    id: z.string().openapi({
-      example: "run_1234567890",
-      description: "The ID of the run",
-    }),
-    origin: z.string().openapi({
-      example: "SDK",
-      description: "The origin of the run",
-    }),
-    status: z.string().openapi({
-      example: "COMPLETED",
-      description: "The status of the run",
-    }),
-    input: z.string().openapi({
-      example: "Who are you?",
-      description: "The input of the run",
-    }),
-    output: z.string().openapi({
-      example: "I'm a helpful assistant",
-      description: "The output of the run",
-    }),
-    prompt: z.string().openapi({
-      example: "Be friendly and helpful",
-      description: "The prompt of the run",
-    }),
-    inputTokens: z.number().openapi({
-      example: 100,
-      description: "The number of input tokens of the run",
-    }),
-    outputTokens: z.number().openapi({
-      example: 100,
-      description: "The number of output tokens of the run",
-    }),
-    cost: z.string().openapi({
-      example: "0.001",
-      description: "The cost of the run",
-    }),
-    durationInMs: z.number().openapi({
-      example: 100,
-      description: "The duration of the run in milliseconds",
-    }),
-    threadId: z.string().nullable().openapi({
-      example: "thread_1234567890",
-      description: "The thread ID of the run",
-    }),
-    model: z.object({
-      name: z.string().openapi({
-        example: "GPT-4o",
-        description: "The name of the model",
-      }),
-      tag: z.string().openapi({
-        example: "openai:gpt-4o",
-        description: "The tag of the model",
-      }),
-    }),
-    attachments: z
-      .array(
-        z.object({
-          url: z.string().openapi({
-            example: "https://example.com/image.jpg",
-            description: "The URL of the attachment",
-          }),
-          mimeType: z.string().openapi({
-            example: "image/jpeg",
-            description: "The MIME type of the attachment",
-          }),
-          id: z.string().openapi({
-            example: "attachment_1234567890",
-            description: "The ID of the attachment",
-          }),
-        })
-      )
-      .nullable(),
-    knowledge: z
-      .array(
-        z.object({
-          id: z.string().openapi({
-            example: "1353151353531",
-            description: "The ID of the knowledge",
-          }),
-          title: z.string().nullable().openapi({
-            example: "My Resource",
-            description: "The title of the knowledge",
-          }),
-          url: z.string().openapi({
-            example: "https://example.com/resource.pdf",
-            description: "The URL of the knowledge",
-          }),
-          type: z.string().openapi({
-            example: "file",
-            description: "The type of the knowledge",
-          }),
-        })
-      )
-      .nullable(),
-    workflowId: z.string().openapi({
-      example: "workflow_1234567890",
-      description: "The ID of the workflow",
-    }),
-    createdAt: z.string().openapi({
-      example: "2021-01-01T00:00:00.000Z",
-      description: "The creation date of the run",
-    }),
-  })
-  .openapi({ ref: "GetRunByIdResponse" });
+const ThreadLookupKeys = z.array(baseString).openapi({
+  example: ["user-123", "platform-web-app"],
+  description: "Optional lookup keys for finding the thread later",
+});
+
+export const GetRunByIdResponseSchema = RunMetadataSchema.extend({
+  origin: z.string().openapi({
+    example: "SDK",
+    description: "The origin of the run",
+  }),
+  status: z.string().openapi({
+    example: "COMPLETED",
+    description: "The status of the run",
+  }),
+  input: z.string().openapi({
+    example: "Who are you?",
+    description: "The input of the run",
+  }),
+  output: z.string().openapi({
+    example: "I'm a helpful assistant",
+    description: "The output of the run",
+  }),
+  prompt: z.string().openapi({
+    example: "Be friendly and helpful",
+    description: "The prompt of the run",
+  }),
+  threadId: ThreadId.nullable(),
+  attachments: AttachmentListSchema.nullable(),
+  knowledge: z
+    .array(
+      z.object({
+        id: z.string().openapi({
+          example: "1353151353531",
+          description: "The ID of the knowledge",
+        }),
+        title: z.string().nullable().openapi({
+          example: "My Resource",
+          description: "The title of the knowledge",
+        }),
+        url: z.string().openapi({
+          example: "https://example.com/resource.pdf",
+          description: "The URL of the knowledge",
+        }),
+        type: z.string().openapi({
+          example: "file",
+          description: "The type of the knowledge",
+        }),
+      })
+    )
+    .nullable(),
+  workflowId: z.string().openapi({
+    example: "workflow_1234567890",
+    description: "The ID of the workflow",
+  }),
+  createdAt: z.string().openapi({
+    example: "2021-01-01T00:00:00.000Z",
+    description: "The creation date of the run",
+  }),
+}).openapi({ ref: "GetRunByIdResponse" });
 
 export const GetRunByIdParamsSchema = z.object({
-  id: z
-    .string({
-      required_error: "FIELD_REQUIRED",
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .openapi({
-      example: "run_1234567890",
-      description: "The ID of the run to retrieve",
-    }),
+  id: z.string(errConfig).openapi({
+    example: "run_1234567890",
+    description: "The ID of the run to retrieve",
+  }),
 });
 
 // -------- THREADS --------
 export const CreateThreadInputSchema = z
   .object({
-    name: z
-      .string({
-        invalid_type_error: "INVALID_TYPE_ERROR",
-      })
-      .optional()
-      .openapi({
-        example: "My Thread",
-        description:
-          "The name of the thread (optional, will auto-generate if not provided)",
-      }),
-    lookupKeys: z
-      .array(
-        z.string({
-          invalid_type_error: "INVALID_TYPE_ERROR",
-        }),
-        {
-          invalid_type_error: "INVALID_TYPE_ERROR",
-        }
-      )
-      .optional()
-      .openapi({
-        example: ["user-123", "platform-web-app"],
-        description: "Optional lookup keys for finding the thread later",
-      }),
-    contextSlugs: z
-      .array(
-        z.string({
-          invalid_type_error: "INVALID_TYPE_ERROR",
-        }),
-        {
-          invalid_type_error: "INVALID_TYPE_ERROR",
-        }
-      )
-      .optional()
-      .openapi({
-        example: ["special-docs", "admin-files"],
-        description:
-          "Optional context slugs to append the context to the thread",
-      }),
-    workflowSlug: z
-      .string({
-        required_error: "FIELD_REQUIRED",
-        invalid_type_error: "INVALID_TYPE_ERROR",
-      })
-      .min(1)
-      .openapi({
-        example: "my_great_workflow",
-        description: "The slug of the workflow this thread belongs to",
-      }),
+    name: baseString.optional().openapi({
+      example: "My Thread",
+      description:
+        "The name of the thread (optional, will auto-generate if not provided)",
+    }),
+    lookupKeys: ThreadLookupKeys.optional(),
+    contextSlugs: ContextSlugList.optional(),
+    workflowSlug: WorkflowSlug.min(1),
   })
   .openapi({ ref: "CreateThreadInput" });
 
 export const CreateThreadResponseSchema = z
   .object({
-    id: z.string().openapi({
+    id: ThreadId.openapi({
       example: "thread_1234567890",
       description: "The ID of the created thread",
     }),
-    name: z.string().openapi({
+    name: baseString.openapi({
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKeys: z
-      .array(z.string())
-      .nullable()
-      .openapi({
-        example: ["user-123", "platform-web-app"],
-        description: "The lookup keys of the thread",
-      }),
-    contextSlugs: z
-      .array(z.string())
-      .nullable()
-      .openapi({
-        example: ["special-docs", "admin-files"],
-        description: "The context slugs of the thread",
-      }),
+    lookupKeys: ThreadLookupKeys.nullable(),
+    contextSlugs: ContextSlugList.nullable(),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -614,20 +487,8 @@ export const GetThreadResponseSchema = z
       example: "My Thread",
       description: "The name of the thread",
     }),
-    lookupKeys: z
-      .array(z.string())
-      .nullable()
-      .openapi({
-        example: ["user-123-session"],
-        description: "The lookup keys of the thread",
-      }),
-    contextSlugs: z
-      .array(z.string())
-      .nullable()
-      .openapi({
-        example: ["special-docs", "admin-files"],
-        description: "The context slugs of the thread",
-      }),
+    lookupKeys: ThreadLookupKeys.nullable(),
+    contextSlugs: ContextSlugList.nullable(),
     createdAt: z.string().openapi({
       example: "2021-01-01T00:00:00.000Z",
       description: "The creation date of the thread",
@@ -689,15 +550,7 @@ export const GetThreadsByWorkflowResponseSchema = z
   .openapi({ ref: "GetThreadsByWorkflowResponse" });
 
 export const GetRunsByThreadParamsSchema = z.object({
-  threadId: z
-    .string({
-      required_error: "FIELD_REQUIRED",
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .openapi({
-      example: "thread_1234567890",
-      description: "The ID of the thread to get runs for",
-    }),
+  threadId: ThreadId,
 });
 
 export const GetRunsByThreadResponseSchema = z
