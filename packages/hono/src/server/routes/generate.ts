@@ -9,7 +9,8 @@ import {
   GenerateObjectResponseSchema,
   GenerateTextResponseSchema,
 } from "../../client/schemas";
-import { createErrorResponse, setupRunGeneration } from "../../utils";
+import { setupRunGeneration } from "../../utils";
+import { createErrorResponse } from "../../errors";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
@@ -43,19 +44,25 @@ export const generateRoute = new Hono()
         const { workflowSlug, threadId, input, attachments, contextSlugs } =
           c.req.valid("json");
 
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          attachments,
-          contextSlugs,
-        });
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
+        const { error, status, possibleValues, aiParams, run, workflow } =
+          await setupRunGeneration({
+            userId,
+            workflowSlug,
+            threadId: threadId || null,
+            input,
+            attachments,
+            contextSlugs,
+          });
+
+        if (error || status) {
+          return c.json(
+            createErrorResponse(status, error, {
+              possibleValues,
+            }),
+            status
+          );
         }
 
-        const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
 
         const { text, metadata } = await generateTextResponse(
@@ -70,13 +77,13 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
-        const userId = c.get("userId");
-        const body = c.req.valid("json");
         return c.json(
-          createErrorResponse(error, {
-            userId,
-            workflowSlug: body.workflowSlug,
-            endpoint: "/generate/text",
+          createErrorResponse(500, "Unknown error", {
+            context: {
+              userId: c.get("userId"),
+              workflowSlug: c.req.valid("json").workflowSlug,
+              endpoint: "/generate/text",
+            },
           }),
           500
         );
@@ -112,21 +119,26 @@ export const generateRoute = new Hono()
           contextSlugs,
         } = c.req.valid("json");
 
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          schema,
-          attachments,
-          contextSlugs,
-        });
+        const { error, status, possibleValues, aiParams, run, workflow } =
+          await setupRunGeneration({
+            userId,
+            workflowSlug,
+            threadId: threadId || null,
+            input,
+            schema,
+            attachments,
+            contextSlugs,
+          });
 
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
+        if (error || status) {
+          return c.json(
+            createErrorResponse(status, error, {
+              possibleValues,
+            }),
+            status
+          );
         }
 
-        const { aiParams, run, workflow } = setup;
         const startTime = Date.now();
 
         const { object, metadata } = await generateObjectResponse(
@@ -141,13 +153,17 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
+        console.error(error);
+
         const userId = c.get("userId");
         const body = c.req.valid("json");
         return c.json(
-          createErrorResponse(error, {
-            userId,
-            workflowSlug: body.workflowSlug,
-            endpoint: "/generate/object",
+          createErrorResponse(500, "Unknown error", {
+            context: {
+              userId,
+              workflowSlug: body.workflowSlug,
+              endpoint: "/generate/object",
+            },
           }),
           500
         );

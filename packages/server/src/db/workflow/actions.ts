@@ -133,7 +133,15 @@ export const getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts =
     });
 
     if (!workflow) {
-      throw new Error("Workflow not found");
+      const userWorkflows = await db.query.workflows.findMany({
+        where: and(eq(workflows.userId, userId), eq(workflows.isActive, true)),
+      });
+
+      return {
+        error: "Workflow not found",
+        possibleValues: userWorkflows.map((w) => w.slug),
+        status: 404,
+      };
     }
 
     return workflow;

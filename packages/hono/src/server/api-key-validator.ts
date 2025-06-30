@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
-import { validateRequest, createErrorResponse } from "../utils";
-import { UnauthorizedAPIError } from "../errors";
+import { validateRequest } from "../utils";
+import { createErrorResponse } from "../errors";
 
 // Define the type for context variables set by this middleware
 type ApiKeyValidatorEnv = {
@@ -23,29 +23,16 @@ export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
       const apiKey = c.req.header("Api-Key");
 
       if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
-        const error: UnauthorizedAPIError = {
-          error: "UNAUTHORIZED",
-          message: "API key is required",
-          documentation:
-            "https://docs.itz.am/api-reference/errors/UNAUTHORIZED",
-          status: 401,
-        };
-
-        return c.json(error, 401);
+        return c.json(createErrorResponse(401, "API key is required"), 401);
       }
 
       const { userId, error } = await validateRequest(apiKey);
 
       if (!userId || error) {
-        const apiKeyError: UnauthorizedAPIError = {
-          error: "UNAUTHORIZED",
-          message: error || "API key is required",
-          documentation:
-            "https://docs.itz.am/api-reference/errors/UNAUTHORIZED",
-          status: 401,
-        };
-
-        return c.json(apiKeyError, 401);
+        return c.json(
+          createErrorResponse(401, error || "API key is required"),
+          401
+        );
       }
 
       // Set the validated organization in the context for downstream handlers
@@ -56,9 +43,16 @@ export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
       await next();
     } catch (error) {
       // Handle any unexpected errors in the middleware
-      const errorResponse = createErrorResponse(error, {
-        endpoint: c.req.path,
-      });
+      const errorResponse = createErrorResponse(
+        500,
+        error instanceof Error ? error.message : "Unknown error",
+        {
+          context: {
+            userId: c.get("userId"),
+          },
+        }
+      );
+
       return c.json(errorResponse, 500);
     }
   }

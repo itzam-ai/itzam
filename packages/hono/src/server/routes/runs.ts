@@ -7,7 +7,7 @@ import {
   GetRunByIdParamsSchema,
   GetRunByIdResponseSchema,
 } from "../../client/schemas";
-import { createErrorResponse } from "../../utils";
+import { createErrorResponse } from "../../errors";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 
@@ -35,7 +35,7 @@ export const runsRoute = new Hono().use(apiKeyMiddleware).get(
       const run = await getRunByIdAndUserId(id, userId);
 
       if (!run) {
-        return c.json(createErrorResponse("Run not found"), 404);
+        return c.json(createErrorResponse(404, "Run not found"), 404);
       }
 
       const response: z.infer<typeof GetRunByIdResponseSchema> = {
@@ -79,7 +79,15 @@ export const runsRoute = new Hono().use(apiKeyMiddleware).get(
 
       return c.json(response);
     } catch (error) {
-      return c.json(createErrorResponse(error), 500);
+      return c.json(
+        createErrorResponse(500, "Unknown error", {
+          context: {
+            endpoint: "/runs/:id",
+            userId,
+          },
+        }),
+        500
+      );
     }
   }
 );

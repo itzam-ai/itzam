@@ -2,7 +2,11 @@
 
 import { GetRunByIdResponseSchema } from "@itzam/hono/client/schemas";
 import { env } from "@itzam/utils";
-import Itzam, { ItzamAuthenticationError, ItzamError } from "itzam";
+import Itzam, {
+  ItzamAuthenticationError,
+  ItzamError,
+  ItzamNotFoundError,
+} from "itzam";
 import { History, Plus } from "lucide-react";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -36,7 +40,7 @@ const abdulLocalKey =
 const gustavoLocalKey =
   "itzam_1346408f-2401-4fea-8545-bd816776fbc4_i5zgr14rwjru5z2lfv0x6roszruumlht";
 
-const slug = "test-sdk";
+const slug = "test-sdks";
 
 type Metadata = {
   runId: string;
@@ -221,7 +225,12 @@ export default function AdminSdkPage() {
       setStreamStatus("completed");
       setIsLoading(false);
     } catch (error) {
+      console.error(error);
       toast.error("Error streaming text");
+      if (error instanceof ItzamNotFoundError) {
+        toast.error(error.message);
+        toast.error(error.possibleValues.join(", "));
+      }
       setIsLoading(false);
     }
   }
@@ -241,6 +250,12 @@ export default function AdminSdkPage() {
     } catch (error: any) {
       toast.error("Error generating object");
       console.error(error);
+
+      if (error instanceof ItzamNotFoundError) {
+        toast.error(error.message);
+        toast.error(error.possibleValues.join(", "));
+      }
+
       setIsLoading(false);
     }
   }

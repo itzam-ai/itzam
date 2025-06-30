@@ -16,7 +16,6 @@ import {
   GetThreadResponseSchema,
   GetThreadsByWorkflowResponseSchema,
 } from "../../client/schemas";
-import { createErrorResponse } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
@@ -25,6 +24,7 @@ import {
   getThreadsByWorkflowParamsValidator,
   getThreadsByWorkflowQueryValidator,
 } from "../validators";
+import { createErrorResponse } from "../../errors";
 
 export const threadsRoute = new Hono()
   .use(apiKeyMiddleware)
@@ -46,61 +46,54 @@ export const threadsRoute = new Hono()
     }),
     createThreadValidator,
     async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { name, lookupKeys, workflowSlug, contextSlugs } =
-          c.req.valid("json");
+      const userId = c.get("userId");
+      const { name, lookupKeys, workflowSlug, contextSlugs } =
+        c.req.valid("json");
 
-        // Find the workflow by slug and userId
-        const workflow = await db.query.workflows.findFirst({
+      // Find the workflow by slug and userId
+      const workflow = await db.query.workflows.findFirst({
+        where: and(
+          eq(workflows.slug, workflowSlug),
+          eq(workflows.userId, userId),
+          eq(workflows.isActive, true)
+        ),
+      });
+
+      if (!workflow) {
+        const userWorkflows = await db.query.workflows.findMany({
           where: and(
-            eq(workflows.slug, workflowSlug),
             eq(workflows.userId, userId),
             eq(workflows.isActive, true)
           ),
         });
 
-        if (!workflow) {
-          return c.json(
-            createErrorResponse(new Error("Workflow not found")),
-            404
-          );
-        }
-
-        let thread;
-
-        try {
-          thread = await createThread({
-            workflowId: workflow.id,
-            lookupKeys,
-            name,
-            contextSlugs,
-          });
-        } catch (error) {
-          if (error instanceof Error) {
-            return c.json(createErrorResponse(error), 404);
-          }
-          throw error;
-        }
-
-        if (!thread) {
-          return c.json(
-            createErrorResponse(new Error("Failed to create thread")),
-            500
-          );
-        }
-
-        return c.json({
-          id: thread.id,
-          name: thread.name,
-          lookupKeys: thread.lookupKeys,
-          contextSlugs: thread.contextSlugs,
-          createdAt: thread.createdAt.toISOString(),
-          updatedAt: thread.updatedAt.toISOString(),
-        });
-      } catch (error) {
-        return c.json(createErrorResponse(error), 500);
+        return c.json(
+          createErrorResponse(404, "Workflow not found", {
+            possibleValues: userWorkflows.map((w) => w.slug),
+          }),
+          404
+        );
       }
+
+      const thread = await createThread({
+        workflowId: workflow.id,
+        lookupKeys,
+        name,
+        contextSlugs,
+      });
+
+      if (!thread) {
+        return c.json(createErrorResponse(500, "Failed to create thread"), 500);
+      }
+
+      return c.json({
+        id: thread.id,
+        name: thread.name,
+        lookupKeys: thread.lookupKeys,
+        contextSlugs: thread.contextSlugs,
+        createdAt: thread.createdAt.toISOString(),
+        updatedAt: thread.updatedAt.toISOString(),
+      });
     }
   )
   .get(
@@ -123,30 +116,26 @@ export const threadsRoute = new Hono()
     getThreadsByWorkflowParamsValidator,
     getThreadsByWorkflowQueryValidator,
     async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { workflowSlug } = c.req.valid("param");
-        const { lookupKeys } = c.req.valid("query");
+      const userId = c.get("userId");
+      const { workflowSlug } = c.req.valid("param");
+      const { lookupKeys } = c.req.valid("query");
 
-        const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
-          lookupKeys,
-        });
+      const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
+        lookupKeys,
+      });
 
-        return c.json({
-          threads: threads.map((thread) => ({
-            id: thread.id,
-            name: thread.name,
-            lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
-            contextSlugs: thread.threadContexts.map(
-              (context) => context.context.slug
-            ),
-            createdAt: thread.createdAt.toISOString(),
-            updatedAt: thread.updatedAt.toISOString(),
-          })),
-        });
-      } catch (error) {
-        return c.json(createErrorResponse(error), 500);
-      }
+      return c.json({
+        threads: threads.map((thread) => ({
+          id: thread.id,
+          name: thread.name,
+          lookupKeys: thread.lookupKeys.map((key) => key.lookupKey),
+          contextSlugs: thread.threadContexts.map(
+            (context) => context.context.slug
+          ),
+          createdAt: thread.createdAt.toISOString(),
+          updatedAt: thread.updatedAt.toISOString(),
+        })),
+      });
     }
   )
   .get(
@@ -167,57 +156,53 @@ export const threadsRoute = new Hono()
     }),
     getRunsByThreadParamsValidator,
     async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { threadId } = c.req.valid("param");
+      const userId = c.get("userId");
+      const { threadId } = c.req.valid("param");
 
-        const runs = await getThreadRunsHistory(threadId, userId);
+      const runs = await getThreadRunsHistory(threadId, userId);
 
-        const response = {
-          runs: runs.map((run) => ({
-            id: run.id,
-            origin: run.origin,
-            status: run.status,
-            input: run.input,
-            output: run.output ?? "",
-            prompt: run.prompt,
-            inputTokens: run.inputTokens,
-            outputTokens: run.outputTokens,
-            cost: run.cost,
-            durationInMs: run.durationInMs,
-            threadId: run.threadId ?? null,
-            model: {
-              name: run.model?.name ?? "",
-              tag: run.model?.tag ?? "",
-            },
-            attachments: run.attachments.map((attachment) => ({
-              id: attachment.id,
-              url: attachment.url,
-              mimeType: attachment.mimeType,
-            })),
-            knowledge: run.runResources.map((resource) => ({
-              id: resource.resource.id,
-              title: resource.resource.title,
-              url: resource.resource.url,
-              type: resource.resource.type,
-              // if the resource is from a context, return the context object
-              context: resource.resource.context
-                ? {
-                    id: resource.resource.context.id,
-                    slug: resource.resource.context.slug,
-                    name: resource.resource.context.name,
-                  }
-                : null,
-            })),
-            workflowId: run.workflowId ?? "",
-            createdAt: run.createdAt.toISOString(),
+      const response = {
+        runs: runs.map((run) => ({
+          id: run.id,
+          origin: run.origin,
+          status: run.status,
+          input: run.input,
+          output: run.output ?? "",
+          prompt: run.prompt,
+          inputTokens: run.inputTokens,
+          outputTokens: run.outputTokens,
+          cost: run.cost,
+          durationInMs: run.durationInMs,
+          threadId: run.threadId ?? null,
+          model: {
+            name: run.model?.name ?? "",
+            tag: run.model?.tag ?? "",
+          },
+          attachments: run.attachments.map((attachment) => ({
+            id: attachment.id,
+            url: attachment.url,
+            mimeType: attachment.mimeType,
           })),
-        };
+          knowledge: run.runResources.map((resource) => ({
+            id: resource.resource.id,
+            title: resource.resource.title,
+            url: resource.resource.url,
+            type: resource.resource.type,
+            // if the resource is from a context, return the context object
+            context: resource.resource.context
+              ? {
+                  id: resource.resource.context.id,
+                  slug: resource.resource.context.slug,
+                  name: resource.resource.context.name,
+                }
+              : null,
+          })),
+          workflowId: run.workflowId ?? "",
+          createdAt: run.createdAt.toISOString(),
+        })),
+      };
 
-        return c.json(response);
-      } catch (error) {
-        return c.json(createErrorResponse(error), 500);
-      }
+      return c.json(response);
     }
   )
   .get(
@@ -237,22 +222,15 @@ export const threadsRoute = new Hono()
       }),
     }),
     async (c) => {
-      try {
-        const userId = c.get("userId");
-        const { id } = c.req.param();
+      const userId = c.get("userId");
+      const { id } = c.req.param();
 
-        const thread = await getThreadById(id, userId);
+      const thread = await getThreadById(id, userId);
 
-        if (!thread) {
-          return c.json(
-            createErrorResponse(new Error("Thread not found")),
-            404
-          );
-        }
-
-        return c.json(thread);
-      } catch (error) {
-        return c.json(createErrorResponse(error), 500);
+      if (!thread) {
+        return c.json(createErrorResponse(404, "Thread not found"), 404);
       }
+
+      return c.json(thread);
     }
   );

@@ -4,8 +4,6 @@ import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
-import { db } from "@itzam/server/db/index";
-import { threads } from "@itzam/server/db/schema";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
 import { notifyDiscordError } from "@itzam/utils";
 import { tryCatch } from "@itzam/utils/try-catch";
@@ -14,6 +12,7 @@ import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
+import { StatusCode } from "./errors";
 
 export type PreRunDetails = {
   id: string;
@@ -27,35 +26,6 @@ export type PreRunDetails = {
   attachments: AttachmentWithUrl[];
   knowledgeId: string;
   contextSlugs: string[];
-};
-
-export type StatusCode = 200 | 400 | 401 | 404 | 500;
-
-// Common error response function
-export const createErrorResponse = (
-  error: unknown,
-  context?: { userId?: string; workflowSlug?: string; endpoint?: string }
-) => {
-  console.error("Error in endpoint:", error);
-
-  // Send Discord notification for production errors
-  if (error instanceof Error) {
-    notifyDiscordError(error, context).catch(console.error);
-  }
-
-  const errorMessage =
-    error instanceof Error
-      ? `${error.name}: ${error.message}`
-      : "Unknown error occurred";
-
-  return {
-    error: "Failed to generate content",
-    details: errorMessage,
-    stack:
-      process.env.NODE_ENV === "development"
-        ? (error as Error).stack
-        : undefined,
-  };
 };
 
 // Common workflow setup function
@@ -80,6 +50,14 @@ export const setupRunGeneration = async ({
 
   if (threadId) {
     const thread = await getThreadByIdAndUserIdWithContexts(threadId, userId);
+
+    if ("error" in thread) {
+      return {
+        error: thread.error,
+        status: thread.status as StatusCode,
+      };
+    }
+
     workflow = thread.workflow;
 
     // Add thread context slugs to contextSlugs
@@ -94,6 +72,14 @@ export const setupRunGeneration = async ({
         userId,
         workflowSlug
       );
+
+    if ("error" in workflow) {
+      return {
+        error: workflow.error,
+        status: workflow.status as StatusCode,
+        possibleValues: workflow.possibleValues,
+      };
+    }
   } else {
     return {
       error: "Either workflowSlug or threadId is required",
@@ -123,7 +109,10 @@ export const setupRunGeneration = async ({
 
   if (attachments) {
     if (!workflow.model.hasVision) {
-      throw new Error("Model does not support vision");
+      return {
+        error: "Model does not support vision",
+        status: 400 as StatusCode,
+      };
     }
 
     // Process attachments (upload to R2)
@@ -152,7 +141,7 @@ export const validateRequest = async (apiKey: string | undefined | null) => {
   const startTime = Date.now();
 
   if (!apiKey) {
-    return { error: "API key is required" };
+    return { error: "API key is required", status: 401 as StatusCode };
   }
 
   // Validate API Key
@@ -161,7 +150,7 @@ export const validateRequest = async (apiKey: string | undefined | null) => {
   );
 
   if (error) {
-    return { error: "Invalid API key" };
+    return { error: "Invalid API key", status: 401 as StatusCode };
   }
 
   void updateApiKeyLastUsed(validatedApiKey.id);

@@ -35,7 +35,10 @@ export async function getThreadByIdAndUserIdWithContexts(
   });
 
   if (!thread || thread.workflow.userId !== userId) {
-    throw new Error("Thread not found");
+    return {
+      error: "Thread not found",
+      status: 404,
+    };
   }
 
   return thread;

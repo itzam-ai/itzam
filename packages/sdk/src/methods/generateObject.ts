@@ -68,12 +68,12 @@ async function generateObject<T extends JsonOrZodSchema>(
       }
     );
 
-    const data = await res.json();
-
     if (!res.ok) {
       const data = await res.json();
       throw createItzamError(data);
     }
+
+    const data = await res.json();
 
     return {
       // @ts-expect-error TODO: fix typing

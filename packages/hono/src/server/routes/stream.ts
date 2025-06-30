@@ -4,7 +4,8 @@ import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import { streamSSE } from "hono/streaming";
 import { StreamEventSchema, StreamTextEventSchema } from "../../client/schemas";
-import { setupRunGeneration, createErrorResponse } from "../../utils";
+import { createErrorResponse } from "../../errors";
+import { setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
@@ -41,22 +42,27 @@ export const streamRoute = new Hono()
         c.req.valid("json");
 
       try {
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          attachments,
-          contextSlugs,
-        });
+        const { error, status, possibleValues, aiParams, run, workflow } =
+          await setupRunGeneration({
+            userId,
+            workflowSlug,
+            threadId: threadId || null,
+            input,
+            attachments,
+            contextSlugs,
+          });
 
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
+        if (error || status) {
+          return c.json(
+            createErrorResponse(status, error, {
+              possibleValues,
+            }),
+            status
+          );
         }
 
         return streamSSE(c, async (stream) => {
           try {
-            const { aiParams, run, workflow } = setup;
             const startTime = Date.now();
             await generateTextOrObjectStream(
               aiParams,
@@ -87,10 +93,12 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
-        const errorResponse = createErrorResponse(error, {
-          userId,
-          workflowSlug,
-          endpoint: "/stream/text",
+        const errorResponse = createErrorResponse(500, "Unknown error", {
+          context: {
+            userId,
+            workflowSlug,
+            endpoint: "/stream/text",
+          },
         });
         return c.json(errorResponse, 500);
       }
@@ -129,23 +137,28 @@ export const streamRoute = new Hono()
       } = c.req.valid("json");
 
       try {
-        const setup = await setupRunGeneration({
-          userId,
-          workflowSlug,
-          threadId: threadId || null,
-          input,
-          schema,
-          attachments,
-          contextSlugs,
-        });
+        const { error, status, possibleValues, aiParams, run, workflow } =
+          await setupRunGeneration({
+            userId,
+            workflowSlug,
+            threadId: threadId || null,
+            input,
+            schema,
+            attachments,
+            contextSlugs,
+          });
 
-        if ("error" in setup) {
-          return c.json({ error: setup.error }, setup.status);
+        if (error || status) {
+          return c.json(
+            createErrorResponse(status, error, {
+              possibleValues,
+            }),
+            status
+          );
         }
 
         return streamSSE(c, async (stream) => {
           try {
-            const { aiParams, run, workflow } = setup;
             const startTime = Date.now();
             await generateTextOrObjectStream(
               aiParams,
@@ -176,10 +189,12 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
-        const errorResponse = createErrorResponse(error, {
-          userId,
-          workflowSlug,
-          endpoint: "/stream/object",
+        const errorResponse = createErrorResponse(500, "Unknown error", {
+          context: {
+            userId,
+            workflowSlug,
+            endpoint: "/stream/object",
+          },
         });
         return c.json(errorResponse, 500);
       }

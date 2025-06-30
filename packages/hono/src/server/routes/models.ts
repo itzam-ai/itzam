@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
 import { GetModelsResponseSchema } from "../../client/schemas";
-import { createErrorResponse } from "../../utils";
+import { createErrorResponse } from "../../errors";
 import { createOpenApiErrors } from "../docs";
 
 export const modelsRoute = new Hono().get(
@@ -46,7 +46,14 @@ export const modelsRoute = new Hono().get(
         models: modelsList,
       });
     } catch (error) {
-      return c.json(createErrorResponse(error), 500);
+      return c.json(
+        createErrorResponse(500, "Unknown error", {
+          context: {
+            endpoint: "/models",
+          },
+        }),
+        500
+      );
     }
   }
 );
