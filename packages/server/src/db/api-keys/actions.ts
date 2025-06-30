@@ -35,7 +35,7 @@ export async function validateApiKey(key: string) {
   });
 
   if (!apiKey) {
-    throw new Error("Invalid API key");
+    return { error: "Invalid API key" };
   }
 
   return apiKey;

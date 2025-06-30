@@ -4,14 +4,11 @@ import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
+import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
-import { notifyDiscordError } from "@itzam/utils";
-import { tryCatch } from "@itzam/utils/try-catch";
-import { eq } from "drizzle-orm";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
-import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { StatusCode } from "./errors";
 
 export type PreRunDetails = {
@@ -77,7 +74,7 @@ export const setupRunGeneration = async ({
       return {
         error: workflow.error,
         status: workflow.status as StatusCode,
-        possibleValues: workflow.possibleValues,
+        possibleValues: workflow.possibleValues || [],
       };
     }
   } else {
@@ -145,11 +142,9 @@ export const validateRequest = async (apiKey: string | undefined | null) => {
   }
 
   // Validate API Key
-  const { data: validatedApiKey, error } = await tryCatch(
-    validateApiKey(apiKey)
-  );
+  const validatedApiKey = await validateApiKey(apiKey);
 
-  if (error) {
+  if ("error" in validatedApiKey) {
     return { error: "Invalid API key", status: 401 as StatusCode };
   }
 

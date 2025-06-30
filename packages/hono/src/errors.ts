@@ -43,7 +43,9 @@ export const createErrorResponse = (
   console.error("Error in endpoint:", message);
 
   // Send Discord notification for production errors
-  notifyDiscordError(new Error(message), options?.context).catch(console.error);
+  notifyDiscordError(new Error(message), status, options?.context).catch(
+    console.error
+  );
 
   switch (status) {
     case 400: {
