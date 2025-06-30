@@ -19,7 +19,7 @@ def check_typing_and_linting() -> bool:
     project_root = Path(__file__).parent.parent
 
     print("🔍 Running typecheck...")
-    exit_code, stdout, stderr = run_command("uv run mypy .", cwd=project_root)
+    exit_code, stdout, stderr = run_command("mypy .", cwd=project_root)
 
     if exit_code != 0:
         print("❌ Typecheck failed:")
@@ -30,7 +30,7 @@ def check_typing_and_linting() -> bool:
     print("✅ Typecheck passed")
 
     print("\n🔍 Running linting...")
-    exit_code, stdout, stderr = run_command("uv run ruff check .", cwd=project_root)
+    exit_code, stdout, stderr = run_command("ruff check .", cwd=project_root)
 
     if exit_code != 0:
         print("❌ Linting failed:")
