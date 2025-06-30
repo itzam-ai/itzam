@@ -2,11 +2,7 @@
 
 import { GetRunByIdResponseSchema } from "@itzam/hono/client/schemas";
 import { env } from "@itzam/utils";
-import Itzam, {
-  ItzamAuthenticationError,
-  ItzamError,
-  ItzamNotFoundError,
-} from "itzam";
+import Itzam, { ItzamNotFoundError } from "itzam";
 import { History, Plus } from "lucide-react";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -247,15 +243,9 @@ export default function AdminSdkPage() {
       setIsLoading(false);
       handleGetRunById({ runId: response.metadata.runId });
       setMetadata(response.metadata);
-    } catch (error: any) {
-      toast.error("Error generating object");
+    } catch (error) {
       console.error(error);
-
-      if (error instanceof ItzamNotFoundError) {
-        toast.error(error.message);
-        toast.error(error.possibleValues.join(", "));
-      }
-
+      toast.error("Error generating object");
       setIsLoading(false);
     }
   }
@@ -300,6 +290,7 @@ export default function AdminSdkPage() {
         models.models.map((model) => ({ name: model.name, tag: model.tag }))
       );
     } catch (error) {
+      console.error(error);
       toast.error("Error fetching models");
     }
   }, [itzam]);

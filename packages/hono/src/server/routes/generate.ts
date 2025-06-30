@@ -77,6 +77,7 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
+        console.error(error);
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {
@@ -153,15 +154,11 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
-        console.error(error);
-
-        const userId = c.get("userId");
-        const body = c.req.valid("json");
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {
-              userId,
-              workflowSlug: body.workflowSlug,
+              userId: c.get("userId"),
+              workflowSlug: c.req.valid("json").workflowSlug,
               endpoint: "/generate/object",
             },
           }),
