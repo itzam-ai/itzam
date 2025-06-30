@@ -7,6 +7,10 @@ import tiktoken
 import xxhash
 from chonkie import Chunk, OpenAIEmbeddings, TokenChunker  # type: ignore
 from fastapi import BackgroundTasks, HTTPException, status
+from docling.document_converter import DocumentConverter, PdfFormatOption  # type: ignore
+from docling.datamodel.base_models import InputFormat  # type: ignore
+from docling.datamodel.pipeline_options import PdfPipelineOptions, VlmPipelineOptions  # type: ignore
+from docling_core.types.doc import ImageRefMode  # type: ignore
 
 from .config import settings
 from .database import (
@@ -48,6 +52,68 @@ async def get_text_from_tika(
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
     }
+
+    # Try docling first with VLM for image description instead of base64
+    try:
+        # Configure VLM pipeline for image analysis and description
+        # SmolDocling will analyze images and generate text descriptions instead of base64 data
+        # Examples: "A bar chart showing quarterly sales", "Diagram of system architecture"
+        vlm_options = VlmPipelineOptions(
+            do_vlm=True,
+            vlm_model="ds4sd/SmolDocling-256M-preview",
+        )
+        
+        # Configure PDF pipeline options for proper document handling
+        pdf_pipeline_options = PdfPipelineOptions()
+        pdf_pipeline_options.do_ocr = False  # Keep OCR disabled to avoid EasyOCR dependency issues
+        # Note: Set to True if you need to extract text from images, but requires EasyOCR dependencies
+        pdf_pipeline_options.do_table_structure = True  # Keep table structure detection
+        pdf_pipeline_options.table_structure_options = {
+            "do_cell_matching": True,
+        }
+        # Enable image processing with VLM descriptions
+        pdf_pipeline_options.generate_picture_images = True  # Generate images for picture elements
+        pdf_pipeline_options.do_picture_classification = True  # Classify picture types
+        pdf_pipeline_options.images_scale = 2.0  # Higher resolution images
+        
+        # Create format options with both pipeline options
+        format_options = PdfFormatOption(
+            pipeline_options=pdf_pipeline_options,
+            vlm_options=vlm_options
+        )
+        
+        converter = DocumentConverter(
+            format_options={
+                InputFormat.PDF: format_options,
+            }
+        )
+        
+        result = converter.convert(url)
+        doc = result.document
+        
+        # Export to markdown - VLM will provide image descriptions instead of base64
+        try:
+            # Export with VLM-generated image descriptions
+            text_content = doc.export_to_markdown()
+        except Exception as e:
+            logger.warning(f"Failed to export with VLM descriptions: {str(e)}")
+            # This shouldn't fail, but just in case
+            text_content = doc.export_to_markdown()
+
+        print("--------------------------------")   
+        print(text_content)
+        print("--------------------------------")
+        
+        # Calculate file size from the extracted text
+        file_size = len(text_content.encode('utf-8'))
+        
+        logger.info(f"Successfully extracted text using docling with VLM image descriptions: {len(text_content)} characters")
+        return text_content, file_size
+        
+    except Exception as e:
+        logger.error(f"Docling conversion failed: {str(e)}")
+        logger.info("Falling back to Tika approach")
+        # Fall back to the original Tika approach below
 
     try:
         async with aiohttp.ClientSession() as session:
