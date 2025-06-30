@@ -1,93 +1,93 @@
 import { z } from "zod";
 import "zod-openapi/extend";
 
-const AttachmentSchema = z.object({
-  file: z.union(
-    [
-      z
-        .string({
-          invalid_type_error: "file must be a string",
-          required_error: "file is required",
-        })
-        .base64({
-          message: "file must be a base64 encoded string",
-        })
-        .openapi({
-          type: "string",
-          format: "byte",
-          description: "Base64 encoded file",
-        }),
-      z
-        .string()
-        .url({
-          message: "file must be a valid URL",
-        })
-        .openapi({
-          type: "string",
-          format: "uri",
-          description: "Remote URI to the file",
-        }),
+const attachmentFile = z.union(
+  [
+    z
+      .string({
+        invalid_type_error: "file must be a string",
+        required_error: "file is required",
+      })
+      .base64({
+        message: "file must be a base64 encoded string",
+      })
+      .openapi({
+        type: "string",
+        format: "byte",
+        description: "Base64 encoded file",
+      }),
+    z
+      .string()
+      .url({
+        message: "file must be a valid URL",
+      })
+      .openapi({
+        type: "string",
+        format: "uri",
+        description: "Remote URI to the file",
+      }),
+  ],
+  {
+    required_error: "FIELD_REQUIRED",
+    invalid_type_error: "INVALID_TYPE_ERROR",
+  }
+);
+
+const invalid_type_error = "INVALID_TYPE_ERROR";
+const required_error = "FIELD_REQUIRED";
+
+const baseString = z.string({
+  required_error,
+  invalid_type_error,
+});
+
+const AttachmentSchema = z
+  .object({
+    file: attachmentFile,
+    mimeType: baseString,
+  })
+  .openapi({
+    ref: "Attachment",
+    description: "URL or base64 encoded file",
+    example: {
+      file: "file_data",
+      mimeType: "application/pdf",
+    },
+  });
+
+const AttachmentListSchema = z
+  .array(AttachmentSchema, {
+    invalid_type_error,
+  })
+  .openapi({
+    example: [
+      { file: "file_data", mimeType: "application/pdf" },
+      { file: "image_data", mimeType: "image/png" },
+      { file: "https://example.com/image.jpg", mimeType: "image/jpeg" },
     ],
-    {
-      required_error: "FIELD_REQUIRED",
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    }
-  ),
-  mimeType: z
-    .string({
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .optional(),
+    description: "Optional attachments to include in the generation",
+  });
+
+const ContextSlugList = z.array(baseString).openapi({
+  example: ["special-docs", "admin-files"],
+  description: "Optional context slugs to add contexts to the run",
+});
+
+const WorkflowSlug = baseString.openapi({
+  example: "my_great_workflow",
+  description:
+    "The slug of the Workflow to use for generation (required if threadId is not provided)",
+  ref: "WorkflowSlug",
 });
 
 const BaseInput = z.object({
-  input: z
-    .string({
-      required_error: "FIELD_REQUIRED",
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .min(1)
-    .openapi({
-      example: "Tell me about renewable energy",
-      description: "The input text to generate a response for",
-    }),
-  attachments: z
-    .array(AttachmentSchema, {
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .optional()
-    .openapi({
-      example: [
-        { file: "file_data", mimeType: "application/pdf" },
-        { file: "image_data", mimeType: "image/png" },
-        { file: "https://example.com/image.jpg" },
-      ],
-      description: "Optional attachments to include in the generation",
-    }),
-  contextSlugs: z
-    .array(
-      z.string({
-        invalid_type_error: "INVALID_TYPE_ERROR",
-      }),
-      {
-        invalid_type_error: "INVALID_TYPE_ERROR",
-      }
-    )
-    .optional()
-    .openapi({
-      example: ["special-docs", "admin-files"],
-      description: "Optional context slugs to add contexts to the run",
-    }),
-  workflowSlug: z
-    .string({
-      invalid_type_error: "INVALID_TYPE_ERROR",
-    })
-    .optional()
-    .openapi({
-      example: "my_great_workflow",
-      description:
-        "The slug of the Workflow to use for generation (required if threadId is not provided)",
-    }),
+  input: baseString.min(1).openapi({
+    example: "Tell me about renewable energy",
+    description: "The input text to generate a response for",
+  }),
+  attachments: AttachmentListSchema.optional(),
+  contextSlugs: ContextSlugList.optional(),
+  workflowSlug: WorkflowSlug,
   threadId: z
     .string({
       required_error: "FIELD_REQUIRED",
@@ -246,44 +246,48 @@ export const StreamEventSchema = z
 
 export type StreamEvent = z.infer<typeof StreamEventSchema>;
 
+const RunMetadataSchema = z
+  .object({
+    runId: z.string().openapi({
+      example: "run_1234567890",
+      description: "The ID of the run created for this generation",
+    }),
+    cost: z.string().openapi({
+      example: "0.001",
+      description: "The cost of the run",
+    }),
+    model: z.object({
+      name: z.string().openapi({
+        example: "gpt-4o",
+        description: "The name of the model used for this generation",
+      }),
+      tag: z.string().openapi({
+        example: "openai:gpt-4o",
+        description: "The tag of the model used for this generation",
+      }),
+    }),
+    durationInMs: z.number().openapi({
+      example: 1000,
+      description: "The duration of the run in milliseconds",
+    }),
+    inputTokens: z.number().openapi({
+      example: 1000,
+      description: "The number of input tokens used for this generation",
+    }),
+    outputTokens: z.number().openapi({
+      example: 1000,
+      description: "The number of output tokens used for this generation",
+    }),
+  })
+  .openapi({ ref: "RunMetadata" });
+
 export const GenerateTextResponseSchema = z
   .object({
     text: z.string().openapi({
       example: "Renewable energy is...",
       description: "The generated output text",
     }),
-    metadata: z.object({
-      runId: z.string().openapi({
-        example: "run_1234567890",
-        description: "The ID of the run created for this generation",
-      }),
-      cost: z.string().openapi({
-        example: "0.001",
-        description: "The cost of the run",
-      }),
-      model: z.object({
-        name: z.string().openapi({
-          example: "gpt-4o",
-          description: "The name of the model used for this generation",
-        }),
-        tag: z.string().openapi({
-          example: "openai:gpt-4o",
-          description: "The tag of the model used for this generation",
-        }),
-      }),
-      durationInMs: z.number().openapi({
-        example: 1000,
-        description: "The duration of the run in milliseconds",
-      }),
-      inputTokens: z.number().openapi({
-        example: 1000,
-        description: "The number of input tokens used for this generation",
-      }),
-      outputTokens: z.number().openapi({
-        example: 1000,
-        description: "The number of output tokens used for this generation",
-      }),
-    }),
+    metadata: RunMetadataSchema,
   })
   .openapi({ ref: "GenerateTextResponse" });
 
@@ -292,38 +296,7 @@ export const GenerateObjectResponseSchema = z
     object: z.record(z.any()).openapi({
       description: "The generated object based on the provided schema",
     }),
-    metadata: z.object({
-      runId: z.string().openapi({
-        example: "run_1234567890",
-        description: "The ID of the run created for this generation",
-      }),
-      cost: z.string().openapi({
-        example: "0.001",
-        description: "The cost of the run",
-      }),
-      model: z.object({
-        name: z.string().openapi({
-          example: "gpt-4o",
-          description: "The name of the model used for this generation",
-        }),
-        tag: z.string().openapi({
-          example: "openai:gpt-4o",
-          description: "The tag of the model used for this generation",
-        }),
-      }),
-      durationInMs: z.number().openapi({
-        example: 1000,
-        description: "The duration of the run in milliseconds",
-      }),
-      inputTokens: z.number().openapi({
-        example: 1000,
-        description: "The number of input tokens used for this generation",
-      }),
-      outputTokens: z.number().openapi({
-        example: 1000,
-        description: "The number of output tokens used for this generation",
-      }),
-    }),
+    metadata: RunMetadataSchema,
   })
   .openapi({ ref: "GenerateObjectResponse" });
 
