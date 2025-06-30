@@ -71,9 +71,9 @@ export const createErrorResponse = (
     case 404: {
       const error: NotFoundAPIError = {
         status: 404,
-        error: "NOT_FOUND",
+        error: "NOT_FOUND_ERROR",
         message: message,
-        documentation: `https://docs.itz.am/api-reference/errors/NOT_FOUND`,
+        documentation: `https://docs.itz.am/api-reference/errors/NOT_FOUND_ERROR`,
         possibleValues: options?.possibleValues || [],
       };
       return error;
