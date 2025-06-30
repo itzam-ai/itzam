@@ -77,7 +77,7 @@ const ThreadId = baseString.openapi({
     "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
 });
 
-const BaseInput = z.object({
+const CompletionInput = z.object({
   input: baseString.min(1).openapi({
     example: "Tell me about renewable energy",
     description: "The input text to generate a response for",
@@ -88,7 +88,7 @@ const BaseInput = z.object({
   threadId: ThreadId.optional(),
 });
 
-export const TextCompletionInputSchema = BaseInput.openapi({
+export const TextCompletionInputSchema = CompletionInput.openapi({
   ref: "TextCompletionInput",
 })
   .refine(
@@ -103,7 +103,7 @@ export const TextCompletionInputSchema = BaseInput.openapi({
     path: ["workflowSlug", "threadId"],
   });
 
-export const ObjectCompletionInputSchema = BaseInput.extend({
+export const ObjectCompletionInputSchema = CompletionInput.extend({
   schema: z
     .custom<NonLiteralJson>(
       (data) => {

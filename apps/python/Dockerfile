@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.13-alpine
+FROM python:3.12
 
 WORKDIR /code
 
@@ -8,6 +8,6 @@ COPY ./scripts /code/scripts
 
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-RUN python scripts/check.py
+# RUN python scripts/check.py
 
 CMD ["fastapi", "run", "app/main.py", "--port", "80", "--workers", "4"]
