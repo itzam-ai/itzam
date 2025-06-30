@@ -40,7 +40,7 @@ const abdulLocalKey =
 const gustavoLocalKey =
   "itzam_1346408f-2401-4fea-8545-bd816776fbc4_i5zgr14rwjru5z2lfv0x6roszruumlht";
 
-const slug = "test-sdks";
+const slug = "test-sdk";
 
 type Metadata = {
   runId: string;
