@@ -178,7 +178,7 @@ export function Hero() {
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-serif font-medium text-3xl md:text-7xl"
+            className="font-serif font-medium text-5xl md:text-7xl"
           >
             Open Source
             <br />
@@ -191,7 +191,7 @@ export function Hero() {
             className="max-w-2xl text-sm md:text-lg text-muted-foreground mt-4"
           >
             Stop wasting time on <span className="text-primary">RAG</span>,{" "}
-            <span className="text-primary">observability</span>, and{" "}
+            <span className="text-primary">o11y</span>, and{" "}
             <span className="text-primary">models</span>.
             <br />
             Manage everything about AI in one place.
@@ -233,7 +233,7 @@ export function Hero() {
 const firstAssistantMessage = "Hey! I'm Acme's support agent! Need help?";
 const firstUserMessage = "I forgot my password and I can't log in.";
 const secondAssistantMessage =
-  "Got it, let me help you! I sent a verification code to your email (paulg@yc.com).";
+  "Got it, let me help you! I sent a verification code to your email (pg@ycombinator.com).";
 
 export function Showcase() {
   const [userInput, setUserInput] = useState("");
@@ -242,7 +242,7 @@ export function Showcase() {
 const response = await itzam.streamText({
   input: "${userInput}",
   contextSlugs: ["support-docs"],
-  threadId: "thr_143627154"
+  threadId: "thr_424242"
 });
   `;
 
@@ -266,9 +266,9 @@ const response = await itzam.streamText({
   }, []);
 
   return (
-    <div className="w-full md:max-w-lg max-w-full ">
+    <div className="w-full md:max-w-lg max-w-full">
       <div className="mx-auto">
-        <div className="dark:bg-card bg-card/70 rounded-3xl border md:ml-10 ml-4 shadow-sm">
+        <div className="dark:bg-card bg-card/70 rounded-3xl border md:ml-10 ml-0 shadow-sm">
           <AcmeFiles />
           <div className="flex gap-4 items-center justify-center">
             <hr className="w-full" />
