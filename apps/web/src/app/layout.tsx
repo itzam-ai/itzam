@@ -5,7 +5,10 @@ import { env } from "@itzam/utils/env";
 import { Provider as JotaiProvider } from "jotai";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 import type { Metadata } from "next";
-import { Figtree as FontSans } from "next/font/google";
+import {
+  Figtree as FontSans,
+  Instrument_Serif as FontSerif,
+} from "next/font/google";
 import { cookies } from "next/headers";
 import { ClientProviders } from "~/app/client-providers";
 import { cn } from "~/lib/utils";
@@ -13,13 +16,13 @@ import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Itzam",
-  description: "npm i itzam",
+  description: "Open Source Backend for AI",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
     title: "Itzam",
-    description: "npm i itzam",
+    description: "Open Source Backend for AI",
     siteName: "Itzam",
     locale: "en_US",
     type: "website",
@@ -28,13 +31,19 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Itzam",
-    description: "npm i itzam",
+    description: "Open Source Backend for AI",
   },
 };
 
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const fontSerif = FontSerif({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 HyperDX.init({
@@ -57,7 +66,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={cn(fontSans.variable)}
+        className={cn(fontSans.variable, fontSerif.variable)}
         style={{
           scrollBehavior: "smooth",
         }}
@@ -71,28 +80,29 @@ export default async function RootLayout({
   );
 }
 
+// Move server actions outside the component
+async function togglePosition() {
+  "use server";
+  const cookieStore = await cookies();
+  const position = cookieStore.get("bike-shedding-disclaimer-position");
+
+  if (position?.value === "bottom") {
+    cookieStore.set("bike-shedding-disclaimer-position", "top");
+  } else {
+    cookieStore.set("bike-shedding-disclaimer-position", "bottom");
+  }
+}
+
+async function dismissDisclaimer() {
+  "use server";
+  const cookieStore = await cookies();
+  cookieStore.set("bike-shedding-disclaimer-tired", "true");
+}
+
 const BikeSheddingDisclaimer = async () => {
   const cookieStore = await cookies();
   const position = cookieStore.get("bike-shedding-disclaimer-position");
   const tiredOfThis = cookieStore.get("bike-shedding-disclaimer-tired");
-
-  async function toggle() {
-    "use server";
-    const cookieStore = await cookies();
-    const position = cookieStore.get("bike-shedding-disclaimer-position");
-
-    if (position?.value === "bottom") {
-      cookieStore.set("bike-shedding-disclaimer-position", "top");
-    } else {
-      cookieStore.set("bike-shedding-disclaimer-position", "bottom");
-    }
-  }
-
-  async function toggleTired() {
-    "use server";
-    const cookieStore = await cookies();
-    cookieStore.set("bike-shedding-disclaimer-tired", "true");
-  }
 
   if (tiredOfThis?.value === "true") {
     return null;
@@ -108,18 +118,22 @@ const BikeSheddingDisclaimer = async () => {
       <p>10x better DX</p>
       <p>we are dead by default</p>
       <div className="flex justify-between mt-4">
-        <button
-          className="hover:opacity-80 transition-opacity duration-300"
-          onClick={toggle}
-        >
-          {position?.value === "bottom" ? <ArrowUp /> : <ArrowDown />}
-        </button>
-        <button
-          className="hover:opacity-80 transition-opacity duration-300"
-          onClick={toggleTired}
-        >
-          <X />
-        </button>
+        <form action={togglePosition}>
+          <button
+            type="submit"
+            className="hover:opacity-80 transition-opacity duration-300"
+          >
+            {position?.value === "bottom" ? <ArrowUp /> : <ArrowDown />}
+          </button>
+        </form>
+        <form action={dismissDisclaimer}>
+          <button
+            type="submit"
+            className="hover:opacity-80 transition-opacity duration-300"
+          >
+            <X />
+          </button>
+        </form>
       </div>
     </div>
   );

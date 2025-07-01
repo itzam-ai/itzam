@@ -8,6 +8,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Figtree", ...fontFamily.sans],
+        serif: ["Instrument Serif", ...fontFamily.serif],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -112,7 +113,8 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.2s ease-in-out",
-        "star-movement-bottom": "star-movement-bottom linear infinite alternate",
+        "star-movement-bottom":
+          "star-movement-bottom linear infinite alternate",
         "star-movement-top": "star-movement-top linear infinite alternate",
       },
     },

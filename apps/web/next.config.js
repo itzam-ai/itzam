@@ -22,7 +22,12 @@ const config = {
   //   defaultLocale: "en",
   // },
   transpilePackages: ["geist"],
-  serverExternalPackages: ["@statsig/statsig-node-core"],
+  serverExternalPackages: [
+    "@statsig/statsig-node-core",
+    "@hyperdx/node-opentelemetry",
+    "@opentelemetry/auto-instrumentations-node",
+    "@opentelemetry/sdk-node",
+  ],
   images: {
     remotePatterns: [
       {
