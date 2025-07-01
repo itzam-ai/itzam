@@ -51,6 +51,7 @@ itzam.thread.create({
 - [ ] UI
 
   - [ ] Async buttons instead of toast (multiple states)
+  - [ ] Improve sidebar (emojis for workflow? separate workflows from other options?)
 
 - [ ] Knowledge
 
