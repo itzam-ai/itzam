@@ -191,7 +191,7 @@ export function Hero() {
             className="max-w-2xl text-sm md:text-lg text-muted-foreground mt-4"
           >
             Stop wasting time on <span className="text-primary">RAG</span>,{" "}
-            <span className="text-primary">o11y</span>, and{" "}
+            <span className="text-primary">observability</span>, and{" "}
             <span className="text-primary">models</span>.
             <br />
             Manage everything about AI in one place.
