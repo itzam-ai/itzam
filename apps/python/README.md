@@ -1,6 +1,57 @@
-# Itzam Processing API
+# Itzam Python Processing Service
 
-A comprehensive FastAPI application that provides document processing, chunking, embedding generation, and storage capabilities with Supabase integration, authentication, and real-time updates.
+This is a FastAPI-based document processing service that handles text extraction, chunking, and embeddings generation.
+
+## Docker Build
+
+### CPU-Only Build (Recommended)
+
+The default Dockerfile uses CPU-only dependencies to avoid GPU compatibility issues:
+
+```bash
+docker build . -f Dockerfile -t itzam-python
+```
+
+This uses `requirements-cpu.txt` which excludes:
+
+- `triton` - GPU acceleration library
+- All `nvidia-*` CUDA dependencies
+- Other GPU-specific packages
+
+### GPU Build (Advanced)
+
+If you need GPU acceleration and have compatible hardware:
+
+```bash
+# Use the original requirements with GPU dependencies
+docker build . -f Dockerfile --build-arg REQUIREMENTS_FILE=requirements.txt -t itzam-python-gpu
+```
+
+## Architecture Compatibility
+
+The CPU-only build works on both:
+
+- ARM64 (Apple Silicon, some cloud providers)
+- AMD64/x86_64 (Intel, most cloud providers)
+
+This eliminates the "exec format error" that occurs when using platform-specific builds.
+
+## Dependencies
+
+The service primarily uses:
+
+- **FastAPI** - Web framework
+- **Docling** - Document processing with VLM image descriptions
+- **Chonkie** - Text chunking and embeddings
+- **Supabase** - Database and storage
+- **OpenAI** - Embeddings generation
+
+## Endpoints
+
+- `GET /` - Health check
+- `POST /api/v1/create-resource` - Process documents with embeddings
+- `GET /health` - Service health status
+- `POST /api/v1/rescrape` - Reprocess existing resources
 
 ## Project Structure
 
@@ -154,194 +205,4 @@ POST /api/v1/create-resource
 
 ```
 POST /api/v1/chunk
-```
-
-**Authentication**: Required  
-**Description**: Process a single resource for chunking and optionally generate embeddings. Equivalent to the TypeScript `chunkTask`.
-
-**Request Body:**
-
-```json
-{
-  "resource": {
-    "url": "https://example.com/document.pdf",
-    "type": "FILE",
-    "mimeType": "application/pdf",
-    "fileName": "document.pdf",
-    "fileSize": 1024000
-  },
-  "generateEmbeddings": true,
-  "saveToSupabase": true,
-  "workflowId": "workflow-456"
-}
-```
-
-**Response:**
-
-```json
-{
-  "chunks": ["chunk1 text...", "chunk2 text..."],
-  "count": 2,
-  "title": "Generated document title",
-  "file_size": 1024000,
-  "saved_to_supabase": true,
-  "chunks_saved": 2,
-  "chunk_ids": ["chunk-uuid1", "chunk-uuid2"]
-}
-```
-
-## Architecture
-
-### Configuration (`app/config.py`)
-
-- Centralized settings management
-- Environment variable handling
-- Health check utilities
-
-### Schemas (`app/schemas.py`)
-
-- Pydantic models for request/response validation
-- Type safety and automatic documentation
-- Alias support for camelCase/snake_case conversion
-
-### Database (`app/database.py`)
-
-- Supabase client management
-- Database operations (CRUD)
-- Real-time channel updates
-
-### Dependencies (`app/dependencies.py`)
-
-- Authentication middleware
-- Dependency injection patterns
-- Security utilities
-
-### Services (`app/services.py`)
-
-- Business logic implementation
-- Document processing workflows
-- Embedding generation and storage
-
-### Routers (`app/routers/`)
-
-- Modular endpoint organization
-- Route-specific logic
-- Clean separation of concerns
-
-## Real-time Updates
-
-The API sends real-time updates via Supabase channels during processing:
-
-**Channel Format**: `knowledge-{knowledgeId}-{files|links}`
-
-**Update Payload**:
-
-```json
-{
-  "status": "PROCESSED",
-  "title": "Document title",
-  "chunks": 15,
-  "file_size": 1024000,
-  "resource_id": "resource-uuid"
-}
-```
-
-## Database Schema
-
-The API interacts with the following Supabase tables:
-
-### Resources Table
-
-```sql
-CREATE TABLE resources (
-  id UUID PRIMARY KEY,
-  type TEXT NOT NULL, -- 'FILE' or 'LINK'
-  url TEXT NOT NULL,
-  fileName TEXT,
-  mimeType TEXT,
-  fileSize INTEGER,
-  title TEXT,
-  status TEXT DEFAULT 'PROCESSING', -- 'PROCESSING', 'PROCESSED', 'FAILED'
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Chunks Table
-
-```sql
-CREATE TABLE chunks (
-  id UUID PRIMARY KEY,
-  content TEXT NOT NULL,
-  embedding VECTOR(1536), -- OpenAI text-embedding-3-small dimension
-  resourceId UUID REFERENCES resources(id),
-  workflowId TEXT,
-  active BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## Interactive Documentation
-
-Once the server is running, you can access:
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-- OpenAPI JSON: `http://localhost:8000/openapi.json`
-
-## Development
-
-### Adding New Endpoints
-
-1. Create a new router in `app/routers/`
-2. Define schemas in `app/schemas.py`
-3. Add business logic to `app/services.py`
-4. Include the router in `app/main.py`
-
-### Testing
-
-```bash
-# Test import structure
-python -c "from app.main import app; print('✅ Structure OK')"
-
-# Test server startup
-uvicorn app.main:app --reload --port 8001
-```
-
-## Error Handling
-
-The API includes comprehensive error handling:
-
-- HTTP 401: Authentication required/failed
-- HTTP 400: Bad request (invalid data, missing parameters, etc.)
-- HTTP 500: Internal server error
-- Detailed error messages in response bodies
-- Proper logging for debugging
-- Real-time error status updates
-
-## Dependencies
-
-- **FastAPI**: Web framework with automatic API documentation
-- **Pydantic**: Data validation and serialization
-- **Chonkie**: Text chunking library
-- **OpenAI**: Embedding generation
-- **Supabase**: Database storage and real-time updates
-- **Requests**: HTTP client for file downloads
-- **Tiktoken**: Tokenization for chunking
-- **python-jose**: JWT token handling
-- **passlib**: Password hashing utilities
-
-## Deployment Notes
-
-For production deployment:
-
-1. Set up proper environment variables
-2. Configure HTTPS for secure token transmission
-3. Set up proper logging and monitoring
-4. Consider rate limiting for API endpoints
-5. Use a production ASGI server like Gunicorn with Uvicorn workers:
-
-```bash
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
 ```

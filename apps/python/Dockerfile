@@ -1,8 +1,8 @@
-FROM --platform=linux/amd64 python:3.12
+FROM python:3.12
 
 WORKDIR /code
 
-COPY ./requirements.txt /code/requirements.txt
+COPY ./requirements-cpu.txt /code/requirements.txt
 COPY ./app /code/app
 COPY ./scripts /code/scripts
 
