@@ -1,11 +1,13 @@
 import type { Attachment, AttachmentWithUrl } from "@itzam/server/ai/types";
 import { createAiParams, processAttachments } from "@itzam/server/ai/utils";
+import { transcribeAudioFromUrl } from "@itzam/server/ai/transcription";
 import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
+import { getSecret } from "@itzam/server/db/supabase/vault";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -39,7 +41,7 @@ export const setupRunGeneration = async ({
   workflowSlug?: string;
   threadId: string | null;
   schema?: NonLiteralJson | null;
-  input: string;
+  input: string | { type: "audio"; url: string } | { type: "text"; text: string };
   attachments?: Attachment[];
   contextSlugs?: string[];
 }) => {
@@ -88,10 +90,44 @@ export const setupRunGeneration = async ({
     return { error: "Workflow not found", status: 404 as StatusCode };
   }
 
+  // Process input based on type
+  let processedInput: string;
+  
+  if (typeof input === 'string') {
+    processedInput = input;
+  } else if (input.type === 'text') {
+    processedInput = input.text;
+  } else if (input.type === 'audio') {
+    // Check for OpenAI key
+    const openaiKey = await getSecret(`${userId}_openai`);
+    if (!openaiKey) {
+      return {
+        error: "OpenAI API key required for audio transcription",
+        status: 400 as StatusCode,
+      };
+    }
+    
+    // Transcribe audio
+    try {
+      processedInput = await transcribeAudioFromUrl(input.url, openaiKey);
+    } catch (error) {
+      return {
+        error: `Audio transcription failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        status: 400 as StatusCode,
+      };
+    }
+  } else {
+    // This should never happen due to schema validation
+    return {
+      error: "Invalid input type",
+      status: 400 as StatusCode,
+    };
+  }
+
   const run: PreRunDetails = {
     id: uuidv7(),
     origin: "SDK" as const,
-    input,
+    input: processedInput,
     prompt: workflow.prompt,
     threadId: threadId || null,
     modelId: workflow.modelId,
@@ -121,7 +157,7 @@ export const setupRunGeneration = async ({
 
   const aiParams = await createAiParams({
     userId,
-    input,
+    input: processedInput,
     prompt: workflow.prompt,
     model: workflow.model,
     // @ts-expect-error TODO: fix typing

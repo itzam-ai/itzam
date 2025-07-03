@@ -77,10 +77,38 @@ const ThreadId = baseString.openapi({
     "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)",
 });
 
+const AudioInput = z.object({
+  type: z.literal("audio"),
+  url: z.string(errConfig).url({
+    message: "Audio URL must be a valid URL",
+  }),
+}).openapi({
+  example: {
+    type: "audio",
+    url: "https://example.com/recording.mp3"
+  },
+  description: "Audio input that will be transcribed"
+});
+
+const TextInput = z.object({
+  type: z.literal("text"),
+  text: baseString.min(1),
+}).openapi({
+  example: {
+    type: "text",
+    text: "Tell me about renewable energy"
+  },
+  description: "Text input"
+});
+
 const CompletionInput = z.object({
-  input: baseString.min(1).openapi({
+  input: z.union([
+    baseString.min(1), // Backward compatibility
+    AudioInput,
+    TextInput,
+  ]).openapi({
     example: "Tell me about renewable energy",
-    description: "The input text to generate a response for",
+    description: "The input - either a text string or an audio/text object",
   }),
   attachments: AttachmentListSchema.optional(),
   contextSlugs: ContextSlugList.optional(),
@@ -92,7 +120,13 @@ export const TextCompletionInputSchema = CompletionInput.openapi({
   ref: "TextCompletionInput",
 })
   .refine(
-    (data) => (data.attachments && data.attachments.length > 0) || data.input,
+    (data) => {
+      const hasAttachments = data.attachments && data.attachments.length > 0;
+      const hasInput = data.input && (
+        typeof data.input === 'string' ? data.input.length > 0 : true
+      );
+      return hasAttachments || hasInput;
+    },
     {
       message: "Attachments or input are required",
       path: ["attachments", "input"],
@@ -163,7 +197,13 @@ export const ObjectCompletionInputSchema = CompletionInput.extend({
     }),
 })
   .refine(
-    (data) => (data.attachments && data.attachments.length > 0) || data.input,
+    (data) => {
+      const hasAttachments = data.attachments && data.attachments.length > 0;
+      const hasInput = data.input && (
+        typeof data.input === 'string' ? data.input.length > 0 : true
+      );
+      return hasAttachments || hasInput;
+    },
     "Attachments or input are required"
   )
   .refine((data) => data.workflowSlug || data.threadId, {
