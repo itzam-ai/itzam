@@ -3,9 +3,7 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "env": [
         "NODE_ENV",
         "ANTHROPIC_API_KEY",
@@ -29,6 +27,7 @@
         "OPENAI_API_KEY",
         "POSTGRES_URL",
         "STRIPE_ITZAM_PRO_PRODUCT_ID",
+        "STRIPE_ITZAM_BASIC_PRODUCT_ID",
         "STRIPE_PUBLISHABLE_KEY",
         "STRIPE_SECRET_KEY",
         "STRIPE_WEBHOOK_SECRET",
@@ -48,20 +47,11 @@
         "OTEL_EXPORTER_OTLP_ENDPOINT",
         "OTEL_SERVICE_NAME"
       ],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "clean": {
       "cache": false
@@ -78,9 +68,7 @@
     "db:sample-data": {},
     "db:studio": {},
     "check-types": {
-      "dependsOn": [
-        "^check-types"
-      ]
+      "dependsOn": ["^check-types"]
     },
     "dev": {
       "cache": false,
