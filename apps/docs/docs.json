@@ -66,6 +66,11 @@
               "sdks/javascript/get-models",
               "sdks/javascript/errors"
             ]
+          },
+          {
+            "group": "Python (Community)",
+            "icon": "python",
+            "pages": ["sdks/python/overview"]
           }
         ]
       },
