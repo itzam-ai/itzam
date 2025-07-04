@@ -1,4 +1,4 @@
-import { customerIsSubscribedToItzamPro } from "@itzam/server/db/billing/actions";
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import { getAvailableModelsWithCost } from "@itzam/server/db/model/actions";
 import {
   getRunsByWorkflowId,
@@ -55,7 +55,7 @@ export default async function RunsTable({
   );
 
   const models = await getAvailableModelsWithCost();
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const totalRuns = await getRunsCount(workflowId, paramsFromQuery);
 
@@ -63,10 +63,7 @@ export default async function RunsTable({
 
   return (
     <div className="space-y-4">
-      <RunFilters
-        models={models}
-        isSubscribedToItzamPro={isSubscribedToItzamPro.isSubscribed}
-      />
+      <RunFilters models={models} plan={plan} />
       {runs.length === 0 ? (
         <div className="rounded-lg border">
           <EmptyStateDetails

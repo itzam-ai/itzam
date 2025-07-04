@@ -7,11 +7,11 @@ import { useRouter } from "next/navigation";
 export function UsagePeriodSelector({
   currentPeriod,
   onPeriodChange,
-  isSubscribedToItzamPro,
+  plan,
 }: {
   currentPeriod: 7 | 30 | 90;
   onPeriodChange: (period: 7 | 30 | 90) => void;
-  isSubscribedToItzamPro: boolean;
+  plan: "hobby" | "basic" | "pro" | null;
 }) {
   const router = useRouter();
 
@@ -41,14 +41,23 @@ export function UsagePeriodSelector({
       </motion.button>
       <motion.button
         key={30}
-        onClick={() => handlePeriodChange("30")}
+        onClick={() => {
+          if (plan === "pro") {
+            handlePeriodChange("30");
+          } else {
+            router.push("/dashboard/settings");
+          }
+        }}
         className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm transition-colors hover:text-primary ${
           30 === currentPeriod
             ? "rounded-md text-foreground"
             : "text-muted-foreground"
         }`}
       >
-        <p className="text-xs">30 days</p>
+        <p className="text-xs flex items-center gap-1">
+          {plan !== "pro" && plan !== "basic" && <Lock className="size-3" />}
+          30 days
+        </p>
         {30 === currentPeriod && (
           <motion.div
             layoutId="underline-settings"
@@ -60,7 +69,7 @@ export function UsagePeriodSelector({
       <motion.button
         key={90}
         onClick={() => {
-          if (isSubscribedToItzamPro) {
+          if (plan === "pro") {
             handlePeriodChange("90");
           } else {
             router.push("/dashboard/settings");
@@ -73,7 +82,7 @@ export function UsagePeriodSelector({
         }`}
       >
         <p className="flex items-center gap-1 text-xs">
-          {!isSubscribedToItzamPro && <Lock className="size-3" />}
+          {plan !== "pro" && <Lock className="size-3" />}
           90 days
         </p>
         {90 === currentPeriod && (

@@ -34,13 +34,13 @@ interface DailyCost {
 
 export function UsageChart({
   initialData,
-  isSubscribedToItzamPro,
+  plan,
   workflows,
   workflowId,
   setWorkflowId,
 }: {
   initialData: DailyCost[];
-  isSubscribedToItzamPro: boolean;
+  plan: "hobby" | "basic" | "pro" | null;
   workflows: UserWorkflow[];
   workflowId: string | null;
   setWorkflowId: (workflowId: string | null) => void;
@@ -144,7 +144,7 @@ export function UsageChart({
         <UsagePeriodSelector
           currentPeriod={period}
           onPeriodChange={(period) => setPeriod(period)}
-          isSubscribedToItzamPro={isSubscribedToItzamPro}
+          plan={plan}
         />
       </div>
       <div className="h-[300px] w-full">

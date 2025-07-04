@@ -1,14 +1,14 @@
 "use client";
 
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import {
   getUsageChartData,
   UsageChartData,
 } from "@itzam/server/db/usage/actions";
-import { customerIsSubscribedToItzamPro } from "@itzam/server/db/billing/actions";
+import { UserWorkflow } from "@itzam/server/db/workflow/actions";
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
 import { UsageChart } from "./usage-chart";
-import { UserWorkflow } from "@itzam/server/db/workflow/actions";
 
 export function UsageChartWrapper({
   workflows,
@@ -17,14 +17,14 @@ export function UsageChartWrapper({
 }) {
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [data, setData] = useState<UsageChartData | null>(null);
-  const [isSubscribedToItzamPro, setIsSubscribedToItzamPro] = useState(false);
+  const [plan, setPlan] = useState<"hobby" | "basic" | "pro" | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getUsageChartData(workflowId);
-      const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+      const { plan } = await getCustomerSubscriptionStatus();
       setData(data);
-      setIsSubscribedToItzamPro(isSubscribedToItzamPro.isSubscribed);
+      setPlan(plan);
     };
 
     fetchData();
@@ -44,7 +44,7 @@ export function UsageChartWrapper({
   return (
     <UsageChart
       initialData={data}
-      isSubscribedToItzamPro={isSubscribedToItzamPro}
+      plan={plan}
       workflows={workflows}
       workflowId={workflowId}
       setWorkflowId={setWorkflowId}

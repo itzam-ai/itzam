@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { proFeatures } from "~/lib/features";
+import { basicFeatures, proFeatures } from "~/lib/features";
 import { formatStripeValue } from "~/lib/utils";
 import { PricingCard } from "../landing/pricing-table";
 import { Button } from "../ui/button";
@@ -13,45 +13,62 @@ import { Card } from "../ui/card";
 import { Switch } from "../ui/switch";
 
 export function Plan({
+  product,
   prices,
 }: {
+  product: {
+    id: string;
+    name: string;
+  };
   prices: {
     id: string;
     lookup_key: string;
     unit_amount: number;
-    monthly_amount: number | null;
   }[];
 }) {
   const router = useRouter();
 
   const monthlyPrice = prices.find(
-    (price) => price.lookup_key === "pro_monthly"
+    (price) =>
+      price.lookup_key === "pro_monthly" || price.lookup_key === "basic_monthly"
   );
 
-  const yearlyPrice = prices.find((price) => price.lookup_key === "pro_yearly");
+  const yearlyPrice = prices.find(
+    (price) =>
+      price.lookup_key === "pro_yearly" || price.lookup_key === "basic_yearly"
+  );
 
   const [currentPrice, setCurrentPrice] = useState(yearlyPrice);
 
   return (
     <Card>
       <PricingCard
-        title="Pro"
-        price={`$${formatStripeValue(currentPrice?.monthly_amount ?? 0)}`}
+        title={product.name.split(" ")[1] ?? "Basic"}
+        price={`$${formatStripeValue(currentPrice?.unit_amount ?? 0)}`}
         priceSuffix="/month"
-        features={proFeatures}
+        features={
+          product.name.split(" ")[1] === "Pro" ? proFeatures : basicFeatures
+        }
         setting={
           <div className="flex items-center gap-3">
             <Switch
-              checked={currentPrice?.lookup_key === "pro_yearly"}
+              checked={
+                currentPrice?.lookup_key === "pro_yearly" ||
+                currentPrice?.lookup_key === "basic_yearly"
+              }
               onCheckedChange={() =>
                 setCurrentPrice(
-                  currentPrice?.lookup_key === "pro_yearly"
+                  currentPrice?.lookup_key === "pro_yearly" ||
+                    currentPrice?.lookup_key === "basic_yearly"
                     ? monthlyPrice
                     : yearlyPrice
                 )
               }
               onClick={(e) => {
-                if (currentPrice?.lookup_key === "pro_monthly") {
+                if (
+                  currentPrice?.lookup_key === "pro_monthly" ||
+                  currentPrice?.lookup_key === "basic_monthly"
+                ) {
                   handleConfetti(e);
                 }
               }}
@@ -81,7 +98,7 @@ export function Plan({
             }}
           >
             Subscribe
-            <ArrowRight className="hidden size-4 md:block" />
+            <ArrowRight className="hidden size-3 md:block" strokeWidth={2.5} />
           </Button>
         }
       />

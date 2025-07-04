@@ -22,6 +22,7 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     STRIPE_ITZAM_PRO_PRODUCT_ID: z.string().min(1),
+    STRIPE_ITZAM_BASIC_PRODUCT_ID: z.string().min(1),
     STATSIG_SERVER_KEY: z.string().min(1),
     STATSIG_CONSOLE_KEY: z.string().min(1),
     ITZAM_API_KEY: z.string().min(1),
@@ -80,6 +81,7 @@ export const env = createEnv({
     RESCRAPE_CRON_SECRET: process.env.RESCRAPE_CRON_SECRET,
     HYPERDX_API_KEY: process.env.HYPERDX_API_KEY,
     OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+    STRIPE_ITZAM_BASIC_PRODUCT_ID: process.env.STRIPE_ITZAM_BASIC_PRODUCT_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

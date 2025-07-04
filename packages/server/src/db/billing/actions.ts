@@ -46,6 +46,42 @@ export const getCurrentUserStripeCustomerId = cache(async () => {
   return { data: String(user.data.user?.user_metadata.stripeCustomerId) };
 });
 
+export const getCustomerSubscriptionStatus = cache(async () => {
+  const user = await getUser();
+
+  if (user.error || !user.data.user) {
+    throw new Error("Failed to get user");
+  }
+
+  if (!user.data.user.user_metadata.stripeCustomerId) {
+    throw new Error("User has no Stripe customer ID");
+  }
+
+  const stripeData = await getStripeData();
+
+  if ("error" in stripeData) {
+    return {
+      isSubscribed: false,
+      plan: null,
+      priceId: null,
+    };
+  }
+
+  if (stripeData.status === "none") {
+    return {
+      isSubscribed: false,
+      plan: null,
+      priceId: null,
+    };
+  }
+
+  return {
+    isSubscribed: stripeData.status === "active",
+    plan: stripeData.plan,
+    priceId: stripeData.priceId,
+  };
+});
+
 export const customerIsSubscribedToItzamPro = cache(async () => {
   const user = await getUser();
 
@@ -79,13 +115,14 @@ export const customerIsSubscribedToItzamPro = cache(async () => {
   };
 });
 
-export const customerIsSubscribedToItzamProForUserId = cache(
+export const getCustomerSubscriptionStatusForUserId = cache(
   async (userId: string) => {
     const stripeData = await getStripeDataForUserId(userId);
 
     if ("error" in stripeData) {
       return {
         isSubscribed: false,
+        plan: null,
         priceId: null,
       };
     }
@@ -93,16 +130,31 @@ export const customerIsSubscribedToItzamProForUserId = cache(
     if (stripeData.status === "none") {
       return {
         isSubscribed: false,
+        plan: null,
         priceId: null,
       };
     }
 
     return {
       isSubscribed: stripeData.status === "active",
+      plan: stripeData.plan,
       priceId: stripeData.priceId,
     };
   }
 );
+
+export const getItzamBasicProduct = cache(async () => {
+  try {
+    const product = await stripe.products.retrieve(
+      env.STRIPE_ITZAM_BASIC_PRODUCT_ID
+    );
+
+    return product;
+  } catch (error) {
+    console.error(error);
+    return { error: "Failed to get Itzam Basic product" };
+  }
+});
 
 export const getItzamProProduct = cache(async () => {
   try {

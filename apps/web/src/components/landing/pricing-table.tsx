@@ -176,7 +176,7 @@ export const PricingCard = ({
 }) => {
   return (
     <div className="z-30 flex flex-col p-6 h-full">
-      <div className="flex h-full flex-col ">
+      <div className="flex h-full flex-col">
         <h2 className={cn(title === "Pro" && "text-orange-500 font-semibold")}>
           {title}
         </h2>

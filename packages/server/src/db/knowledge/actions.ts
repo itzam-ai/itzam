@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import "server-only";
 import { db } from "..";
 import { getUser } from "../auth/actions";
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
+import { getCustomerSubscriptionStatus } from "../billing/actions";
 import { chunks, knowledge, resources, workflows } from "../schema";
 
 export type Knowledge = NonNullable<
@@ -83,7 +83,7 @@ export async function checkPlanLimits(workflowId: string) {
     throw new Error("Workflow not found");
   }
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const totalKnowledgeResourcesSize = workflow.knowledge?.resources.reduce(
     (acc, resource) => acc + (resource.fileSize ?? 0),
@@ -102,10 +102,13 @@ export async function checkPlanLimits(workflowId: string) {
 
   const totalSize = totalKnowledgeResourcesSize + totalContextsResourcesSize;
 
-  // check if the user has reached the limit in this workflow (50MB or 500MB)
-  const maxSize = isSubscribedToItzamPro.isSubscribed
-    ? 500 * 1024 * 1024
-    : 50 * 1024 * 1024;
+  // check if the user has reached the limit in this workflow (5MB, 50MB or 200MB)
+  const maxSize =
+    plan === "pro"
+      ? 200 * 1024 * 1024 // 200MB
+      : plan === "basic"
+        ? 50 * 1024 * 1024 // 50MB
+        : 5 * 1024 * 1024; // 5MB
 
   if (totalSize > maxSize) {
     throw new Error(
@@ -121,11 +124,14 @@ export async function getMaxLimit() {
     throw new Error("User not found");
   }
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
-  const maxSize = isSubscribedToItzamPro.isSubscribed
-    ? 500 * 1024 * 1024
-    : 50 * 1024 * 1024;
+  const maxSize =
+    plan === "pro"
+      ? 200 * 1024 * 1024 // 200MB
+      : plan === "basic"
+        ? 50 * 1024 * 1024 // 50MB
+        : 5 * 1024 * 1024; // 5MB
 
   return maxSize;
 }
