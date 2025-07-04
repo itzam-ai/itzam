@@ -16,7 +16,7 @@ export default function Pricing() {
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-between bg-background px-6 xl:px-0">
       <NavBar />
 
-      <div className="mx-auto w-full max-w-4xl pt-40 pb-32">
+      <div className="mx-auto w-full max-w-5xl pt-40 pb-32">
         <PricingTable isSignedIn={isSignedIn} />
 
         <div className="mt-20 flex flex-col items-center justify-center">
