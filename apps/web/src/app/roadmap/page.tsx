@@ -137,27 +137,15 @@ function Roadmap() {
           </p>
         </div>
 
-        <div className="mt-6 flex flex-col gap-1">
-          <p className="flex items-center gap-2.5 text-lg">
-            <ShieldCheck className="size-4 text-orange-600" />
-            Guardrails
-          </p>
-          <p className="text-muted-foreground">
-            Ship safe and compliant LLM workflows with custom guardrails.
-          </p>
-        </div>
-
         <h2 className="mt-16 text-2xl font-medium">3Q 2025</h2>
 
         <div className="flex flex-col gap-1">
           <p className="mt-6 flex items-center gap-2.5 text-lg">
-            <Ruler className="size-4 text-orange-600" />
-            Rules
+            <Wrench className="size-4 text-orange-600" />
+            Agents (tools)
           </p>
-          <p className="text-muted-foreground">
-            Create and enforce rules in your workflows (e.g. change prompt/model
-            based on input, switch current model based on cost).
-          </p>
+
+          <p className="text-muted-foreground">Add tools to your workflows.</p>
         </div>
 
         <div className="mt-6 flex flex-col gap-1">
@@ -170,6 +158,27 @@ function Roadmap() {
           </p>
         </div>
 
+        <div className="mt-6 flex flex-col gap-1">
+          <p className="flex items-center gap-2.5 text-lg">
+            <ShieldCheck className="size-4 text-orange-600" />
+            Guardrails
+          </p>
+          <p className="text-muted-foreground">
+            Ship safe and compliant LLM workflows with custom guardrails.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <p className="mt-6 flex items-center gap-2.5 text-lg">
+            <Ruler className="size-4 text-orange-600" />
+            Rules
+          </p>
+          <p className="text-muted-foreground">
+            Create and enforce rules in your workflows (e.g. change prompt/model
+            based on input, switch current model based on cost).
+          </p>
+        </div>
+
         <div className="flex flex-col gap-1">
           <p className="mt-6 flex items-center gap-2.5 text-lg">
             <Terminal className="size-4 text-orange-600" />
@@ -179,15 +188,6 @@ function Roadmap() {
           <p className="text-muted-foreground">
             Add support for more languages.
           </p>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <p className="mt-6 flex items-center gap-2.5 text-lg">
-            <Wrench className="size-4 text-orange-600" />
-            Tools
-          </p>
-
-          <p className="text-muted-foreground">Add tools to your workflows.</p>
         </div>
       </div>
     </section>

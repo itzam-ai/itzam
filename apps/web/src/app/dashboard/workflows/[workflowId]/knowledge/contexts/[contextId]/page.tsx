@@ -1,3 +1,4 @@
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import { getContextById } from "@itzam/server/db/contexts/actions";
 import { getMaxLimit } from "@itzam/server/db/knowledge/actions";
 import { ArrowLeftIcon } from "lucide-react";
@@ -16,6 +17,8 @@ export default async function ContextPage({
   const { workflowId, contextId } = await params;
 
   const context = await getContextById(contextId);
+
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const availableStorage = await getMaxLimit();
 
@@ -53,11 +56,13 @@ export default async function ContextPage({
           workflowId={workflowId}
           resources={context.resources}
           contextId={context.id}
+          plan={plan}
         />
         <LinkInput
           workflowId={workflowId}
           resources={context.resources}
           contextId={context.id}
+          plan={plan}
         />
       </div>
     </Card>

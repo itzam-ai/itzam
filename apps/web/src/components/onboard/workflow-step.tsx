@@ -19,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
+import { toast } from "sonner";
 
 export type MiniWorkflow = {
   id: string;
@@ -56,30 +57,36 @@ export const WorkflowDetailsStep = ({
     setIsCreatingWorkflow(true);
     const prompt = await generatePrompt(name, description);
 
-    const workflow = await createWorkflow({
-      name,
-      description,
-      slug,
-      prompt,
-      modelId: selectedModel?.id ?? "",
-    });
-
-    if (workflow && "error" in workflow) {
-      console.error(workflow.error);
-      return;
-    }
-
-    if (workflow) {
-      setWorkflow({
-        id: workflow.id,
-        name: workflow.name,
-        description: workflow.description ?? "",
-        slug: workflow.slug,
-        prompt: workflow.prompt,
-        modelId: workflow.modelId,
+    try {
+      const workflow = await createWorkflow({
+        name,
+        description,
+        slug,
+        prompt,
+        modelId: selectedModel?.id ?? "",
       });
+
+      if (workflow && "error" in workflow) {
+        console.error(workflow.error);
+        return;
+      }
+
+      if (workflow) {
+        setWorkflow({
+          id: workflow.id,
+          name: workflow.name,
+          description: workflow.description ?? "",
+          slug: workflow.slug,
+          prompt: workflow.prompt,
+          modelId: workflow.modelId,
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create workflow");
+    } finally {
+      setIsCreatingWorkflow(false);
     }
-    setIsCreatingWorkflow(false);
   };
 
   useEffect(() => {

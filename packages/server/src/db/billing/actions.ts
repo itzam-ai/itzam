@@ -82,39 +82,6 @@ export const getCustomerSubscriptionStatus = cache(async () => {
   };
 });
 
-export const customerIsSubscribedToItzamPro = cache(async () => {
-  const user = await getUser();
-
-  if (user.error || !user.data.user) {
-    throw new Error("Failed to get user");
-  }
-
-  if (!user.data.user.user_metadata.stripeCustomerId) {
-    throw new Error("User has no Stripe customer ID");
-  }
-
-  const stripeData = await getStripeData();
-
-  if ("error" in stripeData) {
-    return {
-      isSubscribed: false,
-      priceId: null,
-    };
-  }
-
-  if (stripeData.status === "none") {
-    return {
-      isSubscribed: false,
-      priceId: null,
-    };
-  }
-
-  return {
-    isSubscribed: stripeData.status === "active",
-    priceId: stripeData.priceId,
-  };
-});
-
 export const getCustomerSubscriptionStatusForUserId = cache(
   async (userId: string) => {
     const stripeData = await getStripeDataForUserId(userId);

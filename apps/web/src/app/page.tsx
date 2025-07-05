@@ -1,6 +1,6 @@
 "use client";
 
-import { Blocks, Bot, Code, CreditCard, Wallet } from "lucide-react";
+import { Blocks, Bot, Code, Wallet } from "lucide-react";
 import { CTA } from "~/components/landing/cta";
 import { EasySDKAPI } from "~/components/landing/easy-sdk-api";
 import { Feature } from "~/components/landing/feature";
@@ -10,12 +10,10 @@ import { Hero } from "~/components/landing/hero";
 import { ModelHotSwap } from "~/components/landing/model-hot-swap";
 import { NavBar } from "~/components/landing/navbar";
 import { PlaygroundCard } from "~/components/landing/playground";
-import { PricingTable } from "~/components/landing/pricing-table";
 import { Providers } from "~/components/landing/providers";
 import { UnifiedBillingCard } from "~/components/landing/unified-billing";
-import { useCurrentUser } from "~/hooks/useCurrentUser";
 export default function Home() {
-  const { isSignedIn } = useCurrentUser();
+  // const { isSignedIn } = useCurrentUser();
 
   return (
     <div className="mx-auto min-h-screen bg-background px-6 xl:px-0">
@@ -68,7 +66,7 @@ export default function Home() {
           />
         </section>
         {/* Pricing Section */}
-        <section id="pricing" className="border-t pt-24">
+        {/* <section id="pricing" className="border-t pt-24">
           <Feature
             icon={CreditCard}
             title="Free to start"
@@ -76,7 +74,7 @@ export default function Home() {
             description="Powerful features, no hidden costs."
             component={<PricingTable isSignedIn={isSignedIn} />}
           />
-        </section>
+        </section> */}
 
         {/* CTA */}
         <section id="cta" className="md:pt-24 pt-0 pb-16 md:pb-24">

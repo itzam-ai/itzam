@@ -15,10 +15,18 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { CreateWorkflowDialog } from "~/components/workflows/create-workflow-dialog";
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 
 export default async function WorkflowsPage() {
   const workflows = await getUserWorkflows();
   const models = await getAvailableModelsBasedOnUserKeys();
+
+  const { plan } = await getCustomerSubscriptionStatus();
+
+  const maxWorkflows = plan === "pro" ? 9999999 : plan === "basic" ? 10 : 2;
+
+  const userHasReachedMaxWorkflows =
+    workflows.data && workflows.data.length >= maxWorkflows;
 
   const userHasNoModelAvailable = models.length === 0;
 
@@ -51,6 +59,19 @@ export default async function WorkflowsPage() {
           </CreateWorkflowDialog>
         </div>
       </div>
+
+      {userHasReachedMaxWorkflows && (
+        <div className="flex items-center justify-center bg-yellow-500/10 border border-yellow-500/20 rounded-md p-4">
+          <p className="text-sm flex items-center gap-2">
+            You have reached the maximum number of workflows.
+            <Link href="/dashboard/settings">
+              <Button size="xs" variant="primary">
+                Upgrade
+              </Button>
+            </Link>
+          </p>
+        </div>
+      )}
 
       {workflows.error || workflows.data.length === 0 ? (
         <WorkflowsEmptyState

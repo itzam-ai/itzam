@@ -70,7 +70,7 @@ export async function createResourceAndSendoToAPI({
   }
 
   // check plan limits
-  await checkPlanLimits(workflowId);
+  await checkPlanLimits(workflowId, resources);
 
   // create resources in the database
   const createdResources = await db
@@ -98,7 +98,7 @@ export async function createResourceAndSendoToAPI({
       },
       body: JSON.stringify({
         knowledgeId,
-        contextId, // TODO: Add this to the python API and check if it's a knowledge or context to create the resources and send the updates to the correct channel
+        contextId,
         resources: resourcesToSend,
         userId: user.data.user.id,
         workflowId,

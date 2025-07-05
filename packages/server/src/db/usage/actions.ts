@@ -11,8 +11,8 @@ import Decimal from "decimal.js";
 import { and, eq, gte, lt } from "drizzle-orm";
 import { db } from "..";
 import { getUser } from "../auth/actions";
+import { getCustomerSubscriptionStatus } from "../billing/actions";
 import { models, providers, runs, workflows } from "../schema";
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
 
 interface DailyCost {
   date: string;
@@ -159,8 +159,8 @@ export async function getUsageChartData(workflowId: string | null) {
     return { error: "Failed to get user" };
   }
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
-  const maxPeriod = isSubscribedToItzamPro.isSubscribed ? 90 : 30;
+  const { plan } = await getCustomerSubscriptionStatus();
+  const maxPeriod = plan === "pro" ? 90 : plan === "basic" ? 30 : 7;
 
   const today = startOfDay(new Date());
   const startDate = subDays(today, maxPeriod);

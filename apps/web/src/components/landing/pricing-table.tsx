@@ -50,7 +50,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
                 href={`${isSignedIn ? "/dashboard" : "/auth/login"}`}
                 className="block w-full"
               >
-                <Button variant="primary" className="w-full" size="sm">
+                <Button variant="secondary" className="w-full" size="sm">
                   Start Building
                   <ArrowRight className="hidden size-4 md:block" />
                 </Button>
@@ -85,7 +85,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
                 href={`${isSignedIn ? "/dashboard/settings" : "/auth/login"}`}
                 className="w-full"
               >
-                <Button variant="primary" className="w-full" size="sm">
+                <Button variant="secondary" className="w-full" size="sm">
                   Start Building
                   <ArrowRight className="hidden size-4 md:block" />
                 </Button>
@@ -195,11 +195,11 @@ export const PricingCard = ({
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`flex items-center gap-2.5 ${
+              className={`flex items-start gap-2.5 ${
                 feature.icon ? "ml-1" : ""
               }`}
             >
-              {feature.icon && <feature.icon className="size-3.5" />}
+              {feature.icon && <feature.icon className="size-3.5 mt-0.5" />}
               <p className="text-neutral-500 text-sm">{feature.text}</p>
             </div>
           ))}

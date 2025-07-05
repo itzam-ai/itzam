@@ -62,11 +62,13 @@ export const FileInput = ({
   resources,
   knowledgeId,
   contextId,
+  plan,
 }: {
   workflowId: string;
   resources: Knowledge["resources"];
   knowledgeId?: string;
   contextId?: string;
+  plan: "hobby" | "basic" | "pro" | null;
 }) => {
   const [workflowFiles, setWorkflowFiles] = useState<
     (Knowledge["resources"][number] & {
@@ -192,6 +194,12 @@ export const FileInput = ({
     } catch (error) {
       console.error(error);
       toast.error((error as Error).message);
+      // remove the files from the workflow files
+      setWorkflowFiles((prevFiles) =>
+        prevFiles.filter(
+          (file) => !resourcesToAdd.some((f) => f.id === file.id)
+        )
+      );
     }
 
     setFiles([]);
@@ -395,6 +403,7 @@ export const FileInput = ({
                 key={resource.id}
                 resource={resource}
                 onDelete={handleDelete}
+                plan={plan}
               />
             ))}
           </motion.div>
