@@ -1,10 +1,10 @@
 # Using pgvector 0.4.1
 from typing import Any, List, Optional
 
-from pgvector.sqlalchemy.vector import VECTOR # type: ignore
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Computed, DateTime, Double, Enum, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, SmallInteger, String, Table, Text, UniqueConstraint, Uuid, text # type: ignore
-from sqlalchemy.dialects.postgresql import JSONB, OID # type: ignore
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship # type: ignore    
+from pgvector.sqlalchemy.vector import VECTOR
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Column, Computed, DateTime, Double, Enum, ForeignKeyConstraint, Index, Integer, Numeric, PrimaryKeyConstraint, SmallInteger, String, Table, Text, UniqueConstraint, Uuid, text
+from sqlalchemy.dialects.postgresql import JSONB, OID
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
 import decimal
 import uuid
@@ -380,8 +380,8 @@ class Context(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
     name: Mapped[str] = mapped_column(String(256))
     slug: Mapped[str] = mapped_column(String(256))
-    workflow_id: Mapped[str] = mapped_column(String(256))
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text('true'))
+    workflow_id: Mapped[str] = mapped_column(String(256))
     description: Mapped[Optional[str]] = mapped_column(Text)
 
     workflow: Mapped['Workflow'] = relationship('Workflow', back_populates='context')
@@ -446,16 +446,16 @@ class Resource(Base):
     mime_type: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(True), server_default=text('CURRENT_TIMESTAMP'))
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(True))
-    total_chunks: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     scrape_frequency: Mapped[str] = mapped_column(Enum('NEVER', 'HOURLY', 'DAILY', 'WEEKLY', name='resource_scrape_frequency'), server_default=text("'NEVER'::resource_scrape_frequency"))
+    total_chunks: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     total_batches: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     processed_batches: Mapped[int] = mapped_column(Integer, server_default=text('0'))
     title: Mapped[Optional[str]] = mapped_column(String(256))
     file_name: Mapped[Optional[str]] = mapped_column(String(256))
     file_size: Mapped[Optional[int]] = mapped_column(Integer)
     knowledge_id: Mapped[Optional[str]] = mapped_column(String(256))
-    last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     content_hash: Mapped[Optional[str]] = mapped_column(String(256))
+    last_scraped_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime(True))
     context_id: Mapped[Optional[str]] = mapped_column(String(256))
 
     context: Mapped[Optional['Context']] = relationship('Context', back_populates='resource')

@@ -20,11 +20,7 @@ export default function RunPagination({ totalPages }: { totalPages: number }) {
           Previous
         </Button>
       ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPage(page - 1)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setPage(page - 1)}>
           Previous
         </Button>
       )}
@@ -38,11 +34,7 @@ export default function RunPagination({ totalPages }: { totalPages: number }) {
           Next
         </Button>
       ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setPage(page + 1)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setPage(page + 1)}>
           Next
         </Button>
       )}

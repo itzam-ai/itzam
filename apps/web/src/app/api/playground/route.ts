@@ -9,7 +9,7 @@ import { v7 as uuidv7 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, prompt, modelId, workflowId, userId, contextSlugs } =
+    const { input, prompt, modelId, workflowId, userId, contextSlugs, threadId } =
       await request.json();
 
     if (!input || !prompt || !userId || !workflowId) {
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       origin: "WEB" as const,
       input,
       prompt,
-      threadId: null,
+      threadId: threadId || null,
       modelId: modelId,
       workflowId: workflowId,
       resourceIds: [],
