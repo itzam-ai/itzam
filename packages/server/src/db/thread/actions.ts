@@ -243,7 +243,7 @@ export async function createThread({
     return null;
   }
 
-  if (lookupKeys) {
+  if (lookupKeys && lookupKeys.length > 0) {
     await db.insert(threadLookupKeys).values(
       lookupKeys.map((key) => ({
         id: `thread_lookup_key_${v7()}`,

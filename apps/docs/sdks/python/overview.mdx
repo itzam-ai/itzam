@@ -1,0 +1,118 @@
+---
+title: "Overview"
+description: "The Python SDK for Itzam (community)."
+keywords: ["Python", "SDK", "overview"]
+---
+
+<Note>
+  This SDK is a community-maintained SDK for Itzam. It is not officially
+  maintained by Itzam.
+
+Thank you to [@joaquimcassano](https://x.com/joaquimcassano) for creating
+this SDK.
+
+</Note>
+
+## Installation
+
+```bash
+pip install itzam
+```
+
+## Quick Start
+
+```python
+from itzam import Itzam
+
+client = Itzam("your-api-key")
+
+response = client.text.generate(
+  workflow_slug="your_workflow_slug",
+  input="Hello, Itzam!",
+  stream=False
+)
+
+print(response.text)
+```
+
+## Authentication
+
+You can provide your API key directly or set it as an environment variable:
+
+```python
+export ITZAM_API_KEY=your-api-key
+```
+
+Then initialize without arguments:
+
+```python
+from itzam import Itzam
+
+client = Itzam()
+```
+
+## Usage Examples
+
+### Generate Text
+
+```python
+response = client.text.generate(
+  workflow_slug="your_workflow_slug",
+  input="Write a poem about the sea."
+)
+
+print(response.text)
+```
+
+#### Stream Text Generation
+
+```python
+for delta in client.text.generate(
+  workflow_slug="your_workflow_slug",
+  input="Tell me a story.",
+  stream=True
+):
+
+print(delta, end="", flush=True)
+```
+
+#### List Models
+
+```python
+models = client.models.list()
+
+for model in models:
+    print(model.name, model.tag)
+```
+
+#### Create a Thread
+
+```python
+thread = client.threads.create(
+  workflow_slug="your_workflow_slug",
+  name="Support Conversation"
+)
+
+print(thread.id)
+```
+
+#### Get a Run
+
+```python
+run = client.runs.get("run_id")
+
+print(run.output)
+```
+
+#### Advanced
+
+You can specify a custom API base URL if needed:
+
+```python
+client = Itzam(api_key="your-api-key", base_url="https://itz.am")
+```
+
+## Links
+
+- [GitHub Repository](https://github.com/JoaquimCassano/itzam-python-sdk)
+- [PyPI Package](https://pypi.org/project/itzam/)

@@ -271,9 +271,9 @@ const response = await itzam.streamText({
         <div className="dark:bg-card bg-card/70 rounded-3xl border md:ml-10 ml-0 shadow-sm">
           <AcmeFiles />
           <div className="flex gap-4 items-center justify-center">
-            <hr className="w-full" />
-            <ArrowDown className="size-4 min-w-3" />
-            <hr className="w-full" />
+            <hr className="w-full border-dashed" />
+            <ArrowDown className="size-4 min-w-3 text-orange-600" />
+            <hr className="w-full border-dashed" />
           </div>
 
           <CodeBlockCode
@@ -286,9 +286,9 @@ const response = await itzam.streamText({
             theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
           />
           <div className="flex gap-4 items-center justify-center">
-            <hr className="w-full" />
-            <ArrowDown className="size-4 min-w-3" />
-            <hr className="w-full" />
+            <hr className="w-full border-dashed" />
+            <ArrowDown className="size-4 min-w-3 text-orange-600" />
+            <hr className="w-full border-dashed" />
           </div>
           <div className="p-6">
             <h2 className="font-medium flex items-center gap-1.5">
