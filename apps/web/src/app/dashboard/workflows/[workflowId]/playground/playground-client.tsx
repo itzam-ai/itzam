@@ -1,15 +1,17 @@
 "use client";
 
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
-import { AnimatePresence } from "framer-motion";
-import { CheckIcon, FileIcon, GlobeIcon, PlusIcon } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckIcon, FileIcon, GlobeIcon, PlusIcon, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import ChangeModel from "~/components/playground/change-model";
 import { DetailsCard } from "~/components/playground/details-card";
 import { ResponseCard } from "~/components/playground/response-card";
 import { SyncChangesToWorkflow } from "~/components/playground/sync-changes-to-workflow";
+import { ModeToggle } from "~/components/playground/mode-toggle";
+import { ThreadMessages, type Message } from "~/components/playground/thread-messages";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -17,6 +19,8 @@ import { Textarea } from "~/components/ui/textarea";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import { cn } from "~/lib/utils";
 import type { Workflow } from "~/lib/workflows";
+import { v4 as uuidv4 } from "uuid";
+import { useThread } from "~/hooks/use-thread";
 
 // Type for the metadata returned by the stream
 type StreamMetadata = {
@@ -55,6 +59,16 @@ export default function PlaygroundClient({
     workflow?.model || null
   );
   const [metadata, setMetadata] = useState<StreamMetadata | null>(null);
+  
+  // Thread mode states
+  const [mode, setMode] = useState<"single" | "thread">("single");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [streamingContent, setStreamingContent] = useState<string>("");
+  
+  // Use thread hook
+  const { threadId, setThreadId, createThread } = useThread({
+    workflowSlug: workflow.slug,
+  });
 
   const modelChanged = model?.id !== selectedWorkflow?.model?.id;
   const promptChanged = prompt !== selectedWorkflow?.prompt;
@@ -71,6 +85,24 @@ export default function PlaygroundClient({
 
   console.log(workflow);
 
+  const handleModeChange = useCallback((newMode: "single" | "thread") => {
+    setMode(newMode);
+    if (newMode === "single") {
+      // Reset to single mode
+      setThreadId(null);
+      setMessages([]);
+      setStreamingContent("");
+    }
+  }, [setThreadId]);
+
+  const handleNewThread = useCallback(() => {
+    setThreadId(null);
+    setMessages([]);
+    setStreamingContent("");
+    setOutput("");
+    setMetadata(null);
+  }, [setThreadId]);
+
   const handleSubmit = async () => {
     if (!selectedWorkflow || !input.trim()) {
       return;
@@ -78,8 +110,32 @@ export default function PlaygroundClient({
 
     setIsPending(true);
     setStreamStatus(null);
-    setOutput("");
-    setMetadata(null);
+    
+    let currentThreadId = threadId;
+    
+    if (mode === "single") {
+      setOutput("");
+      setMetadata(null);
+    } else {
+      // Create thread if it doesn't exist
+      if (!currentThreadId) {
+        currentThreadId = await createThread();
+        if (!currentThreadId) {
+          setIsPending(false);
+          return;
+        }
+      }
+      
+      // Add user message to thread
+      const userMessage: Message = {
+        id: uuidv4(),
+        role: "user",
+        content: input,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      setStreamingContent("");
+    }
 
     try {
       const response = await fetch(`/api/playground`, {
@@ -94,6 +150,7 @@ export default function PlaygroundClient({
           workflowId: selectedWorkflow.id,
           userId: userId,
           contextSlugs: contexts,
+          threadId: mode === "thread" ? currentThreadId : null,
         }),
       });
 
@@ -107,6 +164,7 @@ export default function PlaygroundClient({
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
+      let fullContent = "";
 
       while (reader) {
         const { done, value } = await reader.read();
@@ -133,7 +191,9 @@ export default function PlaygroundClient({
         if (errorMatch && errorMatch[1]) {
           console.error("Error during streaming:", errorMatch[1]);
           setStreamStatus("error");
-          setOutput(errorMatch[1]);
+          if (mode === "single") {
+            setOutput(errorMatch[1]);
+          }
           setIsPending(false);
           return;
         }
@@ -141,15 +201,38 @@ export default function PlaygroundClient({
         // Filter out metadata comments and only append actual text content
         const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
         if (cleanText) {
-          setOutput((prev) => prev + cleanText);
+          fullContent += cleanText;
+          if (mode === "single") {
+            setOutput((prev) => prev + cleanText);
+          } else {
+            setStreamingContent((prev) => prev + cleanText);
+          }
         }
       }
 
       setIsPending(false);
       setStreamStatus("completed");
+      
+      // In thread mode, add the assistant message once streaming is complete
+      if (mode === "thread" && fullContent) {
+        const assistantMessage: Message = {
+          id: uuidv4(),
+          role: "assistant",
+          content: fullContent,
+          timestamp: new Date(),
+          model: model || undefined,
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        setStreamingContent("");
+        setInput(""); // Clear input for next message
+      }
     } catch (error) {
       console.error("Error generating content:", error);
-      setOutput("");
+      if (mode === "single") {
+        setOutput("");
+      } else {
+        setStreamingContent("");
+      }
       setIsPending(false);
       setStreamStatus("error");
     }
@@ -164,16 +247,33 @@ export default function PlaygroundClient({
   });
 
   return (
-    <Card className="grid grid-cols-3 gap-8 p-6">
-      <div className="flex h-full flex-col gap-8">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label
-              htmlFor="model"
-              className="text-muted-foreground text-sm font-normal ml-0.5"
-            >
-              Model
-            </Label>
+    <Card className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-semibold">Playground</h2>
+        <ModeToggle mode={mode} onModeChange={handleModeChange} />
+      </div>
+      
+      <motion.div
+        layout
+        className={cn(
+          "grid gap-8",
+          mode === "single" ? "grid-cols-3" : "grid-cols-2"
+        )}
+        transition={{
+          type: "spring",
+          stiffness: 300,
+          damping: 30,
+        }}
+      >
+        <div className="flex h-full flex-col gap-8">
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label
+                htmlFor="model"
+                className="text-muted-foreground text-sm font-normal ml-0.5"
+              >
+                Model
+              </Label>
             {models.length === 0 ? (
               <div className="flex flex-col gap-2">
                 <p className="font-medium text-sm">
@@ -361,15 +461,56 @@ export default function PlaygroundClient({
         </div>
       </div>
 
-      <div className="flex h-full flex-col gap-6 col-span-2">
-        <DetailsCard metadata={metadata} />
-        <ResponseCard
-          output={output}
-          model={model ?? models[0]!}
-          isLoading={isPending}
-          streamStatus={streamStatus}
-        />
+      <div className={cn(
+        "flex h-full flex-col gap-6",
+        mode === "single" ? "col-span-2" : ""
+      )}>
+        {mode === "single" ? (
+          <>
+            <DetailsCard metadata={metadata} />
+            <ResponseCard
+              output={output}
+              model={model ?? models[0]!}
+              isLoading={isPending}
+              streamStatus={streamStatus}
+            />
+          </>
+        ) : (
+          <motion.div
+            layout
+            className="flex flex-col h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {threadId && (
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm text-muted-foreground">
+                  Thread: {threadId.slice(0, 8)}...
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleNewThread}
+                  className="gap-2"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  New Thread
+                </Button>
+              </div>
+            )}
+            <Card className="flex-1 overflow-hidden">
+              <ThreadMessages
+                messages={messages}
+                currentModel={model}
+                isLoading={isPending}
+                streamingContent={streamingContent}
+              />
+            </Card>
+          </motion.div>
+        )}
       </div>
+      </motion.div>
     </Card>
   );
 }
