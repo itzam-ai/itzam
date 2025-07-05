@@ -22,7 +22,7 @@ export function useThread({ workflowSlug, contextSlugs = [] }: ThreadHookProps) 
         body: JSON.stringify({
           workflowSlug,
           name: name || `Thread ${new Date().toLocaleString()}`,
-          lookupKeys: undefined,
+          lookupKeys: ["playground"],
           contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
         }),
       });

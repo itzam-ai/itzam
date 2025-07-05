@@ -121,39 +121,15 @@ export default function PlaygroundClient({
     }
   }, [setThreadId, createThread]);
 
-  const handleSubmit = async () => {
+  const handleSingleSubmit = async () => {
     if (!selectedWorkflow || !input.trim()) {
       return;
     }
 
     setIsPending(true);
     setStreamStatus(null);
-
-    let currentThreadId = threadId;
-
-    if (mode === "single") {
-      setOutput("");
-      setMetadata(null);
-    } else {
-      // Create thread if it doesn't exist
-      if (!currentThreadId) {
-        currentThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
-        if (!currentThreadId) {
-          setIsPending(false);
-          return;
-        }
-      }
-
-      // Add user message to thread
-      const userMessage: Message = {
-        id: uuidv4(),
-        role: "user",
-        content: input,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      setStreamingContent("");
-    }
+    setOutput("");
+    setMetadata(null);
 
     try {
       const response = await fetch("/api/playground", {
@@ -168,7 +144,110 @@ export default function PlaygroundClient({
           workflowId: selectedWorkflow.id,
           userId: userId,
           contextSlugs: contexts,
-          threadId: mode === "thread" ? currentThreadId : null,
+          threadId: null,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to generate content", response);
+        throw new Error("Failed to generate content");
+      }
+
+      setStreamStatus("loading");
+      setStreamStatus("streaming");
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value, { stream: true });
+
+        // Check if this chunk contains metadata
+        const metadataMatch = text.match(/<!-- METADATA: (.*?) -->/);
+        if (metadataMatch && metadataMatch[1]) {
+          try {
+            const parsedMetadata = JSON.parse(
+              metadataMatch[1]
+            ) as StreamMetadata;
+            setMetadata(parsedMetadata);
+          } catch (error) {
+            console.error("Error parsing metadata:", error);
+          }
+        }
+
+        // error handling
+        const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
+        if (errorMatch && errorMatch[1]) {
+          console.error("Error during streaming:", errorMatch[1]);
+          setStreamStatus("error");
+          setOutput(errorMatch[1]);
+          setIsPending(false);
+          return;
+        }
+
+        // Filter out metadata comments and only append actual text content
+        const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
+        if (cleanText) {
+          setOutput((prev) => prev + cleanText);
+        }
+      }
+
+      setIsPending(false);
+      setStreamStatus("completed");
+    } catch (error) {
+      console.error("Error generating content:", error);
+      setOutput("");
+      setIsPending(false);
+      setStreamStatus("error");
+    }
+  };
+
+  const handleThreadedSubmit = async () => {
+    if (!selectedWorkflow || !input.trim()) {
+      return;
+    }
+
+    setIsPending(true);
+    setStreamStatus(null);
+
+    let currentThreadId = threadId;
+
+    // Create thread if it doesn't exist
+    if (!currentThreadId) {
+      currentThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
+      if (!currentThreadId) {
+        setIsPending(false);
+        return;
+      }
+    }
+
+    // Add user message to thread
+    const userMessage: Message = {
+      id: uuidv4(),
+      role: "user",
+      content: input,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setStreamingContent("");
+
+    try {
+      const response = await fetch("/api/playground", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input,
+          prompt,
+          modelId: model?.id,
+          workflowId: selectedWorkflow.id,
+          userId: userId,
+          contextSlugs: contexts,
+          threadId: currentThreadId,
         }),
       });
 
@@ -205,13 +284,9 @@ export default function PlaygroundClient({
 
         // error handling
         const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
-
         if (errorMatch && errorMatch[1]) {
           console.error("Error during streaming:", errorMatch[1]);
           setStreamStatus("error");
-          if (mode === "single") {
-            setOutput(errorMatch[1]);
-          }
           setIsPending(false);
           return;
         }
@@ -220,19 +295,15 @@ export default function PlaygroundClient({
         const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
         if (cleanText) {
           fullContent += cleanText;
-          if (mode === "single") {
-            setOutput((prev) => prev + cleanText);
-          } else {
-            setStreamingContent((prev) => prev + cleanText);
-          }
+          setStreamingContent((prev) => prev + cleanText);
         }
       }
 
       setIsPending(false);
       setStreamStatus("completed");
 
-      // In thread mode, add the assistant message once streaming is complete
-      if (mode === "thread" && fullContent) {
+      // Add the assistant message once streaming is complete
+      if (fullContent) {
         const assistantMessage: Message = {
           id: uuidv4(),
           role: "assistant",
@@ -246,13 +317,17 @@ export default function PlaygroundClient({
       }
     } catch (error) {
       console.error("Error generating content:", error);
-      if (mode === "single") {
-        setOutput("");
-      } else {
-        setStreamingContent("");
-      }
+      setStreamingContent("");
       setIsPending(false);
       setStreamStatus("error");
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (mode === "single") {
+      await handleSingleSubmit();
+    } else {
+      await handleThreadedSubmit();
     }
   };
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { MessageSquare, MessageSquarePlus } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { MessageSquare, MessagesSquareIcon } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { cn } from "~/lib/utils";
 
 interface ModeToggleProps {
@@ -12,31 +12,27 @@ interface ModeToggleProps {
 
 export function ModeToggle({ mode, onModeChange, className }: ModeToggleProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1 p-1 rounded-lg bg-muted/30",
-        className
-      )}
+    <Tabs
+      value={mode}
+      onValueChange={(value) => onModeChange(value as "single" | "thread")}
+      className={cn("", className)}
     >
-      <Button
-        size="sm"
-        variant={mode === "single" ? "secondary" : "ghost"}
-        onClick={() => onModeChange("single")}
-        className="relative"
-      >
-        <MessageSquare className="h-4 w-4" />
-        <span>Single</span>
-      </Button>
-
-      <Button
-        size="sm"
-        variant={mode === "thread" ? "secondary" : "ghost"}
-        onClick={() => onModeChange("thread")}
-        className="relative"
-      >
-        <MessageSquarePlus className="h-4 w-4" />
-        <span>Thread</span>
-      </Button>
-    </div>
+      <TabsList className="h-9 p-1">
+        <TabsTrigger
+          value="single"
+          className="gap-1 data-[state=active]:bg-background"
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Single</span>
+        </TabsTrigger>
+        <TabsTrigger
+          value="thread"
+          className="gap-1 data-[state=active]:bg-background"
+        >
+          <MessagesSquareIcon className="h-4 w-4" />
+          <span>Thread</span>
+        </TabsTrigger>
+      </TabsList>
+    </Tabs>
   );
 }
