@@ -65,9 +65,6 @@ export function ThreadMessages({
                   <div className="bg-muted text-foreground rounded-full px-4 py-2">
                     <p className="text-sm">{message.content}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
                 </motion.div>
               </div>
             ) : (
