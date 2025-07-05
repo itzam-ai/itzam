@@ -4,32 +4,26 @@ import { useState, useCallback } from "react";
 
 interface ThreadHookProps {
   workflowSlug: string;
-  apiKey?: string;
+  contextSlugs?: string[];
 }
 
-export function useThread({ workflowSlug, apiKey }: ThreadHookProps) {
+export function useThread({ workflowSlug, contextSlugs = [] }: ThreadHookProps) {
   const [threadId, setThreadId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
   const createThread = useCallback(async (name?: string) => {
-    if (!apiKey) {
-      console.error("API key is required to create threads");
-      return null;
-    }
-
     setIsCreating(true);
     try {
-      const response = await fetch("/api/v1/threads", {
+      const response = await fetch("/api/threads", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Api-Key": apiKey,
         },
         body: JSON.stringify({
           workflowSlug,
           name: name || `Thread ${new Date().toLocaleString()}`,
-          lookupKeys: [],
-          contextSlugs: [],
+          lookupKeys: undefined,
+          contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
         }),
       });
 
@@ -46,7 +40,7 @@ export function useThread({ workflowSlug, apiKey }: ThreadHookProps) {
     } finally {
       setIsCreating(false);
     }
-  }, [workflowSlug, apiKey]);
+  }, [workflowSlug, contextSlugs]);
 
   return {
     threadId,
