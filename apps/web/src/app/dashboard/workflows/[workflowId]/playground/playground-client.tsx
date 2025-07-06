@@ -25,6 +25,11 @@ import {
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "~/components/ui/resizable";
 import { Textarea } from "~/components/ui/textarea";
 import { useThread } from "~/hooks/use-thread";
 import { useKeyboardShortcut } from "~/lib/shortcut";
@@ -370,20 +375,9 @@ export default function PlaygroundClient({
         </div>
       </div>
 
-      <motion.div
-        layout
-        className={cn(
-          "grid gap-8 flex-1 overflow-hidden",
-          mode === "single" ? "grid-cols-3" : "grid-cols-2"
-        )}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-        }}
-      >
-        <div className="flex flex-col gap-8 overflow-y-auto">
-          <div className="space-y-6">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={40} minSize={30}>
+          <div className="flex flex-col gap-6 h-full overflow-hidden pr-4">
             <div className="space-y-2">
               <Label
                 htmlFor="model"
@@ -413,209 +407,220 @@ export default function PlaygroundClient({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="prompt"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                System Prompt
-              </Label>
-              <Textarea
-                id="prompt"
-                placeholder="Enter your prompt here..."
-                value={prompt}
-                className="min-h-[200px]"
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="contexts"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                Contexts
-              </Label>
-              <div className="flex flex-col gap-2">
-                {workflow.contexts.map((context) => {
-                  return (
-                    <div
-                      key={context.id}
-                      className={cn(
-                        "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
-                        contexts.includes(context.slug) &&
-                          "text-primary font-medium opacity-100"
-                      )}
-                      onClick={() => {
-                        setContexts(
-                          contexts.includes(context.slug)
-                            ? contexts.filter((c) => c !== context.slug)
-                            : [...contexts, context.slug]
-                        );
-                      }}
+            <ResizablePanelGroup direction="vertical" className="flex-1">
+              <ResizablePanel defaultSize={55} minSize={30}>
+                <div className="flex flex-col gap-6 h-full">
+                  <div className="flex flex-col gap-2 flex-1 min-h-0">
+                    <Label
+                      htmlFor="prompt"
+                      className="text-muted-foreground text-sm font-normal ml-0.5 flex-shrink-0"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-1">
-                          <Label
-                            htmlFor={context.slug}
-                            className="text-xs font-medium"
-                          >
-                            {context.name}
-                          </Label>
-                          {contexts.includes(context.slug) && (
-                            <CheckIcon
-                              className={cn(
-                                "size-3",
+                      System Prompt
+                    </Label>
+                    <Textarea
+                      id="prompt"
+                      placeholder="Enter your prompt here..."
+                      value={prompt}
+                      className="flex-1 resize-none min-h-0"
+                      onChange={(e) => setPrompt(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <Label
+                      htmlFor="contexts"
+                      className="text-muted-foreground text-sm font-normal ml-0.5"
+                    >
+                      Contexts
+                    </Label>
+                    <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                      {workflow.contexts.map((context) => {
+                        return (
+                          <div
+                            key={context.id}
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
+                              contexts.includes(context.slug) &&
+                                "text-primary font-medium opacity-100"
+                            )}
+                            onClick={() => {
+                              setContexts(
                                 contexts.includes(context.slug)
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {context.resources.map((r) => (
-                            <div key={r.id} className="flex items-center gap-1">
-                              {r.type === "FILE" ? (
-                                <FileIcon className="size-2.5" />
-                              ) : (
-                                <GlobeIcon className="size-2.5" />
-                              )}
-                              <p className="text-xs text-muted-foreground truncate max-w-[100px]">
-                                {r.title}
-                              </p>
+                                  ? contexts.filter((c) => c !== context.slug)
+                                  : [...contexts, context.slug]
+                              );
+                            }}
+                          >
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-1">
+                                <Label
+                                  htmlFor={context.slug}
+                                  className="text-xs font-medium"
+                                >
+                                  {context.name}
+                                </Label>
+                                {contexts.includes(context.slug) && (
+                                  <CheckIcon
+                                    className={cn(
+                                      "size-3",
+                                      contexts.includes(context.slug)
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {context.resources.map((r) => (
+                                  <div
+                                    key={r.id}
+                                    className="flex items-center gap-1"
+                                  >
+                                    {r.type === "FILE" ? (
+                                      <FileIcon className="size-2.5" />
+                                    ) : (
+                                      <GlobeIcon className="size-2.5" />
+                                    )}
+                                    <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+                                      {r.title}
+                                    </p>
+                                  </div>
+                                ))}
+                                {context.resources.length === 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    No resources
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          ))}
-                          {context.resources.length === 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              No resources
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                          </div>
+                        );
+                      })}
+                      {workflow.contexts.length === 0 && (
+                        <Link
+                          href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full border-dashed"
+                          >
+                            <PlusIcon className="w-4 h-4 -mr-1" />
+                            Create
+                          </Button>
+                        </Link>
+                      )}
                     </div>
-                  );
-                })}
-                {workflow.contexts.length === 0 && (
-                  <Link
-                    href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-dashed"
-                    >
-                      <PlusIcon className="w-4 h-4 -mr-1" />
-                      Create
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="input-text"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                User Input
-              </Label>
-              <Textarea
-                id="input-text"
-                placeholder="I want to know about..."
-                className="min-h-[150px]"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center">
-              <AnimatePresence>
-                {(modelChanged || promptChanged) && (
-                  <SyncChangesToWorkflow
-                    workflowId={workflowId}
-                    modelId={model?.id ?? ""}
-                    prompt={prompt}
-                    enabled={modelChanged || promptChanged}
-                    onSuccess={handleSyncSuccess}
-                  />
-                )}
-              </AnimatePresence>
-              <Button
-                onClick={handleSubmit}
-                disabled={
-                  !input.trim() || isPending || streamStatus === "streaming"
-                }
-                className="w-full active:scale-[0.99] relative"
-                size="sm"
-                variant="primary"
-              >
-                <div className="flex items-center gap-1.5">
-                  Send
-                  <div className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center gap-1">
-                    <span
-                      style={{
-                        fontSize: "10px",
-                      }}
-                      className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
-                    >
-                      ⌘
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "8px",
-                      }}
-                      className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
-                    >
-                      Enter
-                    </span>
                   </div>
                 </div>
-              </Button>
-            </div>
-          </div>
-        </div>
+              </ResizablePanel>
 
-        <div
-          className={cn(
-            "flex flex-col gap-6 overflow-hidden",
-            mode === "single" ? "col-span-2" : ""
-          )}
-        >
-          {mode === "single" ? (
-            <div className="flex flex-col gap-6 h-full overflow-hidden">
-              <DetailsCard metadata={metadata} />
-              <div className="flex-1 overflow-hidden">
-                <ResponseCard
-                  output={output}
-                  model={model ?? models[0]!}
-                  isLoading={isPending}
-                  streamStatus={streamStatus}
-                />
+              <ResizableHandle withHandle className="my-6" />
+
+              <ResizablePanel defaultSize={45} minSize={25}>
+                <div className="flex flex-col gap-2 h-full">
+                  <Label
+                    htmlFor="input-text"
+                    className="text-muted-foreground text-sm font-normal ml-0.5"
+                  >
+                    User Input
+                  </Label>
+                  <Textarea
+                    id="input-text"
+                    placeholder="I want to know about..."
+                    className="flex-1 resize-none"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                  />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <div className="flex items-center">
+                <AnimatePresence>
+                  {(modelChanged || promptChanged) && (
+                    <SyncChangesToWorkflow
+                      workflowId={workflowId}
+                      modelId={model?.id ?? ""}
+                      prompt={prompt}
+                      enabled={modelChanged || promptChanged}
+                      onSuccess={handleSyncSuccess}
+                    />
+                  )}
+                </AnimatePresence>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={
+                    !input.trim() || isPending || streamStatus === "streaming"
+                  }
+                  className="w-full active:scale-[0.99] relative"
+                  size="sm"
+                  variant="primary"
+                >
+                  <div className="flex items-center gap-1.5">
+                    Send
+                    <div className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center gap-1">
+                      <span
+                        style={{
+                          fontSize: "10px",
+                        }}
+                        className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
+                      >
+                        ⌘
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "8px",
+                        }}
+                        className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
+                      >
+                        Enter
+                      </span>
+                    </div>
+                  </div>
+                </Button>
               </div>
             </div>
-          ) : (
-            <motion.div
-              layout
-              className="flex flex-col h-full overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <Card className="flex-1 overflow-hidden flex flex-col">
-                <ThreadMessages
-                  messages={messages}
-                  currentModel={model}
-                  isLoading={isPending}
-                  streamingContent={streamingContent}
-                />
-              </Card>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={60} minSize={40}>
+          <div className="flex flex-col gap-6 h-full overflow-hidden pl-4">
+            {mode === "single" ? (
+              <>
+                <DetailsCard metadata={metadata} />
+                <div className="flex-1 overflow-hidden">
+                  <ResponseCard
+                    output={output}
+                    model={model ?? models[0]!}
+                    isLoading={isPending}
+                    streamStatus={streamStatus}
+                  />
+                </div>
+              </>
+            ) : (
+              <motion.div
+                layout
+                className="flex flex-col h-full overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Card className="flex-1 overflow-hidden flex flex-col">
+                  <ThreadMessages
+                    messages={messages}
+                    currentModel={model}
+                    isLoading={isPending}
+                    streamingContent={streamingContent}
+                  />
+                </Card>
+              </motion.div>
+            )}
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Card>
   );
 }

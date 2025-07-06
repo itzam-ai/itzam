@@ -6,6 +6,7 @@ import { ArrowDown } from "lucide-react";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "~/components/ui/button";
+import { ScrollArea } from "~/components/ui/scroll-area";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 
 export interface Message {
@@ -38,7 +39,10 @@ export function ThreadMessages({
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
 
-    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+    if (!viewport) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
     const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
 
     setIsAutoScrollEnabled(isAtBottom);
@@ -48,16 +52,22 @@ export function ThreadMessages({
   // Auto-scroll to bottom when new content arrives (if enabled)
   useEffect(() => {
     if (scrollRef.current && isAutoScrollEnabled) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
   }, [messages, streamingContent, isAutoScrollEnabled]);
 
   // Jump to bottom function
   const jumpToBottom = useCallback(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      setIsAutoScrollEnabled(true);
-      setShowJumpToBottom(false);
+      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+        setIsAutoScrollEnabled(true);
+        setShowJumpToBottom(false);
+      }
     }
   }, []);
 
@@ -70,11 +80,8 @@ export function ThreadMessages({
 
   return (
     <div className="relative h-full flex flex-col">
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex flex-col gap-6 p-6 flex-1 overflow-y-auto hide-scrollbar pb-4"
-      >
+      <ScrollArea className="flex-1" ref={scrollRef} onScrollCapture={handleScroll}>
+        <div className="flex flex-col gap-6 p-6 pb-4">
         <AnimatePresence initial={false} mode="popLayout">
           {messages.map((message) => (
             <motion.div
@@ -151,7 +158,8 @@ export function ThreadMessages({
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+        </div>
+      </ScrollArea>
 
       {/* Jump to bottom button */}
       <AnimatePresence>
