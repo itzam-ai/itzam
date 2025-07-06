@@ -22,10 +22,10 @@ import { Button } from "~/components/ui/button";
 
 export default function RoadmapPage() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-4xl flex-col justify-between bg-background px-6 xl:px-0">
+    <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-between bg-background px-6 xl:px-0">
       <NavBar />
 
-      <div className="mx-auto flex max-w-4xl pt-32">
+      <div className="mx-auto flex max-w-5xl pt-32">
         <Roadmap />
       </div>
 
@@ -42,7 +42,7 @@ function Roadmap() {
   return (
     <section
       id="roadmap"
-      className="flex max-w-4xl flex-col gap-2 px-6 pt-12 pb-16 xl:px-0"
+      className="flex max-w-5xl flex-col gap-2 px-6 pt-12 pb-16 xl:px-0"
     >
       <div className="flex w-full items-center justify-between">
         <div className="flex max-w-[calc(100%-150px)] flex-col gap-2">

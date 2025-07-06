@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import {
   ArrowRight,
@@ -53,14 +54,31 @@ const features = [
 
 export function NavBar() {
   const { isSignedIn } = useCurrentUser();
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <>
       <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6 xl:px-0">
-        <nav className="mx-auto w-full max-w-5xl rounded-2xl border bg-card">
-          <div className="grid h-16 grid-cols-2 items-center px-4 md:grid-cols-3">
+        <nav
+          className={`mx-auto w-full max-w-5xl rounded-2xl transition-all duration-300 ${
+            isScrolled
+              ? "bg-background/60 backdrop-blur-md shadow-lg"
+              : "bg-transparent"
+          }`}
+        >
+          <div className="grid h-16 grid-cols-2 items-center md:grid-cols-3">
             <div className="ml-2 flex items-center">
-              <Link href="/" className="flex items-center gap-x-2">
+              <Link href="/" className="flex items-center gap-x-1">
                 <Image
                   unoptimized
                   priority
@@ -70,7 +88,7 @@ export function NavBar() {
                   height={16}
                 />
                 <span className="font-medium text-xl">Itzam</span>
-                <Badge variant="neutral" size="sm">
+                <Badge variant="neutral" size="sm" className="ml-0.5 mt-0.5">
                   Beta
                 </Badge>
               </Link>
