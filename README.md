@@ -11,7 +11,7 @@
 
 ## Demo
 
-[![Demo](https://github.com/user-attachments/assets/85c4bf58-e3ba-4b76-818a-fab4cbf0989f)](https://www.youtube.com/watch?v=NKIk7dPRUM0)
+[![Demo](https://github.com/user-attachments/assets/d3605c49-5559-45c1-bca6-8669a9d8a3f6)](https://www.youtube.com/watch?v=NKIk7dPRUM0)
 
 ## What we do?
 
