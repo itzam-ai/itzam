@@ -9,7 +9,7 @@ export function Providers() {
   return (
     <section className="pt-20 pb-6">
       <div className="container mx-auto text-center">
-        <h2 className="mb-4 font-semibold text-lg text-muted-foreground">
+        <h2 className="mb-4 font-medium text-lg text-muted-foreground">
           Featuring models from
         </h2>
         <div className="mx-auto grid grid-cols-2 items-center justify-items-center gap-4 px-6 md:grid-cols-6">

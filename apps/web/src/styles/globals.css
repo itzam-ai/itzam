@@ -80,6 +80,7 @@
   }
   html {
     scroll-behavior: smooth;
+    @apply bg-background;
   }
   * {
     @apply border-border;

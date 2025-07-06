@@ -26,14 +26,35 @@ import {
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Spinner } from "../ui/spinner";
-export const providersApiKeyLinks = {
-  openai: "https://platform.openai.com/account/api-keys",
-  anthropic: "https://console.anthropic.com/account/keys",
-  google: "https://makersuite.google.com/app/apikey",
-  xai: "https://console.x.ai/",
-  cohere: "https://dashboard.cohere.ai/api-keys",
-  deepseek: "https://platform.deepseek.com/api_keys",
-  mistral: "https://console.mistral.ai/api-keys",
+export const providersApiKeyLinksAndPlaceholders = {
+  openai: {
+    link: "https://platform.openai.com/account/api-keys",
+    placeholder: "sk_proj3123_g1v3f33db4ck",
+  },
+  anthropic: {
+    link: "https://console.anthropic.com/account/keys",
+    placeholder: "sk-ant-api03-BNs9NxUEfBak",
+  },
+  google: {
+    link: "https://makersuite.google.com/app/apikey",
+    placeholder: "AIzaSyB1v3f33db4ck",
+  },
+  deepseek: {
+    link: "https://platform.deepseek.com/api_keys",
+    placeholder: "sk-51a9e16c7b1641",
+  },
+  xai: {
+    link: "https://console.x.ai/",
+    placeholder: "xai-76fgdsufv7gfds",
+  },
+  cohere: {
+    link: "https://dashboard.cohere.ai/api-keys",
+    placeholder: "rvGd6mSbT5HmrawiHc",
+  },
+  mistral: {
+    link: "https://console.mistral.ai/api-keys",
+    placeholder: "WafUFkbCws9gyWIwSI",
+  },
 };
 
 export function Providers({
@@ -103,6 +124,11 @@ const ProviderKey = ({
     }
   };
 
+  const providerDetails =
+    providersApiKeyLinksAndPlaceholders[
+      provider.id as keyof typeof providersApiKeyLinksAndPlaceholders
+    ];
+
   const handleDeleteKey = async () => {
     setIsDeletingKey(true);
     await deleteProviderKey(provider.id);
@@ -117,14 +143,7 @@ const ProviderKey = ({
       <div className="flex items-center gap-2 ml-1 mb-3">
         <ProviderIcon id={provider.id} size="xs" />
         <h3 className="font-medium text-sm ">{provider.name}</h3>
-        <Link
-          href={
-            providersApiKeyLinks[
-              provider.id as keyof typeof providersApiKeyLinks
-            ]
-          }
-          target="_blank"
-        >
+        <Link href={providerDetails?.link || ""} target="_blank">
           <ExternalLink
             className="ml-1 size-3 text-muted-foreground hover:text-foreground transition-all duration-200"
             strokeWidth={2.5}
@@ -144,7 +163,7 @@ const ProviderKey = ({
             "w-[calc(100%-20rem)] font-mono text-xs ",
             error ? "ring-1 ring-red-500" : ""
           )}
-          placeholder="sk_proj3123_g1v3f33db4ck"
+          placeholder={providerDetails?.placeholder || ""}
           style={{
             fontSize: "12px",
           }}

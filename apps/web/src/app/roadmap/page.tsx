@@ -63,8 +63,8 @@ function Roadmap() {
           <h2 className="text-xl font-medium">2Q 2025</h2>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5">
-              <Code className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2">
+              <Code className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Structured outputs
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -73,8 +73,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Settings className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Settings className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Model Settings
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -84,8 +84,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Gift className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Gift className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Free plan
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -94,8 +94,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Brain className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Brain className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Knowledge
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -106,8 +106,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <ImageIcon className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <ImageIcon className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Image and file input
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -116,8 +116,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <MessagesSquare className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <MessagesSquare className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Threads
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -128,8 +128,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Paperclip className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Paperclip className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Context
               <span className="text-green-500 text-sm">✔︎</span>
             </p>
@@ -143,8 +143,8 @@ function Roadmap() {
           <h2 className="text-xl font-medium">3Q 2025</h2>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Wrench className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Wrench className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Agents (tools)
             </p>
 
@@ -154,8 +154,8 @@ function Roadmap() {
           </div>
 
           <div className="mt-6 flex flex-col gap-1">
-            <p className="flex items-center gap-2.5 text-base">
-              <Bot className="size-3.5 text-neutral-600" />
+            <p className="flex items-center gap-2 text-base">
+              <Bot className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Model Fallback
             </p>
             <p className="text-muted-foreground">
@@ -164,8 +164,8 @@ function Roadmap() {
           </div>
 
           <div className="mt-6 flex flex-col gap-1">
-            <p className="flex items-center gap-2.5 text-base">
-              <Bot className="size-3.5 text-neutral-600" />
+            <p className="flex items-center gap-2 text-base">
+              <Bot className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Autopilot
             </p>
             <p className="text-muted-foreground">
@@ -174,8 +174,8 @@ function Roadmap() {
           </div>
 
           <div className="mt-6 flex flex-col gap-1">
-            <p className="flex items-center gap-2.5 text-base">
-              <ShieldCheck className="size-3.5 text-neutral-600" />
+            <p className="flex items-center gap-2 text-base">
+              <ShieldCheck className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Guardrails
             </p>
             <p className="text-muted-foreground">
@@ -184,8 +184,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Ruler className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Ruler className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Rules
             </p>
             <p className="text-muted-foreground">
@@ -194,8 +194,8 @@ function Roadmap() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2.5 text-base">
-              <Terminal className="size-3.5 text-neutral-600" />
+            <p className="mt-6 flex items-center gap-2 text-base">
+              <Terminal className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               SDK improvements
             </p>
 

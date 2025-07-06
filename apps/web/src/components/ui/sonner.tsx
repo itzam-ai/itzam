@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { CheckCircle, Loader2, XCircle } from "lucide-react"
-import { useTheme } from "next-themes"
-import { Toaster as Sonner } from "sonner"
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Toaster as Sonner } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { resolvedTheme } = useTheme()
+  const { resolvedTheme } = useTheme();
 
   return (
     <Sonner
@@ -15,9 +15,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       position="bottom-center"
       icons={{
-        success: <CheckCircle className="size-4 text-green-600" strokeWidth={2.5} />,
+        success: (
+          <CheckCircle className="size-4 text-green-600" strokeWidth={2.5} />
+        ),
         error: <XCircle className="size-4 text-red-600" strokeWidth={2.5} />,
-        loading: <Loader2 className="size-4 text-neutral-600" strokeWidth={2.5} />,
+        loading: (
+          <Loader2 className="size-4 text-neutral-600" strokeWidth={2.5} />
+        ),
       }}
       toastOptions={{
         classNames: {
@@ -32,7 +36,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

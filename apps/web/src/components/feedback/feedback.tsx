@@ -55,7 +55,7 @@ export function Feedback() {
           </motion.span>
         </MorphingPopoverTrigger>
         <MorphingPopoverContent
-          className="border-border bg-popover fixed right-4 bottom-4 min-w-[320px] rounded-xl border p-0 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)]"
+          className="border-border bg-popover fixed right-4 bottom-4 min-w-[320px] rounded-lg border p-0 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)]"
           style={{
             transformOrigin: "bottom right",
           }}

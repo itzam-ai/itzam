@@ -17,7 +17,7 @@ export default async function ApiKeysPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="font-semibold text-xl tracking-tight">API Keys</h1>
+          <h1 className="font-semibold text-xl">API Keys</h1>
           <p className="text-muted-foreground text-sm">Manage your API keys.</p>
         </div>
         <div className="flex items-center gap-2">
