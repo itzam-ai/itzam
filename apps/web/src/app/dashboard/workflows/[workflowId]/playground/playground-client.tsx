@@ -19,9 +19,9 @@ import { ModeToggle } from "~/components/playground/mode-toggle";
 import { ResponseCard } from "~/components/playground/response-card";
 import { SyncChangesToWorkflow } from "~/components/playground/sync-changes-to-workflow";
 import {
-  ThreadMessages,
+  MessageList,
   type Message,
-} from "~/components/playground/thread-messages";
+} from "~/components/message/message-list";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -609,11 +609,13 @@ export default function PlaygroundClient({
                 exit={{ opacity: 0 }}
               >
                 <Card className="flex-1 overflow-hidden flex flex-col">
-                  <ThreadMessages
+                  <MessageList
                     messages={messages}
                     currentModel={model}
                     isLoading={isPending}
                     streamingContent={streamingContent}
+                    showTimestamps={false}
+                    enableAnimations={true}
                   />
                 </Card>
               </motion.div>
