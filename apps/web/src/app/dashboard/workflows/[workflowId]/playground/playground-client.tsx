@@ -14,7 +14,6 @@ import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
-import { readStreamableValue } from "ai/rsc";
 import { MessageList, type Message } from "~/components/message/message-list";
 import ChangeModel from "~/components/playground/change-model";
 import { DetailsCard } from "~/components/playground/details-card";
@@ -34,7 +33,7 @@ import { useThread } from "~/hooks/use-thread";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import { cn } from "~/lib/utils";
 import type { Workflow } from "~/lib/workflows";
-import { streamPlaygroundContent } from "~/app/actions/playground";
+import { sendMessage } from "~/app/actions/playground";
 
 // Type for the metadata returned by the stream
 type StreamMetadata = {
@@ -144,29 +143,21 @@ export default function PlaygroundClient({
       setStreamStatus("loading");
       setStreamStatus("streaming");
 
-      const { content, metadata } = await streamPlaygroundContent({
-        input,
-        prompt,
-        modelId: model.id,
+      const response = await sendMessage(input, {
         workflowId: selectedWorkflow.id,
         contextSlugs: contexts,
         threadId: null,
+        prompt,
+        modelId: model.id,
       });
 
-      // Stream the content
-      let fullContent = "";
-      for await (const delta of readStreamableValue(content)) {
-        if (delta) {
-          fullContent += delta;
-          setOutput(fullContent);
-        }
+      for await (const chunk of response.stream) {
+        setOutput((prev) => prev + chunk);
       }
 
-      // Stream the metadata
-      for await (const meta of readStreamableValue(metadata)) {
-        if (meta) {
-          setMetadata(meta);
-        }
+      const meta = await response.metadata;
+      if (meta) {
+        setMetadata(meta);
       }
 
       setIsPending(false);
@@ -214,29 +205,23 @@ export default function PlaygroundClient({
       setStreamStatus("loading");
       setStreamStatus("streaming");
 
-      const { content, metadata } = await streamPlaygroundContent({
-        input,
-        prompt,
-        modelId: model.id,
+      const response = await sendMessage(input, {
         workflowId: selectedWorkflow.id,
         contextSlugs: contexts,
         threadId: currentThreadId,
+        prompt,
+        modelId: model.id,
       });
 
-      // Stream the content
       let fullContent = "";
-      for await (const delta of readStreamableValue(content)) {
-        if (delta) {
-          fullContent += delta;
-          setStreamingContent(fullContent);
-        }
+      for await (const chunk of response.stream) {
+        fullContent += chunk;
+        setStreamingContent(fullContent);
       }
 
-      // Stream the metadata
-      for await (const meta of readStreamableValue(metadata)) {
-        if (meta) {
-          setMetadata(meta);
-        }
+      const meta = await response.metadata;
+      if (meta) {
+        setMetadata(meta);
       }
 
       setIsPending(false);
