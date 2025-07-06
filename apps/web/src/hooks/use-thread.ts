@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useLocalStorage } from "usehooks-ts";
+import { createThread as createThreadAction } from "~/app/dashboard/workflows/[workflowId]/playground/actions";
 
 interface ThreadHookProps {
   workflowSlug: string;
@@ -19,24 +20,13 @@ export function useThread({ workflowSlug, contextSlugs = [], workflowId }: Threa
   const createThread = useCallback(async (name?: string) => {
     setIsCreating(true);
     try {
-      const response = await fetch("/api/threads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          workflowSlug,
-          name: name || `Thread ${new Date().toLocaleString()}`,
-          lookupKeys: ["playground"],
-          contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
-        }),
+      const data = await createThreadAction({
+        workflowSlug,
+        name: name || `Thread ${new Date().toLocaleString()}`,
+        lookupKeys: ["playground"],
+        contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create thread");
-      }
-
-      const data = await response.json();
       setThreadId(data.id);
       return data.id;
     } catch (error) {
@@ -45,7 +35,7 @@ export function useThread({ workflowSlug, contextSlugs = [], workflowId }: Threa
     } finally {
       setIsCreating(false);
     }
-  }, [workflowSlug, contextSlugs]);
+  }, [workflowSlug, contextSlugs, setThreadId]);
 
   return {
     threadId,

@@ -14,6 +14,7 @@ import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useState } from "react";
 import { useLocalStorage } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
+import { readStreamableValue } from "ai/rsc";
 import { MessageList, type Message } from "~/components/message/message-list";
 import ChangeModel from "~/components/playground/change-model";
 import { DetailsCard } from "~/components/playground/details-card";
@@ -33,6 +34,7 @@ import { useThread } from "~/hooks/use-thread";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import { cn } from "~/lib/utils";
 import type { Workflow } from "~/lib/workflows";
+import { streamPlaygroundContent } from "~/app/actions/playground";
 
 // Type for the metadata returned by the stream
 type StreamMetadata = {
@@ -51,12 +53,10 @@ export default function PlaygroundClient({
   workflow,
   models,
   workflowId,
-  userId,
 }: {
   workflow: Workflow;
   models: ModelWithCostAndProvider[];
   workflowId: string;
-  userId: string;
 }) {
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflow);
   const [input, setInput] = useState<string>("");
@@ -131,7 +131,7 @@ export default function PlaygroundClient({
   }, [setThreadId, createThread]);
 
   const handleSingleSubmit = async () => {
-    if (!selectedWorkflow || !input.trim()) {
+    if (!selectedWorkflow || !input.trim() || !model?.id) {
       return;
     }
 
@@ -141,66 +141,31 @@ export default function PlaygroundClient({
     setMetadata(null);
 
     try {
-      const response = await fetch("/api/playground", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input,
-          prompt,
-          modelId: model?.id,
-          workflowId: selectedWorkflow.id,
-          userId: userId,
-          contextSlugs: contexts,
-          threadId: null,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to generate content", response);
-        throw new Error("Failed to generate content");
-      }
-
       setStreamStatus("loading");
       setStreamStatus("streaming");
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const { content, metadata } = await streamPlaygroundContent({
+        input,
+        prompt,
+        modelId: model.id,
+        workflowId: selectedWorkflow.id,
+        contextSlugs: contexts,
+        threadId: null,
+      });
 
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value, { stream: true });
-
-        // Check if this chunk contains metadata
-        const metadataMatch = text.match(/<!-- METADATA: (.*?) -->/);
-        if (metadataMatch && metadataMatch[1]) {
-          try {
-            const parsedMetadata = JSON.parse(
-              metadataMatch[1]
-            ) as StreamMetadata;
-            setMetadata(parsedMetadata);
-          } catch (error) {
-            console.error("Error parsing metadata:", error);
-          }
+      // Stream the content
+      let fullContent = "";
+      for await (const delta of readStreamableValue(content)) {
+        if (delta) {
+          fullContent += delta;
+          setOutput(fullContent);
         }
+      }
 
-        // error handling
-        const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
-        if (errorMatch && errorMatch[1]) {
-          console.error("Error during streaming:", errorMatch[1]);
-          setStreamStatus("error");
-          setOutput(errorMatch[1]);
-          setIsPending(false);
-          return;
-        }
-
-        // Filter out metadata comments and only append actual text content
-        const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
-        if (cleanText) {
-          setOutput((prev) => prev + cleanText);
+      // Stream the metadata
+      for await (const meta of readStreamableValue(metadata)) {
+        if (meta) {
+          setMetadata(meta);
         }
       }
 
@@ -208,14 +173,14 @@ export default function PlaygroundClient({
       setStreamStatus("completed");
     } catch (error) {
       console.error("Error generating content:", error);
-      setOutput("");
+      setOutput(error instanceof Error ? error.message : "An error occurred");
       setIsPending(false);
       setStreamStatus("error");
     }
   };
 
   const handleThreadedSubmit = async () => {
-    if (!selectedWorkflow || !input.trim()) {
+    if (!selectedWorkflow || !input.trim() || !model?.id) {
       return;
     }
 
@@ -246,67 +211,31 @@ export default function PlaygroundClient({
     setStreamingContent("");
 
     try {
-      const response = await fetch("/api/playground", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input,
-          prompt,
-          modelId: model?.id,
-          workflowId: selectedWorkflow.id,
-          userId: userId,
-          contextSlugs: contexts,
-          threadId: currentThreadId,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to generate content", response);
-        throw new Error("Failed to generate content");
-      }
-
       setStreamStatus("loading");
       setStreamStatus("streaming");
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const { content, metadata } = await streamPlaygroundContent({
+        input,
+        prompt,
+        modelId: model.id,
+        workflowId: selectedWorkflow.id,
+        contextSlugs: contexts,
+        threadId: currentThreadId,
+      });
+
+      // Stream the content
       let fullContent = "";
-
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value, { stream: true });
-
-        // Check if this chunk contains metadata
-        const metadataMatch = text.match(/<!-- METADATA: (.*?) -->/);
-        if (metadataMatch && metadataMatch[1]) {
-          try {
-            const parsedMetadata = JSON.parse(
-              metadataMatch[1]
-            ) as StreamMetadata;
-            setMetadata(parsedMetadata);
-          } catch (error) {
-            console.error("Error parsing metadata:", error);
-          }
+      for await (const delta of readStreamableValue(content)) {
+        if (delta) {
+          fullContent += delta;
+          setStreamingContent(fullContent);
         }
+      }
 
-        // error handling
-        const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
-        if (errorMatch && errorMatch[1]) {
-          console.error("Error during streaming:", errorMatch[1]);
-          setStreamStatus("error");
-          setIsPending(false);
-          return;
-        }
-
-        // Filter out metadata comments and only append actual text content
-        const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
-        if (cleanText) {
-          fullContent += cleanText;
-          setStreamingContent((prev) => prev + cleanText);
+      // Stream the metadata
+      for await (const meta of readStreamableValue(metadata)) {
+        if (meta) {
+          setMetadata(meta);
         }
       }
 
