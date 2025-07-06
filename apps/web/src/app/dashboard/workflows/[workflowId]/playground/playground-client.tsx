@@ -12,16 +12,14 @@ import {
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
+import { MessageList, type Message } from "~/components/message/message-list";
 import ChangeModel from "~/components/playground/change-model";
 import { DetailsCard } from "~/components/playground/details-card";
 import { ModeToggle } from "~/components/playground/mode-toggle";
 import { ResponseCard } from "~/components/playground/response-card";
 import { SyncChangesToWorkflow } from "~/components/playground/sync-changes-to-workflow";
-import {
-  MessageList,
-  type Message,
-} from "~/components/message/message-list";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
@@ -75,14 +73,18 @@ export default function PlaygroundClient({
   const [metadata, setMetadata] = useState<StreamMetadata | null>(null);
 
   // Thread mode states
-  const [mode, setMode] = useState<"single" | "thread">("single");
+  const [mode, setMode] = useLocalStorage<"single" | "thread">(
+    `playground-mode-${workflowId}`,
+    "single"
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState<string>("");
 
-  // Use thread hook
+  // Use thread hook with localStorage built-in
   const { threadId, setThreadId, createThread } = useThread({
     workflowSlug: workflow.slug,
     contextSlugs: contexts,
+    workflowId,
   });
 
   const modelChanged = model?.id !== selectedWorkflow?.model?.id;
@@ -110,7 +112,7 @@ export default function PlaygroundClient({
         setStreamingContent("");
       }
     },
-    [setThreadId]
+    [setMode, setThreadId]
   );
 
   const handleNewThread = useCallback(async () => {

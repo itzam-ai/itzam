@@ -151,3 +151,7 @@ The team is working on:
 - UI/UX enhancements
 
 Note: Project is in development hiatus, aiming for 10 paid users or 1000 sign-ups by end of June.
+
+## State Management
+
+- Use jotai for complex state management needs

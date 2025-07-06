@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useLocalStorage } from "usehooks-ts";
 
 interface ThreadHookProps {
   workflowSlug: string;
   contextSlugs?: string[];
+  workflowId: string;
 }
 
-export function useThread({ workflowSlug, contextSlugs = [] }: ThreadHookProps) {
-  const [threadId, setThreadId] = useState<string | null>(null);
+export function useThread({ workflowSlug, contextSlugs = [], workflowId }: ThreadHookProps) {
+  const [threadId, setThreadId] = useLocalStorage<string | null>(
+    `playground-threadId-${workflowId}`,
+    null
+  );
   const [isCreating, setIsCreating] = useState(false);
 
   const createThread = useCallback(async (name?: string) => {
