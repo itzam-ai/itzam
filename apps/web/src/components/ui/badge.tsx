@@ -35,8 +35,8 @@ const badgeVariants = cva(
         zinc: "bg-zinc-100 text-zinc-600 border-zinc-300 dark:bg-zinc-900/20 dark:text-zinc-600 dark:border-zinc-800",
         neutral:
           "bg-neutral-100 text-neutral-600 border-neutral-300 dark:bg-neutral-900/20 dark:text-neutral-600 dark:border-neutral-800",
-        neutral:
-          "bg-neutral-100 text-neutral-600 border-neutral-300 dark:bg-neutral-900/20 dark:text-neutral-600 dark:border-neutral-800",
+        stone:
+          "bg-stone-100 text-stone-600 border-stone-300 dark:bg-stone-900/20 dark:text-stone-600 dark:border-stone-800",
         outline:
           "bg-transparent text-muted-foreground border-muted-foreground dark:text-muted-foreground dark:border-muted-foreground",
         foreground:

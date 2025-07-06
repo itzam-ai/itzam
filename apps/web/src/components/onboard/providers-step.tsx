@@ -7,7 +7,7 @@ import ProviderIcon from "public/models/svgs/provider-icon";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { ArrowRight } from "lucide-react";
-import { providersApiKeyLinks } from "../providers/providers";
+import { providersApiKeyLinksAndPlaceholders } from "../providers/providers";
 import {
   createProviderKey,
   ProviderKey as ProviderKeyType,
@@ -106,9 +106,9 @@ const ProviderKey = ({
         <h3 className="font-medium text-sm ">{provider.name}</h3>
         <Link
           href={
-            providersApiKeyLinks[
-              provider.id as keyof typeof providersApiKeyLinks
-            ]
+            providersApiKeyLinksAndPlaceholders[
+              provider.id as keyof typeof providersApiKeyLinksAndPlaceholders
+            ].link || ""
           }
           target="_blank"
         >
@@ -130,7 +130,13 @@ const ProviderKey = ({
             "w-full font-mono text-xs",
             error ? "ring-1 ring-red-500" : ""
           )}
-          placeholder={error ? "Invalid key" : "sk_1tz4m42..."}
+          placeholder={
+            error
+              ? "Invalid key"
+              : providersApiKeyLinksAndPlaceholders[
+                  provider.id as keyof typeof providersApiKeyLinksAndPlaceholders
+                ].placeholder
+          }
           style={{
             fontSize: "12px",
           }}
