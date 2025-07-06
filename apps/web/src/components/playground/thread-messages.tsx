@@ -1,10 +1,9 @@
 "use client";
 
+import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import { AnimatePresence, motion } from "framer-motion";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useEffect, useRef } from "react";
-import { cn } from "~/lib/utils";
-import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 
 export interface Message {
   id: string;

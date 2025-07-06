@@ -13,16 +13,20 @@ import { NextRequest } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const user = await getUser();
-    
+
     if (user.error || !user.data.user) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
 
     const userId = user.data.user.id;
-    const { name, lookupKeys, workflowSlug, contextSlugs } = await request.json();
+    const { name, lookupKeys, workflowSlug, contextSlugs } =
+      await request.json();
 
     if (!workflowSlug) {
-      return Response.json({ error: "workflowSlug is required" }, { status: 400 });
+      return Response.json(
+        { error: "workflowSlug is required" },
+        { status: 400 }
+      );
     }
 
     // Find the workflow by slug and userId
@@ -45,8 +49,11 @@ export async function POST(request: NextRequest) {
       contextSlugs,
     });
 
-    if (!thread) {
-      return Response.json({ error: "Failed to create thread" }, { status: 500 });
+    if (!thread || "error" in thread) {
+      return Response.json(
+        { error: "Failed to create thread" },
+        { status: 500 }
+      );
     }
 
     return Response.json({
@@ -69,31 +76,31 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const user = await getUser();
-    
+
     if (user.error || !user.data.user) {
       return Response.json({ error: "User not found" }, { status: 404 });
     }
 
     const userId = user.data.user.id;
     const { searchParams } = new URL(request.url);
-    
+
     // Check if this is a request for a specific thread
     const threadId = searchParams.get("threadId");
     if (threadId) {
       const thread = await getThreadById(threadId, userId);
-      
+
       if (!thread) {
         return Response.json({ error: "Thread not found" }, { status: 404 });
       }
-      
+
       return Response.json(thread);
     }
-    
+
     // Check if this is a request for thread runs
     const threadIdForRuns = searchParams.get("threadIdForRuns");
     if (threadIdForRuns) {
       const runs = await getThreadRunsHistory(threadIdForRuns, userId);
-      
+
       return Response.json({
         runs: runs.map((run) => ({
           id: run.id,
@@ -134,16 +141,19 @@ export async function GET(request: NextRequest) {
         })),
       });
     }
-    
+
     // Otherwise, get threads by workflow
     const workflowSlug = searchParams.get("workflowSlug");
     if (!workflowSlug) {
-      return Response.json({ error: "workflowSlug is required" }, { status: 400 });
+      return Response.json(
+        { error: "workflowSlug is required" },
+        { status: 400 }
+      );
     }
-    
+
     const lookupKeysParam = searchParams.get("lookupKeys");
     const lookupKeys = lookupKeysParam ? lookupKeysParam.split(",") : undefined;
-    
+
     const threads = await getThreadsByWorkflowSlug(workflowSlug, userId, {
       lookupKeys,
     });

@@ -9,8 +9,15 @@ import { v7 as uuidv7 } from "uuid";
 
 export async function POST(request: NextRequest) {
   try {
-    const { input, prompt, modelId, workflowId, userId, contextSlugs, threadId } =
-      await request.json();
+    const {
+      input,
+      prompt,
+      modelId,
+      workflowId,
+      userId,
+      contextSlugs,
+      threadId,
+    } = await request.json();
 
     if (!input || !prompt || !userId || !workflowId) {
       return Response.json(
@@ -58,6 +65,13 @@ export async function POST(request: NextRequest) {
       userId,
       run,
     });
+
+    if ("error" in aiParams) {
+      return Response.json(
+        { error: aiParams.error },
+        { status: aiParams.status }
+      );
+    }
 
     try {
       const response = await generateTextOrObjectStream(
