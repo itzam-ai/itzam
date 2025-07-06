@@ -62,14 +62,18 @@ export function ThreadMessages({
   }, []);
 
   // Keyboard shortcut for jump to bottom
-  useKeyboardShortcut("b", false, false, false, jumpToBottom);
+  useKeyboardShortcut("b", false, false, false, () => {
+    if (showJumpToBottom) {
+      jumpToBottom();
+    }
+  });
 
   return (
-    <div className="relative h-full">
+    <div className="relative h-full flex flex-col">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex flex-col gap-6 p-6 max-h-[calc(100vh-20rem)] overflow-y-scroll hide-scrollbar pb-4"
+        className="flex flex-col gap-6 p-6 flex-1 overflow-y-auto hide-scrollbar pb-4"
       >
         <AnimatePresence initial={false} mode="popLayout">
           {messages.map((message) => (

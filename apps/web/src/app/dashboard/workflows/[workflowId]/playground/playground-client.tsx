@@ -115,7 +115,9 @@ export default function PlaygroundClient({
     setOutput("");
     setMetadata(null);
     // Create a new thread immediately
-    const newThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
+    const newThreadId = await createThread(
+      `playground_${uuidv4().slice(0, 8)}`
+    );
     if (!newThreadId) {
       console.error("Failed to create new thread");
     }
@@ -217,7 +219,9 @@ export default function PlaygroundClient({
 
     // Create thread if it doesn't exist
     if (!currentThreadId) {
-      currentThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
+      currentThreadId = await createThread(
+        `playground_${uuidv4().slice(0, 8)}`
+      );
       if (!currentThreadId) {
         setIsPending(false);
         return;
@@ -331,16 +335,23 @@ export default function PlaygroundClient({
     }
   };
 
-  useKeyboardShortcut("Enter", false, true, false, () => {
-    if (!input.trim() || isPending || streamStatus === "streaming") {
-      return;
-    }
+  useKeyboardShortcut(
+    "Enter",
+    false,
+    true,
+    false,
+    () => {
+      if (!input.trim() || isPending || streamStatus === "streaming") {
+        return;
+      }
 
-    handleSubmit();
-  });
+      handleSubmit();
+    },
+    { ignoreInputFocus: true }
+  );
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 h-[calc(100vh-12rem)] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">Playground</h2>
         <div className="flex items-center gap-2">
@@ -362,7 +373,7 @@ export default function PlaygroundClient({
       <motion.div
         layout
         className={cn(
-          "grid gap-8",
+          "grid gap-8 flex-1 overflow-hidden",
           mode === "single" ? "grid-cols-3" : "grid-cols-2"
         )}
         transition={{
@@ -371,7 +382,7 @@ export default function PlaygroundClient({
           damping: 30,
         }}
       >
-        <div className="flex h-full flex-col gap-8">
+        <div className="flex flex-col gap-8 overflow-y-auto">
           <div className="space-y-6">
             <div className="space-y-2">
               <Label
@@ -569,40 +580,38 @@ export default function PlaygroundClient({
 
         <div
           className={cn(
-            "flex h-full flex-col gap-6",
+            "flex flex-col gap-6 overflow-hidden",
             mode === "single" ? "col-span-2" : ""
           )}
         >
           {mode === "single" ? (
-            <>
+            <div className="flex flex-col gap-6 h-full overflow-hidden">
               <DetailsCard metadata={metadata} />
-              <ResponseCard
-                output={output}
-                model={model ?? models[0]!}
-                isLoading={isPending}
-                streamStatus={streamStatus}
-              />
-            </>
+              <div className="flex-1 overflow-hidden">
+                <ResponseCard
+                  output={output}
+                  model={model ?? models[0]!}
+                  isLoading={isPending}
+                  streamStatus={streamStatus}
+                />
+              </div>
+            </div>
           ) : (
             <motion.div
               layout
-              className="flex flex-col h-full"
+              className="flex flex-col h-full overflow-hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="flex flex-col h-full gap-4">
-                <Card className="flex-1 overflow-hidden">
-                  <div className="flex flex-col h-full">
-                    <ThreadMessages
-                      messages={messages}
-                      currentModel={model}
-                      isLoading={isPending}
-                      streamingContent={streamingContent}
-                    />
-                  </div>
-                </Card>
-              </div>
+              <Card className="flex-1 overflow-hidden flex flex-col">
+                <ThreadMessages
+                  messages={messages}
+                  currentModel={model}
+                  isLoading={isPending}
+                  streamingContent={streamingContent}
+                />
+              </Card>
             </motion.div>
           )}
         </div>
