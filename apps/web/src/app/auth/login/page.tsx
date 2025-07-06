@@ -11,18 +11,21 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import GitHubLogo from "public/logos/github-logo";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
 
   const handleSignInWithProvider = (provider: "google" | "github") => {
-    signInWithProvider(provider);
+    signInWithProvider(provider, redirect ?? undefined);
   };
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
 
-    const result = await login(formData);
+    const result = await login(formData, redirect ?? undefined);
 
     if (result?.success) {
       window.location.href = result.redirectTo ?? "/dashboard/workflows";
@@ -110,7 +113,10 @@ export default function LoginPage() {
             placeholder="********"
           />
           <div className="flex w-full justify-end mt-2">
-            <Link href="/auth/forgot-password">
+            <Link
+              href={`/auth/forgot-password?redirect=${redirect ?? ""}`}
+              className="text-sm text-muted-foreground hover:underline"
+            >
               <p className="text-sm text-muted-foreground hover:underline">
                 Forgot your password?
               </p>
@@ -138,7 +144,7 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               Don&apos;t have an account?
             </p>
-            <Link href="/auth/sign-up">
+            <Link href={`/auth/sign-up?redirect=${redirect ?? ""}`}>
               <p className="text-sm hover:underline">Sign up</p>
             </Link>
           </div>

@@ -47,7 +47,9 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             features={standardFeatures}
             button={
               <Link
-                href={`${isSignedIn ? "/dashboard" : "/auth/login"}`}
+                href={
+                  isSignedIn ? "/dashboard" : "/auth/login?redirect=/dashboard"
+                }
                 className="block w-full"
               >
                 <Button variant="secondary" className="w-full" size="sm">
@@ -82,7 +84,11 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             features={basicFeatures}
             button={
               <Link
-                href={`${isSignedIn ? "/dashboard/settings" : "/auth/login"}`}
+                href={
+                  isSignedIn
+                    ? "/dashboard/settings"
+                    : "/auth/login?redirect=/dashboard/settings"
+                }
                 className="w-full"
               >
                 <Button variant="secondary" className="w-full" size="sm">
@@ -115,21 +121,19 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             priceSuffix="/month"
             features={proFeatures}
             button={
-              isSignedIn ? (
-                <Link href="/dashboard/settings" className="w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Start Building
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/login" className="w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Start Building
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              )
+              <Link
+                href={
+                  isSignedIn
+                    ? "/dashboard/settings"
+                    : "/auth/login?redirect=/dashboard/settings"
+                }
+                className="w-full"
+              >
+                <Button variant="primary" className="w-full" size="sm">
+                  Start Building
+                  <ArrowRight className="hidden size-4 md:block" />
+                </Button>
+              </Link>
             }
           />
         </Card>
