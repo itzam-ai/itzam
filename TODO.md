@@ -1,111 +1,79 @@
-### Now (23w · 2025)
-
-- [ ] Context (segmented knowledge)
-
-  - [ ] Docs
-    - [ ] Excalidraw illustrations
-    - [ ] Glossary
-  - [ ] CRUD (UI)
-  - [ ] SDK (Integration with threads API)
-
-```ts
-// Context usage example
-
-itzam.thread.create({
-  workflowSlug: "my-workflow",
-  context: [
-    // context id
-    "context-1",
-    "context-2",
-    "context-3",
-  ],
-});
-```
-
-### 24w · 2025
-
-- [ ] Context (segmented knowledge)
-
-  - [ ] Docs
-    - [ ] API
-    - [ ] SDK
-  - [ ] CRUD (SDK)
-    - [ ] How the user can sync a context programmatically?
-
-- [ ] SDK/API error treatment
-
-## Future
+## Features
 
 - [ ] Rules · _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
 - [ ] Model Recommendation · _Get recommendations on the best model (balancing cost, latency, and intelligence)_
-- [ ] Guardrails · _Create limits for the AI’s response._
-- [ ] Tools · _Integrate tools to your workflow._
+- [ ] Model Fallback · _Choose a replacing model for when the primary is down_
+- [ ] Model categories · _Let users choose between different model categories (e.g. fast, cheap, accurate)_
+- [ ] Autopilot · _Autopilot chooses the appropriate model based on the task_
+- [ ] Guardrails · _Create limits for the AI’s response_
+- [ ] Agents (Tools) · _Integrate tools to your workflow_
 
 ### Other improvements
 
 - [ ] SDK
-
   - [ ] Standard CRUD for _everything_
   - [ ] Add knowledge used to metadata
 
 - [ ] UI
-
   - [ ] Async buttons instead of toast (multiple states)
   - [ ] Improve sidebar (emojis for workflow? separate workflows from other options?)
 
 - [ ] Knowledge
-
   - [ ] Test using tools instead of retrieve
 
 - [ ] Workflow UI
-
   - [ ] Improve header (details)
   - [ ] Improve creation modal
   - [ ] Steps in empty state
   - [ ] Model recommendation based on details provided
 
 - [ ] Playground tab
-
   - [ ] Attachments
 
 - [ ] Prompt tab
-
   - [ ] Versioning
 
 - [ ] Model tab
-
   - [ ] Model fallback
   - [ ] Filters
   - [ ] Task requirements based on prompt/description
 
 - [ ] Better support for thinking models
-
   - [ ] Expose reasoning
   - [ ] Set reasoning effort
   - [ ] Check different token prices for reasoning tokens
 
 - [ ] API Key limits
-- [ ] Python SDK
 - [ ] Support other models (Groq, Perplexity, Lamma, Azure)
 - [ ] Status page
 
 ### Past (Done)
 
+#### Hiatus
+
 #### 25w 2025
 
-- [x] Prompt tab
+- [x] SDK/API error treatment
 
+- [x] Python SDK
+
+- [x] Context (segmented knowledge)
+  - [x] Docs
+    - [x] Excalidraw illustrations
+    - [x] Glossary
+  - [x] CRUD (UI)
+  - [x] SDK (Integration with threads API)
+
+- [x] Prompt tab
   - [x] Enhance with AI
 
 #### 24w 2025
 
 - [x] Playground tab
-
   - [x] Improve error treatment
   - [x] Check knowledge in production
 
 - [x] Docs
-
   - [x] Improve clarity
   - [x] Add tutorials & guides
 
@@ -116,7 +84,6 @@ itzam.thread.create({
 - [x] Link rescrape (knowledge/context)
 
 - Model tab
-
   - [x] Improve switch modal
 
 #### 22w 2025

@@ -2,15 +2,16 @@
 import {
   Bot,
   Brain,
+  CarFront,
   Code,
   Gift,
   ImageIcon,
+  List,
   MessagesSquare,
   Paperclip,
   Ruler,
   Settings,
   ShieldCheck,
-  Terminal,
   Wrench,
 } from "lucide-react";
 import Link from "next/link";
@@ -165,7 +166,7 @@ function Roadmap() {
 
           <div className="mt-6 flex flex-col gap-1">
             <p className="flex items-center gap-2 text-base">
-              <Bot className="size-3.5 dark:text-neutral-600 text-neutral-400" />
+              <CarFront className="size-3.5 dark:text-neutral-600 text-neutral-400" />
               Autopilot
             </p>
             <p className="text-muted-foreground">
@@ -193,14 +194,14 @@ function Roadmap() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <p className="mt-6 flex items-center gap-2 text-base">
-              <Terminal className="size-3.5 dark:text-neutral-600 text-neutral-400" />
-              SDK improvements
+          <div className="mt-6 flex flex-col gap-1">
+            <p className="flex items-center gap-2 text-base">
+              <List className="size-3.5 dark:text-neutral-600 text-neutral-400" />
+              Model Categories
             </p>
-
             <p className="text-muted-foreground">
-              Add support for more languages.
+              Let users choose between different model categories (e.g. fast,
+              cheap, accurate).
             </p>
           </div>
         </div>

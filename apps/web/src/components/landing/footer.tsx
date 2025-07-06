@@ -71,7 +71,7 @@ export function Footer() {
                 target="_blank"
                 className="hover:opacity-80 transition-opacity"
               >
-                <Instagram size={16} />
+                <Instagram size={14} />
               </Link>
             </div>
           </div>
