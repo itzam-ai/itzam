@@ -24,7 +24,7 @@ import {
   getThreadsByWorkflowParamsValidator,
   getThreadsByWorkflowQueryValidator,
 } from "../validators";
-import { createErrorResponse } from "../../errors";
+import { createErrorResponse, StatusCode } from "../../errors";
 
 export const threadsRoute = new Hono()
   .use(apiKeyMiddleware)
@@ -82,8 +82,13 @@ export const threadsRoute = new Hono()
         contextSlugs,
       });
 
-      if (!thread) {
-        return c.json(createErrorResponse(500, "Failed to create thread"), 500);
+      if ("error" in thread) {
+        return c.json(
+          createErrorResponse(thread.status as StatusCode, thread.error ?? "", {
+            possibleValues: thread.possibleValues,
+          }),
+          thread.status as StatusCode
+        );
       }
 
       return c.json({

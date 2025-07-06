@@ -59,8 +59,10 @@ export const setupRunGeneration = async ({
 
     // Add thread context slugs to contextSlugs
     contextSlugs = [
-      ...(contextSlugs || []),
-      ...thread.threadContexts.map((c) => c.context.slug),
+      ...new Set([
+        ...(contextSlugs || []),
+        ...thread.threadContexts.map((c) => c.context.slug),
+      ]),
     ];
   } else if (workflowSlug) {
     // Get workflow by slug
@@ -129,6 +131,14 @@ export const setupRunGeneration = async ({
     attachments: processedAttachments,
     run,
   });
+
+  if ("error" in aiParams) {
+    return {
+      error: aiParams.error,
+      status: aiParams.status as StatusCode,
+      possibleValues: aiParams.possibleValues,
+    };
+  }
 
   return { workflow, run, aiParams, processedAttachments };
 };
