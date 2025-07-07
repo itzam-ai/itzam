@@ -6,6 +6,8 @@ import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import { ImageAttachment } from "./image-attachment";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export interface MessageItemProps {
   role: "user" | "assistant";
@@ -70,7 +72,11 @@ export function MessageItem({
   return (
     <div className="flex justify-start">
       <div className="flex flex-col gap-2 items-start max-w-[80%] py-2">
-        <p className="text-sm">{content}</p>
+        <div className="prose prose-sm dark:prose-invert prose-neutral max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {content}
+          </ReactMarkdown>
+        </div>
         {model && (
           <div className="flex gap-1.5 items-center">
             <ModelIcon tag={model.tag ?? ""} size="us" />

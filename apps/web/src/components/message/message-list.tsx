@@ -9,6 +9,8 @@ import { useKeyboardShortcut } from "~/lib/shortcut";
 import { MessageItem } from "./message-item";
 import type { ModelWithCostAndProvider } from "@itzam/server/db/model/actions";
 import ModelIcon from "public/models/svgs/model-icon";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export interface Message {
   id: string;
@@ -127,8 +129,12 @@ export function MessageList({
                 >
                   <div className="flex justify-start">
                     <div className="flex flex-col gap-2 items-start max-w-[80%] py-2">
-                      <p className="text-sm">
-                        {streamingContent || (
+                      <div className="prose prose-sm dark:prose-invert prose-neutral max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+                        {streamingContent ? (
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {streamingContent}
+                          </ReactMarkdown>
+                        ) : (
                           <motion.span
                             animate={{ opacity: [0.4, 1, 0.4] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
@@ -139,7 +145,7 @@ export function MessageList({
                             <span className="w-2 h-2 bg-current rounded-full" />
                           </motion.span>
                         )}
-                      </p>
+                      </div>
                       <div className="flex gap-1.5 items-center">
                         <ModelIcon tag={currentModel?.tag || ""} size="us" />
                         <p className="text-xs text-muted-foreground">
