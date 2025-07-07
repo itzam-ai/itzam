@@ -110,6 +110,15 @@ export function NavBar() {
 
                   <NavigationMenuItem>
                     <NavigationMenuLink
+                      href="/blog"
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Blog
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
                       href="https://docs.itz.am"
                       target="_blank"
                       className={navigationMenuTriggerStyle()}

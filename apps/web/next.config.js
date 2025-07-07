@@ -3,8 +3,19 @@
  * for Docker builds.
  */
 
+import mdx from "@next/mdx";
+
+const withMDX = mdx({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 /** @type {import("next").NextConfig} */
 const config = {
+  pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
   reactStrictMode: false,
   experimental: {
     serverActions: {
@@ -81,4 +92,4 @@ const config = {
   },
 };
 
-export default config;
+export default withMDX(config);

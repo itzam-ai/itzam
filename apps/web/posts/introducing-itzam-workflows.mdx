@@ -1,0 +1,91 @@
+---
+title: "Introducing Itzam: Making AI Workflows Easier to Implement"
+description: "Discover how Itzam simplifies building AI workflows with structured outputs, knowledge integration, and powerful model management features."
+date: "2025-01-19"
+authors:
+  - name: "Itzam Team"
+    image: "/logo.svg"
+coverImage: "/landing/anthropic.svg"
+slug: "introducing-itzam-workflows"
+---
+
+# Introducing Itzam: Making AI Workflows Easier to Implement
+
+Building AI applications shouldn't be complicated. That's why we created **Itzam** - a platform that makes AI workflows easier to implement, manage, and scale.
+
+## What is Itzam?
+
+Itzam is a comprehensive platform designed to streamline the development of AI-powered applications. Whether you're building chatbots, content generation tools, or complex AI workflows, Itzam provides the infrastructure and tools you need to get from idea to production quickly.
+
+## Key Features
+
+### 🔧 Structured Outputs
+
+Generate consistent, predictable outputs from your AI models with built-in structured output support.
+
+### 🧠 Knowledge Integration
+
+Add context to your workflows with:
+
+- File uploads and processing
+- Web scraping capabilities
+- Custom knowledge bases
+- Dynamic context injection
+
+### 💬 Threads & Chat History
+
+Build conversational AI applications with persistent chat history and thread management.
+
+### 🎯 Model Management
+
+- Support for multiple AI providers (OpenAI, Anthropic, Cohere, and more)
+- Model fallback and switching
+- Cost optimization tools
+- Performance monitoring
+
+## Getting Started
+
+Getting started with Itzam is simple:
+
+1. **Sign up** for a free account
+2. **Create your first workflow** using our intuitive interface
+3. **Add knowledge** by uploading files or connecting data sources
+4. **Deploy** your workflow with a single click
+
+```javascript
+// Example: Creating a simple AI workflow
+const workflow = await itzam.createWorkflow({
+  name: "Content Generator",
+  model: "gpt-4",
+  prompt: "Generate engaging blog content about {{topic}}",
+  structuredOutput: {
+    title: "string",
+    content: "string",
+    tags: "array",
+  },
+});
+```
+
+## Why Choose Itzam?
+
+- **Developer-First**: Built by developers, for developers
+- **Scalable**: From prototype to production
+- **Cost-Effective**: Transparent pricing with no hidden fees
+- **Secure**: Enterprise-grade security and compliance
+- **Support**: Dedicated support team and comprehensive documentation
+
+## What's Next?
+
+We're constantly improving Itzam based on user feedback. Coming soon:
+
+- **Agents & Tools**: Add function calling capabilities to your workflows
+- **Guardrails**: Ensure safe and compliant AI outputs
+- **Advanced Analytics**: Deep insights into your AI usage and performance
+
+## Try Itzam Today
+
+Ready to simplify your AI development? [Sign up for free](https://itzam.dev) and start building better AI workflows today.
+
+---
+
+_Have questions or feedback? We'd love to hear from you! Reach out to our team at hello@itzam.dev_
