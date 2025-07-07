@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useLocalStorage } from "usehooks-ts";
+import { useAtom } from "jotai";
 import { createThread as createThreadAction } from "~/app/dashboard/workflows/[workflowId]/playground/actions";
+import { getThreadAtoms } from "~/atoms/thread";
 
 interface ThreadHookProps {
   workflowSlug: string;
@@ -11,11 +12,22 @@ interface ThreadHookProps {
 }
 
 export function useThread({ workflowSlug, contextSlugs = [], workflowId }: ThreadHookProps) {
-  const [threadId, setThreadId] = useLocalStorage<string | null>(
-    `playground-threadId-${workflowId}`,
-    null
-  );
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Get atoms for this workflow
+  const atoms = getThreadAtoms(workflowId);
+  const [threadId, setThreadId] = useAtom(atoms.threadIdAtom);
+  const [mode, setMode] = useAtom(atoms.modeAtom);
+  
+  // Get messages atom for current thread
+  const messagesAtom = threadId ? atoms.getMessagesAtom(threadId) : null;
+  const [messages, setMessages] = useAtom(messagesAtom || atoms.getMessagesAtom("default"));
+
+  const clearMessages = useCallback(() => {
+    if (threadId) {
+      setMessages([]);
+    }
+  }, [threadId, setMessages]);
 
   const createThread = useCallback(async (name?: string) => {
     setIsCreating(true);
@@ -42,5 +54,10 @@ export function useThread({ workflowSlug, contextSlugs = [], workflowId }: Threa
     setThreadId,
     createThread,
     isCreating,
+    messages: threadId ? messages : [],
+    setMessages: threadId ? setMessages : () => {},
+    clearMessages,
+    mode,
+    setMode,
   };
 }

@@ -20,3 +20,8 @@ pnpm format           # Format with Prettier
 ## Preferred Patterns
 
 - Use react server functions for all frontend-backend integrations
+- Use the `usehooks-ts` lib for utility hooks like useLocalStorage, useEventListener and useWindowSize (theres many more, query the docs)
+
+## Design Philosophy
+
+- We love colocation, keep things close

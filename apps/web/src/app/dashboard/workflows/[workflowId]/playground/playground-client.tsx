@@ -12,7 +12,6 @@ import {
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useState } from "react";
-import { useLocalStorage } from "usehooks-ts";
 import { v4 as uuidv4 } from "uuid";
 import { MessageList, type Message } from "~/components/message/message-list";
 import ChangeModel from "~/components/playground/change-model";
@@ -72,15 +71,19 @@ export default function PlaygroundClient({
   const [metadata, setMetadata] = useState<StreamMetadata | null>(null);
 
   // Thread mode states
-  const [mode, setMode] = useLocalStorage<"single" | "thread">(
-    `playground-mode-${workflowId}`,
-    "single"
-  );
-  const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState<string>("");
 
-  // Use thread hook with localStorage built-in
-  const { threadId, setThreadId, createThread } = useThread({
+  // Use thread hook with localStorage built-in and message persistence
+  const { 
+    threadId, 
+    setThreadId, 
+    createThread, 
+    messages, 
+    setMessages, 
+    clearMessages,
+    mode,
+    setMode 
+  } = useThread({
     workflowSlug: workflow.slug,
     contextSlugs: contexts,
     workflowId,
@@ -105,18 +108,18 @@ export default function PlaygroundClient({
     (newMode: "single" | "thread") => {
       setMode(newMode);
       if (newMode === "single") {
-        // Reset to single mode
-        setThreadId(null);
-        setMessages([]);
+        // When switching to single mode, just clear streaming content
+        // Messages are preserved in localStorage via the hook
         setStreamingContent("");
       }
     },
-    [setMode, setThreadId]
+    [setMode]
   );
 
   const handleNewThread = useCallback(async () => {
+    // Clear current thread messages
+    clearMessages();
     setThreadId(null);
-    setMessages([]);
     setStreamingContent("");
     setOutput("");
     setMetadata(null);
@@ -127,7 +130,7 @@ export default function PlaygroundClient({
     if (!newThreadId) {
       console.error("Failed to create new thread");
     }
-  }, [setThreadId, createThread]);
+  }, [setThreadId, createThread, clearMessages]);
 
   const handleSingleSubmit = async () => {
     if (!selectedWorkflow || !input.trim() || !model?.id) {
