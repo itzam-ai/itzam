@@ -27,7 +27,7 @@ export function Footer() {
             </Link>
 
             <p className="mt-2 text-muted-foreground text-sm">
-              Open source AI platform for developers.
+              Open source backend for AI.
             </p>
 
             <div className="mt-6 flex gap-4 items-center">
@@ -71,7 +71,7 @@ export function Footer() {
                 target="_blank"
                 className="hover:opacity-80 transition-opacity"
               >
-                <Instagram size={16} />
+                <Instagram size={14} />
               </Link>
             </div>
           </div>

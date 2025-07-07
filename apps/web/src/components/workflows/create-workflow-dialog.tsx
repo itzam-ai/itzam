@@ -226,7 +226,9 @@ export function CreateWorkflowDialog({
       resetFormAndClose();
       router.push(`/dashboard/workflows/${workflow?.id}`);
     } catch (error) {
-      toast.error("Error");
+      toast.error(
+        error instanceof Error ? error.message : "Error creating workflow"
+      );
       console.error(error);
     }
   }

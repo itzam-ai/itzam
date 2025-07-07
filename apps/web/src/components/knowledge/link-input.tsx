@@ -7,7 +7,7 @@ import {
   subscribeToResourceUpdates,
 } from "@itzam/supabase/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowDown, Globe, PlusIcon, X } from "lucide-react";
+import { ArrowDown, Globe, Lock, PlusIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { v7 } from "uuid";
@@ -54,11 +54,13 @@ export const LinkInput = ({
   resources,
   knowledgeId,
   contextId,
+  plan,
 }: {
   workflowId: string;
   resources: Knowledge["resources"];
   knowledgeId?: string;
   contextId?: string;
+  plan: "hobby" | "basic" | "pro" | null;
 }) => {
   const [workflowLinks, setWorkflowLinks] = useState<
     (Knowledge["resources"][number] & {
@@ -288,9 +290,24 @@ export const LinkInput = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="NEVER">Never</SelectItem>
-                      <SelectItem value="HOURLY">Hourly</SelectItem>
-                      <SelectItem value="DAILY">Daily</SelectItem>
                       <SelectItem value="WEEKLY">Weekly</SelectItem>
+                      <SelectItem
+                        value="DAILY"
+                        disabled={plan !== "basic" && plan !== "pro"}
+                      >
+                        <div className="flex items-center gap-2">
+                          {plan !== "basic" && plan !== "pro" && (
+                            <Lock className="size-3" />
+                          )}
+                          Daily
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="HOURLY" disabled={plan !== "pro"}>
+                        <div className="flex items-center gap-2">
+                          {plan !== "pro" && <Lock className="size-3" />}
+                          Hourly
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -368,7 +385,7 @@ export const LinkInput = ({
                       {link.url}
                     </p>
                     <X
-                      className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
+                      className="size-3 hover:text-red-500 transition-colors cursor-pointer text-muted-foreground"
                       onClick={() =>
                         setLinksToAdd(linksToAdd.filter((l) => l !== link))
                       }
@@ -465,9 +482,24 @@ export const LinkInput = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="NEVER">Never</SelectItem>
-                      <SelectItem value="HOURLY">Hourly</SelectItem>
-                      <SelectItem value="DAILY">Daily</SelectItem>
                       <SelectItem value="WEEKLY">Weekly</SelectItem>
+                      <SelectItem
+                        value="DAILY"
+                        disabled={plan !== "basic" && plan !== "pro"}
+                      >
+                        <div className="flex items-center gap-2">
+                          {plan !== "basic" && plan !== "pro" && (
+                            <Lock className="size-3" />
+                          )}
+                          Daily
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="HOURLY" disabled={plan !== "pro"}>
+                        <div className="flex items-center gap-2">
+                          {plan !== "pro" && <Lock className="size-3" />}
+                          Hourly
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -506,6 +538,7 @@ export const LinkInput = ({
               key={resource.id}
               resource={resource}
               onDelete={handleResourceDelete}
+              plan={plan}
             />
           ))}
         </motion.div>

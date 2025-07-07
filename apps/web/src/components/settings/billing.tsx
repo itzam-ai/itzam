@@ -1,25 +1,28 @@
 import {
-  customerIsSubscribedToItzamPro,
   getCurrentUserStripeCustomerId,
+  getCustomerSubscriptionStatus,
+  getItzamBasicProduct,
   getItzamProProduct,
 } from "@itzam/server/db/billing/actions";
 import { stripe } from "@itzam/server/stripe/stripe";
 import { env } from "@itzam/utils/env";
 import Link from "next/link";
+import { formatStripeValue } from "~/lib/utils";
 import { Button } from "../ui/button";
-import { Plan } from "./plan";
 import { Card } from "../ui/card";
+import { Plan } from "./plan";
 export async function Billing() {
   const { data: stripeCustomerId } = await getCurrentUserStripeCustomerId();
 
-  const { isSubscribed, priceId } = await customerIsSubscribedToItzamPro();
+  const { isSubscribed, priceId, plan } = await getCustomerSubscriptionStatus();
 
   return (
-    <div className="grid grid-cols-1 gap-4 max-w-md">
+    <div className="grid grid-cols-1 gap-4">
       <SubscriptionStatus
         stripeCustomerId={stripeCustomerId}
         priceId={priceId}
         isSubscribed={isSubscribed}
+        plan={plan}
       />
       {!isSubscribed && <NoSubscription />}
     </div>
@@ -27,30 +30,55 @@ export async function Billing() {
 }
 
 async function NoSubscription() {
+  const itzamBasicProduct = await getItzamBasicProduct();
   const itzamProProduct = await getItzamProProduct();
+
+  if ("error" in itzamBasicProduct) {
+    return <div>{itzamBasicProduct.error}</div>;
+  }
 
   if ("error" in itzamProProduct) {
     return <div>{itzamProProduct.error}</div>;
   }
 
-  const prices = await stripe.prices.list({
+  const basicPrices = await stripe.prices.list({
+    product: itzamBasicProduct.id,
+    active: true,
+  });
+
+  const proPrices = await stripe.prices.list({
     product: itzamProProduct.id,
     active: true,
   });
 
-  const pricesData = prices.data.map((price) => ({
+  const basicPricesMapped = basicPrices.data.map((price) => ({
     id: price.id,
     lookup_key: price.lookup_key ?? "",
     unit_amount: price.unit_amount ?? 0,
-    monthly_amount:
-      price.lookup_key === "pro_yearly"
-        ? price.unit_amount! / 12
-        : price.unit_amount,
+  }));
+
+  const proPricesMapped = proPrices.data.map((price) => ({
+    id: price.id,
+    lookup_key: price.lookup_key ?? "",
+    unit_amount: price.unit_amount ?? 0,
   }));
 
   return (
-    <div className="max-w-md">
-      <Plan key={itzamProProduct.id} prices={pricesData} />
+    <div className="flex gap-4">
+      <Plan
+        product={{
+          id: itzamBasicProduct.id,
+          name: itzamBasicProduct.name,
+        }}
+        prices={basicPricesMapped}
+      />
+      <Plan
+        product={{
+          id: itzamProProduct.id,
+          name: itzamProProduct.name,
+        }}
+        prices={proPricesMapped}
+      />
     </div>
   );
 }
@@ -59,10 +87,12 @@ async function SubscriptionStatus({
   stripeCustomerId,
   priceId,
   isSubscribed,
+  plan,
 }: {
   stripeCustomerId: string | undefined;
   priceId: string | null;
   isSubscribed: boolean;
+  plan: "hobby" | "basic" | "pro" | null;
 }) {
   const price = isSubscribed
     ? await stripe.prices.retrieve(priceId ?? "")
@@ -76,24 +106,20 @@ async function SubscriptionStatus({
     : null;
 
   return (
-    <Card className="flex flex-col p-6 w-full">
+    <Card className="flex flex-col p-6 max-w-md">
       <p className="text-sm flex items-center gap-2">
         Plan:{" "}
-        {isSubscribed ? (
-          <span className="text-foreground px-2 font-semibold rounded-md bg-orange-600 py-0.5">
-            Pro
-          </span>
-        ) : (
-          <span className="text-foreground px-2 font-semibold rounded-md bg-muted py-0.5">
-            Free
-          </span>
-        )}
+        <span className="text-foreground px-2 font-semibold rounded-md bg-orange-600 py-0.5">
+          {plan === "pro" ? "Pro" : plan === "basic" ? "Basic" : "Hobby"}
+        </span>
       </p>
       {isSubscribed && (
         <p className="text-sm  mt-4">
           Billed:{" "}
           <span className="text-foreground">
-            {price?.lookup_key === "pro_monthly" ? "$20/month" : "$192/year"}
+            {price?.recurring?.interval === "month"
+              ? `$${formatStripeValue(price?.unit_amount ?? 0)}/month`
+              : `$${formatStripeValue(price?.unit_amount ?? 0)}/year`}
           </span>
         </p>
       )}

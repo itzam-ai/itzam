@@ -23,10 +23,10 @@ import {
 
 export default function RunFilters({
   models,
-  isSubscribedToItzamPro,
+  plan,
 }: {
   models: ModelWithCostAndProvider[];
-  isSubscribedToItzamPro: boolean;
+  plan: "hobby" | "basic" | "pro" | null;
 }) {
   const router = useRouter();
   const [threadId, setThreadId] = useQueryState("threadId", {
@@ -163,11 +163,14 @@ export default function RunFilters({
                 mode="range"
                 disabled={(date) => {
                   // No data retention for pro users
-                  if (isSubscribedToItzamPro) {
+                  if (plan === "pro") {
                     return date > new Date();
-                  } else {
-                    // unsubscribed users can only select today and the last 30 days
+                  } else if (plan === "basic") {
+                    // unsubscribed (basic) users can only select today and the last 30 days
                     return date < addDays(new Date(), -31) || date > new Date();
+                  } else {
+                    // unsubscribed (hobby) users can only select today and the last 7 days
+                    return date < addDays(new Date(), -8) || date > new Date();
                   }
                 }}
                 defaultMonth={dateRange?.from ?? undefined}
@@ -218,8 +221,16 @@ export default function RunFilters({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className={cn(
+                    "w-full",
+                    (plan === null || plan === "hobby") && "opacity-50"
+                  )}
                   onClick={() => {
+                    if (plan === null || plan === "hobby") {
+                      router.push("/dashboard/settings");
+                      return;
+                    }
+
                     setDateRange({
                       from: addDays(new Date(), -30),
                       to: new Date(),
@@ -230,17 +241,17 @@ export default function RunFilters({
                     setEndDate(endOfDay(new Date()).toISOString());
                   }}
                 >
+                  {(plan === null || plan === "hobby") && (
+                    <Lock className="size-3" />
+                  )}
                   Last 30 days
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn(
-                    "w-full",
-                    !isSubscribedToItzamPro && "opacity-50"
-                  )}
+                  className={cn("w-full", plan !== "pro" && "opacity-50")}
                   onClick={() => {
-                    if (!isSubscribedToItzamPro) {
+                    if (plan !== "pro") {
                       router.push("/dashboard/settings");
                       return;
                     }
@@ -255,7 +266,7 @@ export default function RunFilters({
                     setEndDate(endOfDay(new Date()).toISOString());
                   }}
                 >
-                  {!isSubscribedToItzamPro && <Lock className="size-3" />}
+                  {plan !== "pro" && <Lock className="size-3" />}
                   Last 90 days
                 </Button>
               </div>

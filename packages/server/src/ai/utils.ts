@@ -12,6 +12,7 @@ import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
 import type { Attachment, AttachmentWithUrl, CreateAiParamsFn } from "./types";
+import { StatusCode } from "hono/utils/http-status";
 
 // return a promise that resolves with a File instance
 export async function getFileFromString(
@@ -183,11 +184,20 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   const providerRegistry = await createUserProviderRegistry(userId);
 
-  const systemPromptWithKnowledge = await insertKnowledgeInPrompt(
-    prompt,
-    input ?? "",
-    run
-  );
+  const {
+    prompt: systemPromptWithKnowledge,
+    error,
+    status,
+    possibleValues,
+  } = await insertKnowledgeInPrompt(prompt, input ?? "", run);
+
+  if (error) {
+    return {
+      error,
+      status: status as StatusCode,
+      possibleValues,
+    };
+  }
 
   console.log("System prompt with knowledge ⬇️");
   console.log(systemPromptWithKnowledge);
@@ -271,27 +281,41 @@ export async function insertKnowledgeInPrompt(
   input: string,
   run: PreRunDetails
 ) {
-  const { similarChunks, resourceIds } = await findRelevantContent(
-    input,
-    run.knowledgeId,
-    run.contextSlugs,
-    run.workflowId
-  );
+  const { similarChunks, resourceIds, error, status, possibleValues } =
+    await findRelevantContent(
+      input,
+      run.knowledgeId,
+      run.contextSlugs,
+      run.workflowId
+    );
+
+  if (error) {
+    return {
+      prompt,
+      error,
+      status: status as StatusCode,
+      possibleValues,
+    };
+  }
 
   // Add resources used in context to run
   run.resourceIds = resourceIds;
 
   if (similarChunks.length === 0) {
-    return prompt;
+    return {
+      prompt,
+    };
   }
 
-  return `${prompt}
+  return {
+    prompt: `${prompt}
 
 <context>
 Relevant content found in user's provided knowledge base:
 
 ${similarChunks.map((c) => c.content).join("\n")}
-</context>`;
+</context>`,
+  };
 }
 
 export async function processAttachments(

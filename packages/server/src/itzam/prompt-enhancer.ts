@@ -4,7 +4,7 @@ import Itzam from "itzam";
 import { env } from "@itzam/utils";
 import { getUser } from "../db/auth/actions";
 import { createAdminAuthClient } from "../db/supabase/server";
-import { customerIsSubscribedToItzamPro } from "../db/billing/actions";
+import { getCustomerSubscriptionStatus } from "../db/billing/actions";
 
 const itzam = new Itzam(env.ITZAM_API_KEY);
 
@@ -15,18 +15,17 @@ export async function enhancePrompt(currentPrompt: string) {
     return { error: "Failed to get user" };
   }
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
   const enhancePromptCount =
     user.data.user?.user_metadata?.enhance_prompt_count ?? 0;
-  const enhancePromptLimit = isSubscribedToItzamPro.isSubscribed ? 100 : 10;
+  const enhancePromptLimit = plan === "pro" ? 100 : plan === "basic" ? 10 : 0;
   const isEnhancePromptLimitReached = enhancePromptCount >= enhancePromptLimit;
 
   if (isEnhancePromptLimitReached) {
     return {
       error: "Enhance prompt limit reached",
-      description: isSubscribedToItzamPro.isSubscribed
-        ? "You have reached the enhance prompt limit. Contact support (support@itz.am) to upgrade."
-        : "Please upgrade to Itzam Pro to continue using this feature.",
+      description:
+        "You have reached the enhance prompt limit. Upgrade for more.",
     };
   }
 

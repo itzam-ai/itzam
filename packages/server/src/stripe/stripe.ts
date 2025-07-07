@@ -1,8 +1,7 @@
 import { env } from "@itzam/utils/env";
 import Stripe from "stripe";
-import { db } from "../db";
-import { createAdminAuthClient } from "../db/supabase/server";
 import { getUser } from "../db/auth/actions";
+import { createAdminAuthClient } from "../db/supabase/server";
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-02-24.acacia",
@@ -14,6 +13,8 @@ export type STRIPE_DATA =
       subscriptionId: string | null;
       status: Stripe.Subscription.Status;
       priceId: string | null;
+      productId: string | null;
+      plan: "hobby" | "basic" | "pro";
       currentPeriodStart: number | null;
       currentPeriodEnd: number | null;
       cancelAtPeriodEnd: boolean;
@@ -24,6 +25,7 @@ export type STRIPE_DATA =
     }
   | {
       status: "none";
+      plan: "hobby";
     };
 
 export async function createCheckoutSession(stripeCustomerId: string) {
@@ -47,7 +49,7 @@ export async function syncStripeDataToDB(customerId: string) {
   });
 
   if (subscriptions.data.length === 0) {
-    const subData = { status: "none" };
+    const subData = { status: "none", plan: "hobby" };
     await updateStripeData(customerId, subData);
     return subData;
   }
@@ -60,10 +62,22 @@ export async function syncStripeDataToDB(customerId: string) {
     return { error: "No subscription found" };
   }
 
+  const itzamBasicProductId = env.STRIPE_ITZAM_BASIC_PRODUCT_ID;
+  const itzamProProductId = env.STRIPE_ITZAM_PRO_PRODUCT_ID;
+
+  const productId = subscription.items.data[0]?.price.product;
+
   // Store complete subscription state
   const subData = {
     subscriptionId: subscription.id,
     status: subscription.status,
+    productId,
+    plan:
+      productId === itzamBasicProductId
+        ? "basic"
+        : productId === itzamProProductId
+          ? "pro"
+          : "hobby",
     priceId: subscription.items.data[0]?.price.id,
     currentPeriodEnd: subscription.current_period_end,
     currentPeriodStart: subscription.current_period_start,

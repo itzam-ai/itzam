@@ -24,12 +24,11 @@ async function createThread(
       }
     );
 
-    if (!response.ok) {
-      const data = await response.json();
+    const data = await response.json();
+
+    if (!response.ok || "error" in data) {
       throw createItzamError(data);
     }
-
-    const data = await response.json();
 
     return data;
   } catch (error) {

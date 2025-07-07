@@ -4,18 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import {
   enterpriseFeatures,
-  proFeatures,
+  basicFeatures,
   standardFeatures,
+  proFeatures,
 } from "~/lib/features";
 import { cn } from "~/lib/utils";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Switch } from "../ui/switch";
 export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
-  const [proPrices, setProPrices] = useState({
-    value: 16,
-    period: "yearly",
-  });
+  const [billedYearly, setBilledYearly] = useState(true);
 
   const handleConfetti = async (event: React.MouseEvent<HTMLButtonElement>) => {
     try {
@@ -39,7 +37,7 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
   return (
     <div className="relative flex flex-col justify-center">
       <div className="flex w-full rounded-xl bg-muted/50 shadow-sm md:flex-row flex-col md:gap-0 gap-4">
-        <div className="w-full md:w-2/6">
+        <div className="w-full md:w-1/4">
           <PricingCard
             title="Hobby"
             setting={
@@ -48,41 +46,31 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             price="Free"
             features={standardFeatures}
             button={
-              isSignedIn ? (
-                <Link href="/dashboard" className="block w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Get started
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/login" className="block w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Start Building
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              )
+              <Link
+                href={
+                  isSignedIn ? "/dashboard" : "/auth/login?redirect=/dashboard"
+                }
+                className="block w-full"
+              >
+                <Button variant="secondary" className="w-full" size="sm">
+                  Start Building
+                  <ArrowRight className="hidden size-4 md:block" />
+                </Button>
+              </Link>
             }
           />
         </div>
-        <Card className="w-full md:w-2/6">
+
+        <div className="w-full md:w-1/4">
           <PricingCard
-            title="Pro"
+            title="Basic"
             setting={
               <div className="flex items-center gap-3">
                 <Switch
-                  checked={proPrices.period === "yearly"}
-                  onCheckedChange={() =>
-                    setProPrices({
-                      ...proPrices,
-                      value: proPrices.period === "yearly" ? 20 : 16,
-                      period:
-                        proPrices.period === "yearly" ? "monthly" : "yearly",
-                    })
-                  }
+                  checked={billedYearly}
+                  onCheckedChange={() => setBilledYearly(!billedYearly)}
                   onClick={(e) => {
-                    if (proPrices.period === "monthly") {
+                    if (!billedYearly) {
                       handleConfetti(e);
                     }
                   }}
@@ -91,30 +79,66 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
                 <p className="text-sm">Billed yearly</p>
               </div>
             }
-            price={`$${proPrices.value}`}
+            price={`$${billedYearly ? 8 : 10}`}
+            priceSuffix={"/month"}
+            features={basicFeatures}
+            button={
+              <Link
+                href={
+                  isSignedIn
+                    ? "/dashboard/settings"
+                    : "/auth/login?redirect=/dashboard/settings"
+                }
+                className="w-full"
+              >
+                <Button variant="secondary" className="w-full" size="sm">
+                  Start Building
+                  <ArrowRight className="hidden size-4 md:block" />
+                </Button>
+              </Link>
+            }
+          />
+        </div>
+        <Card className="w-full md:w-1/4">
+          <PricingCard
+            title="Pro"
+            setting={
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={billedYearly}
+                  onCheckedChange={() => setBilledYearly(!billedYearly)}
+                  onClick={(e) => {
+                    if (!billedYearly) {
+                      handleConfetti(e);
+                    }
+                  }}
+                />
+
+                <p className="text-sm">Billed yearly</p>
+              </div>
+            }
+            price={`$${billedYearly ? 16 : 20}`}
             priceSuffix="/month"
             features={proFeatures}
             button={
-              isSignedIn ? (
-                <Link href="/dashboard/settings" className="w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Start Building
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              ) : (
-                <Link href="/auth/login" className="w-full">
-                  <Button variant="primary" className="w-full" size="sm">
-                    Start Building
-                    <ArrowRight className="hidden size-4 md:block" />
-                  </Button>
-                </Link>
-              )
+              <Link
+                href={
+                  isSignedIn
+                    ? "/dashboard/settings"
+                    : "/auth/login?redirect=/dashboard/settings"
+                }
+                className="w-full"
+              >
+                <Button variant="primary" className="w-full" size="sm">
+                  Start Building
+                  <ArrowRight className="hidden size-4 md:block" />
+                </Button>
+              </Link>
             }
           />
         </Card>
 
-        <div className="w-full md:w-2/6">
+        <div className="w-full md:w-1/4">
           <PricingCard
             title="Enterprise"
             setting={
@@ -156,7 +180,7 @@ export const PricingCard = ({
 }) => {
   return (
     <div className="z-30 flex flex-col p-6 h-full">
-      <div className="flex h-full flex-col ">
+      <div className="flex h-full flex-col">
         <h2 className={cn(title === "Pro" && "text-orange-500 font-semibold")}>
           {title}
         </h2>
@@ -175,11 +199,11 @@ export const PricingCard = ({
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`flex items-center gap-2.5 ${
+              className={`flex items-start gap-2.5 ${
                 feature.icon ? "ml-1" : ""
               }`}
             >
-              {feature.icon && <feature.icon className="size-3.5" />}
+              {feature.icon && <feature.icon className="size-3.5 mt-0.5" />}
               <p className="text-neutral-500 text-sm">{feature.text}</p>
             </div>
           ))}

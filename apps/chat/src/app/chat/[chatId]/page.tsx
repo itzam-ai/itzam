@@ -1,4 +1,4 @@
-import { customerIsSubscribedToItzamPro } from "@itzam/server/db/billing/actions";
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import {
   createChat,
   getChatById,
@@ -42,7 +42,7 @@ export default async function Page(props: {
 
   const olderChats = await getOlderChats();
 
-  const hasActiveSubscription = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
   const messagesSentToday = await howManyMessagesSentToday();
 
   return (
@@ -59,13 +59,13 @@ export default async function Page(props: {
         <UserMenu
           olderChats={olderChats}
           chatId={chatId}
-          hasActiveSubscription={hasActiveSubscription.isSubscribed}
+          hasActiveSubscription={plan === "pro"}
         />
       </div>
       <Chat
         chat={chat}
         models={sortedModelsFlat}
-        hasActiveSubscription={hasActiveSubscription.isSubscribed}
+        hasActiveSubscription={plan === "pro"}
         messagesSentToday={messagesSentToday}
       />
     </div>

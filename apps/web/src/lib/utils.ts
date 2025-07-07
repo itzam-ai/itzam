@@ -31,3 +31,7 @@ export function formatCurrency(num: number): string {
 export function formatStripeValue(num: number): number {
   return num / 100;
 }
+
+export function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}

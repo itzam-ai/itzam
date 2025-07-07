@@ -9,7 +9,7 @@ export function Profile({ user }: { user: User }) {
         <Image
           src={user?.user_metadata.avatar_url ?? ""}
           alt="Profile"
-          className="aspect-square rounded-full object-cover border border-muted-foreground size-16"
+          className="aspect-square rounded-full object-cover border border-muted-foreground size-12"
           width={80}
           height={80}
           priority
@@ -24,7 +24,10 @@ export function Profile({ user }: { user: User }) {
         <Label id="name" className=" font-medium text-lg">
           {user?.user_metadata.name}
         </Label>
-        <Label id="email" className="text-sm font-normal text-muted-foreground">
+        <Label
+          id="email"
+          className="text-sm font-normal text-muted-foreground -mt-0.5"
+        >
           {user?.email}
         </Label>
       </div>

@@ -13,7 +13,7 @@ export default async function ProvidersPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="font-semibold text-xl tracking-tight">Providers</h1>
+        <h1 className="font-semibold text-xl">Providers</h1>
         <p className="text-muted-foreground text-sm">Manage your providers.</p>
       </div>
 

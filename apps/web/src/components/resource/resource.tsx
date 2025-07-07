@@ -17,6 +17,7 @@ import {
   FileIcon,
   GlobeIcon,
   Loader2,
+  Lock,
   RefreshCw,
   Settings,
   TrashIcon,
@@ -48,12 +49,14 @@ import { TextLoop } from "../knowledge/text-loop";
 export const Resource = ({
   resource,
   onDelete,
+  plan,
 }: {
   resource: Knowledge["resources"][number] & {
     totalChunks?: number;
     processedChunks?: number;
   };
   onDelete?: (resourceId: string) => void;
+  plan: "hobby" | "basic" | "pro" | null;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdatingRescrapeFrequency, setIsUpdatingRescrapeFrequency] =
@@ -283,9 +286,24 @@ export const Resource = ({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="NEVER">Never</SelectItem>
-                      <SelectItem value="HOURLY">Hourly</SelectItem>
-                      <SelectItem value="DAILY">Daily</SelectItem>
                       <SelectItem value="WEEKLY">Weekly</SelectItem>
+                      <SelectItem
+                        value="DAILY"
+                        disabled={plan !== "basic" && plan !== "pro"}
+                      >
+                        <div className="flex items-center gap-2">
+                          {plan !== "basic" && plan !== "pro" && (
+                            <Lock className="size-3" />
+                          )}
+                          Daily
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="HOURLY" disabled={plan !== "pro"}>
+                        <div className="flex items-center gap-2">
+                          {plan !== "pro" && <Lock className="size-3" />}
+                          Hourly
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

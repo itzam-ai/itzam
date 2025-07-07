@@ -3,67 +3,107 @@ import {
   BotMessageSquareIcon,
   Calendar1,
   CalendarCheckIcon,
-  CalendarClock,
   ChartLine,
-  CirclePlus,
+  Clock,
   Code,
   FileUpIcon,
   Mail,
+  RefreshCcw,
   Workflow,
 } from "lucide-react";
 
 export const standardFeatures = [
   {
+    icon: null,
+    text: "Start with:",
+  },
+  {
     icon: Workflow,
-    text: "Unlimited workflows",
+    text: "2 workflows",
   },
   {
     icon: Bot,
-    text: "Model & Prompt hot-swap",
+    text: "Model hot-swap",
   },
   {
     icon: ChartLine,
-    text: "Cost & Usage analytics",
+    text: "Analytics",
   },
-
   {
-    icon: CalendarClock,
-    text: "30-day data retention",
+    icon: CalendarCheckIcon,
+    text: "7-day data retention",
+  },
+  {
+    icon: RefreshCcw,
+    text: "Weekly link rescraping",
   },
   {
     icon: FileUpIcon,
-    text: "50MB knowledge per workflow",
-  },
-  {
-    icon: BotMessageSquareIcon,
-    text: "10 prompt enhancements",
+    text: "5MB knowledge per workflow",
   },
 ];
 
-export const proFeatures = [
+export const basicFeatures = [
   {
     icon: null,
-    text: "Everything in Free, plus:",
+    text: "Everything in Hobby, plus:",
   },
   {
-    icon: CirclePlus,
-    text: "Early access to new features",
+    icon: Workflow,
+    text: "10 workflows",
   },
   {
     icon: Mail,
     text: "Priority email & chat support",
   },
   {
+    icon: BotMessageSquareIcon,
+    text: "10 prompt enhancements",
+  },
+  {
     icon: CalendarCheckIcon,
-    text: "Unlimited data retention",
+    text: "30-day data retention",
+  },
+
+  {
+    icon: RefreshCcw,
+    text: "Daily link rescraping",
   },
   {
     icon: FileUpIcon,
-    text: "500MB knowledge per workflow",
+    text: "50MB knowledge per workflow",
+  },
+];
+
+export const proFeatures = [
+  {
+    icon: null,
+    text: "Everything in Basic, plus:",
+  },
+  {
+    icon: Workflow,
+    text: "Unlimited workflows",
+  },
+  {
+    icon: Clock,
+    text: "Early access to features",
   },
   {
     icon: BotMessageSquareIcon,
     text: "100 prompt enhancements",
+  },
+  {
+    icon: CalendarCheckIcon,
+    text: "Unlimited data retention",
+  },
+
+  {
+    icon: RefreshCcw,
+    text: "Hourly link rescraping",
+  },
+  {
+    icon: FileUpIcon,
+    text: "500MB knowledge per workflow",
   },
 ];
 
@@ -74,22 +114,18 @@ export const enterpriseFeatures = [
   },
   {
     icon: Calendar1,
-    text: "Feature request prioritization",
+    text: "Feature prioritization",
   },
   {
     icon: Code,
     text: "Custom integrations",
   },
   {
-    icon: CalendarCheckIcon,
-    text: "Unlimited data retention",
+    icon: BotMessageSquareIcon,
+    text: "1000 prompt enhancements",
   },
   {
     icon: FileUpIcon,
     text: "Custom knowledge per workflow",
-  },
-  {
-    icon: BotMessageSquareIcon,
-    text: "Custom prompt enhancements",
   },
 ];

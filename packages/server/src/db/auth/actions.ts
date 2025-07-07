@@ -54,20 +54,29 @@ export async function login(formData: FormData, redirectTo?: string) {
     return { success: false, error: error.message };
   }
 
+  if (redirectTo) {
+    redirect(redirectTo);
+  }
+
   revalidatePath("/", "layout");
   return { success: true, redirectTo: redirectTo ?? "/dashboard/workflows" };
 }
 
-export async function signInWithProvider(provider: "google" | "github") {
+export async function signInWithProvider(
+  provider: "google" | "github",
+  redirectTo?: string
+) {
   const supabase = await createClient();
 
-  const redirectTo =
-    env.NEXT_PUBLIC_APP_URL + "/api/auth/callback?next=/dashboard/workflows";
+  const redirectUrl =
+    env.NEXT_PUBLIC_APP_URL +
+    "/api/auth/callback?next=" +
+    (redirectTo ?? "/dashboard/workflows");
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: provider,
     options: {
-      redirectTo: redirectTo,
+      redirectTo: redirectUrl,
     },
   });
 

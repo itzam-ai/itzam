@@ -16,6 +16,7 @@ import {
   resources,
   workflows,
 } from "../schema";
+import { getCustomerSubscriptionStatus } from "../billing/actions";
 
 export type WorkflowWithRelations = Awaited<
   ReturnType<typeof getWorkflowByIdWithRelations>
@@ -160,6 +161,23 @@ export const createWorkflow = protectedProcedure(
     { user },
     { name, description, slug, prompt, modelId }: CreateWorkflowArgs
   ) => {
+    const { plan } = await getCustomerSubscriptionStatus();
+
+    // Hobby: 2 workflows
+    // Basic: 10 workflows
+    // Pro: Unlimited workflows
+    const maxWorkflows = plan === "pro" ? 9999999 : plan === "basic" ? 10 : 2;
+
+    const userWorkflows = await db.query.workflows.findMany({
+      where: and(eq(workflows.userId, user.id), eq(workflows.isActive, true)),
+    });
+
+    if (userWorkflows.length >= maxWorkflows) {
+      throw new Error(
+        `You have reached the maximum number of workflows. Upgrade for more.`
+      );
+    }
+
     const model = await db.query.models.findFirst({
       where: eq(models.id, modelId),
     });

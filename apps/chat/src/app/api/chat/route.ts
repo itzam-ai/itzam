@@ -1,5 +1,5 @@
 import { createUserProviderRegistry } from "@itzam/server/ai/registry";
-import { customerIsSubscribedToItzamPro } from "@itzam/server/db/billing/actions";
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import {
   getChatById,
   howManyMessagesSentToday,
@@ -33,9 +33,9 @@ export async function POST(req: Request) {
     return new Response("Chat not found", { status: 404 });
   }
 
-  const hasActiveSubscription = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
-  if (messagesSentToday >= MAX_MESSAGES_PER_DAY && !hasActiveSubscription) {
+  if (messagesSentToday >= MAX_MESSAGES_PER_DAY && plan === "hobby") {
     return new Response(
       "You have reached the limit of free messages today. Subscribe to continue.",
       { status: 400 }

@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "..";
 import type { AttachmentWithUrl } from "../../ai/types";
 import { sendDiscordNotification } from "../../discord/actions";
-import { customerIsSubscribedToItzamPro } from "../billing/actions";
+import { getCustomerSubscriptionStatus } from "../billing/actions";
 import {
   attachments as attachmentsTable,
   type models,
@@ -32,7 +32,7 @@ export async function getRunById(runId: string) {
 }
 
 export type RunWithModelAndResourcesAndAttachmentsAndThreads = NonNullable<
-  Awaited<ReturnType<typeof getLast30RunsInTheLast30Days>>[number]
+  Awaited<ReturnType<typeof getLast30RunsInTheLastDays>>[number]
 >;
 export async function getRunByIdAndUserId(runId: string, userId: string) {
   const run = await db.query.runs.findFirst({
@@ -78,11 +78,13 @@ export async function getRunByIdAndUserId(runId: string, userId: string) {
   return run;
 }
 
-export async function getLast30RunsInTheLast30Days(workflowId: string) {
+export async function getLast30RunsInTheLastDays(workflowId: string) {
+  const { plan } = await getCustomerSubscriptionStatus();
+
   return await db.query.runs.findMany({
     where: and(
       eq(runs.workflowId, workflowId),
-      sql`${runs.createdAt} >= ${addDays(new Date(), -30).toISOString()}`
+      sql`${runs.createdAt} >= ${addDays(new Date(), plan === "pro" ? -30 : -7).toISOString()}`
     ),
     orderBy: (runs, { desc }) => [desc(runs.createdAt)],
     with: {
@@ -124,7 +126,7 @@ export async function getRunsByWorkflowId(
   const limit = 50;
   const offset = (page - 1) * limit;
 
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const whereConditions = [eq(runs.workflowId, workflowId)];
 
@@ -149,17 +151,18 @@ export async function getRunsByWorkflowId(
     const endDateTimeFromParams = new Date(params.endDate);
 
     // Pro user can select any date in the past
-    if (isSubscribedToItzamPro.isSubscribed) {
+    if (plan === "pro") {
       startDateUsedInQuery = startDateTimeFromParams;
       endDateUsedInQuery = endDateTimeFromParams;
-      // Unsubscribed user can only select dates in the last 30 days
+      // Basic user can only select dates in the last 30 days, free users can only select dates in the last 7 days
     } else {
-      // If the start date or end date is more than 30 days ago, we set the params to last 30 days
+      // If the start date or end date is more than 30 for basic users or 7 for free users ago, we set the params to last 30 or 7 days
       if (
-        startDateTimeFromParams < addDays(new Date(), -30) ||
-        endDateTimeFromParams < addDays(new Date(), -30)
+        startDateTimeFromParams <
+          addDays(new Date(), plan === "basic" ? -30 : -7) ||
+        endDateTimeFromParams < addDays(new Date(), plan === "basic" ? -30 : -7)
       ) {
-        startDateUsedInQuery = addDays(new Date(), -30);
+        startDateUsedInQuery = addDays(new Date(), plan === "basic" ? -30 : -7);
         endDateUsedInQuery = endOfDay(new Date());
       } else {
         startDateUsedInQuery = startDateTimeFromParams;
@@ -167,9 +170,10 @@ export async function getRunsByWorkflowId(
       }
     }
   } else {
-    startDateUsedInQuery = isSubscribedToItzamPro.isSubscribed
-      ? new Date(0)
-      : addDays(new Date(), -30);
+    startDateUsedInQuery =
+      plan === "pro"
+        ? new Date(0)
+        : addDays(new Date(), plan === "basic" ? -30 : -7);
     endDateUsedInQuery = endOfDay(new Date());
   }
 
@@ -225,7 +229,7 @@ export async function getRunsCount(
     endDate?: string;
   }
 ): Promise<number> {
-  const isSubscribedToItzamPro = await customerIsSubscribedToItzamPro();
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const whereConditions = [eq(runs.workflowId, workflowId)];
 
@@ -246,32 +250,33 @@ export async function getRunsCount(
 
   // Date params
   if (params.startDate && params.endDate) {
-    const startDateTime = new Date(params.startDate);
-    const endDateTime = new Date(params.endDate);
-
-    startDateUsedInQuery = startDateTime;
-    endDateUsedInQuery = endDateTime;
+    const startDateTimeFromParams = new Date(params.startDate);
+    const endDateTimeFromParams = new Date(params.endDate);
 
     // Pro user can select any date in the past
-    if (isSubscribedToItzamPro.isSubscribed) {
-      startDateUsedInQuery = addDays(new Date(), -30);
-      endDateUsedInQuery = endOfDay(new Date());
-      // Unsubscribed user can only select dates in the last 30 days
+    if (plan === "pro") {
+      startDateUsedInQuery = startDateTimeFromParams;
+      endDateUsedInQuery = endDateTimeFromParams;
+      // Basic user can only select dates in the last 30 days, free users can only select dates in the last 7 days
     } else {
-      // If the start date or end date is more than 30 days ago, we set the params to last 30 days
+      // If the start date or end date is more than 30 for basic users or 7 for free users ago, we set the params to last 30 or 7 days
       if (
-        startDateTime < addDays(new Date(), -30) ||
-        endDateTime < addDays(new Date(), -30)
+        startDateTimeFromParams <
+          addDays(new Date(), plan === "basic" ? -30 : -7) ||
+        endDateTimeFromParams < addDays(new Date(), plan === "basic" ? -30 : -7)
       ) {
-        startDateUsedInQuery = addDays(new Date(), -30);
+        startDateUsedInQuery = addDays(new Date(), plan === "basic" ? -30 : -7);
         endDateUsedInQuery = endOfDay(new Date());
       } else {
-        startDateUsedInQuery = startDateTime;
-        endDateUsedInQuery = endDateTime;
+        startDateUsedInQuery = startDateTimeFromParams;
+        endDateUsedInQuery = endDateTimeFromParams;
       }
     }
   } else {
-    startDateUsedInQuery = new Date(0);
+    startDateUsedInQuery =
+      plan === "pro"
+        ? new Date(0)
+        : addDays(new Date(), plan === "basic" ? -30 : -7);
     endDateUsedInQuery = endOfDay(new Date());
   }
 

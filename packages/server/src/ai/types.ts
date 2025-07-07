@@ -1,6 +1,7 @@
 import { generateObject, jsonSchema, streamObject } from "ai";
 import type { Model } from "../db/model/actions";
 import { PreRunDetails } from "../types";
+import { StatusCode } from "hono/utils/http-status";
 
 export type AiParams = StreamInput | GenerateInput;
 
@@ -31,6 +32,10 @@ export type ItzamRequestSchema = Parameters<typeof jsonSchema>[0];
 type StreamInput = Parameters<typeof streamObject>[0];
 type GenerateInput = Parameters<typeof generateObject>[0];
 
-export type CreateAiParamsFn = (
-  input: CreateAiParamsInput
-) => Promise<AiParams>;
+export type CreateAiParamsFn = (input: CreateAiParamsInput) =>
+  | Promise<AiParams>
+  | Promise<{
+      error: string;
+      status: StatusCode;
+      possibleValues: string[];
+    }>;

@@ -46,11 +46,36 @@ export const findRelevantContent = async (
   )})`;
 
   // If contextSlugs is provided, find the context ids and add to where clause
-  const contextIds = await db
+  const contextsFound = await db
     .select({ id: contexts.id })
     .from(contexts)
-    .where(inArray(contexts.slug, contextSlugs))
+    .where(
+      and(
+        eq(contexts.workflowId, workflowId),
+        inArray(contexts.slug, contextSlugs),
+        eq(contexts.isActive, true)
+      )
+    )
     .then((res) => res.map((r) => r.id));
+
+  // If user provided context slugs that are not found, return an error
+  if (contextsFound.length !== contextSlugs.length) {
+    const contextSlugsAvailable = await db
+      .select({ slug: contexts.slug })
+      .from(contexts)
+      .where(
+        and(eq(contexts.workflowId, workflowId), eq(contexts.isActive, true))
+      )
+      .then((res) => res.map((r) => r.slug));
+
+    return {
+      similarChunks: [],
+      resourceIds: [],
+      error: "Context slugs not found",
+      status: 404,
+      possibleValues: contextSlugsAvailable,
+    };
+  }
 
   // Retrieving chunks with similarity greater than SIMILARITY_THRESHOLD
   const similarChunks = await db
@@ -69,9 +94,7 @@ export const findRelevantContent = async (
         // Finding chunks that are in the knowledge or in one of the contexts
         or(
           eq(resources.knowledgeId, knowledgeId),
-          contextIds.length > 0
-            ? inArray(resources.contextId, contextIds)
-            : sql`false`
+          inArray(resources.contextId, contextsFound)
         )
       )
     )

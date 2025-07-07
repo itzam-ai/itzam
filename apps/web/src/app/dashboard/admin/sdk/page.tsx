@@ -102,7 +102,7 @@ export default function AdminSdkPage() {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<string>("");
-  const [input, setInput] = useState<string>("summarize the file");
+  const [input, setInput] = useState<string>("Hey, write a poem about a cat");
   const [metadata, setMetadata] = useState<Metadata | null>(null);
   const [streamStatus, setStreamStatus] = useState<
     "loading" | "streaming" | "completed" | "error" | null
@@ -114,6 +114,7 @@ export default function AdminSdkPage() {
     workflowSlug: slug,
     input,
     threadId: selectedThreadId || undefined,
+    contextSlugs: ["special"],
     attachments: file
       ? [
           {
@@ -194,7 +195,8 @@ export default function AdminSdkPage() {
       handleGetRunById({ runId: response.metadata.runId });
 
       setIsLoading(false);
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error("Error generating text");
       setIsLoading(false);
     }

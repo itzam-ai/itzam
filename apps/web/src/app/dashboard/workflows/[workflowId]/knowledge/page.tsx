@@ -1,3 +1,4 @@
+import { getCustomerSubscriptionStatus } from "@itzam/server/db/billing/actions";
 import {
   getKnowledgeByWorkflowId,
   getMaxLimit,
@@ -17,6 +18,8 @@ export default async function KnowledgePage({
 }) {
   const { workflowId } = await params;
   const knowledge = await getKnowledgeByWorkflowId(workflowId);
+
+  const { plan } = await getCustomerSubscriptionStatus();
 
   const availableStorage = await getMaxLimit();
 
@@ -56,11 +59,13 @@ export default async function KnowledgePage({
           workflowId={workflowId}
           resources={knowledge.resources}
           knowledgeId={knowledge.id}
+          plan={plan}
         />
         <LinkInput
           workflowId={workflowId}
           resources={knowledge.resources}
           knowledgeId={knowledge.id}
+          plan={plan}
         />
       </div>
     </Card>

@@ -221,12 +221,17 @@ export async function createThread({
         ),
         columns: {
           id: true,
+          slug: true,
         },
       })
       .then((res) => res.map((r) => r.id));
 
     if (contextIds.length !== contextSlugs.length) {
-      throw new Error("Context slugs not found");
+      return {
+        error: "Context slugs not found",
+        status: 404,
+        possibleValues: contextSlugs,
+      };
     }
   }
 
@@ -240,7 +245,10 @@ export async function createThread({
     .returning();
 
   if (!thread) {
-    return null;
+    return {
+      error: "Failed to create thread",
+      status: 500,
+    };
   }
 
   if (lookupKeys && lookupKeys.length > 0) {

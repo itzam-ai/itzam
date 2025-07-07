@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "..";
 import { sendDiscordNotification } from "../../discord/actions";
 import { getUser } from "../auth/actions";
-import { customerIsSubscribedToItzamProForUserId } from "../billing/actions";
+import { getCustomerSubscriptionStatusForUserId } from "../billing/actions";
 import { checkPlanLimits, Knowledge } from "../knowledge/actions";
 import { chunks, resources, resources as resourcesTable } from "../schema";
 
@@ -70,7 +70,7 @@ export async function createResourceAndSendoToAPI({
   }
 
   // check plan limits
-  await checkPlanLimits(workflowId);
+  await checkPlanLimits(workflowId, resources);
 
   // create resources in the database
   const createdResources = await db
@@ -98,7 +98,7 @@ export async function createResourceAndSendoToAPI({
       },
       body: JSON.stringify({
         knowledgeId,
-        contextId, // TODO: Add this to the python API and check if it's a knowledge or context to create the resources and send the updates to the correct channel
+        contextId,
         resources: resourcesToSend,
         userId: user.data.user.id,
         workflowId,
@@ -139,8 +139,7 @@ export async function rescrapeResources(
       `🐛 Checking ${resourcesByUser?.length ?? 0} resources for user ${userId}`
     );
 
-    const { isSubscribed } =
-      await customerIsSubscribedToItzamProForUserId(userId);
+    const { plan } = await getCustomerSubscriptionStatusForUserId(userId);
 
     for (const resource of resourcesByUser || []) {
       const lastScrapedAt = resource.lastScrapedAt;
@@ -161,7 +160,7 @@ export async function rescrapeResources(
       }
 
       // Check if new size is bigger than the limit
-      if (await fileSizeExceedsPlanLimit(resource, isSubscribed)) {
+      if (await fileSizeExceedsPlanLimit(resource, plan)) {
         // TODO: Send email to user saying that they have reached the limit in this workflow
         console.log(
           `🐛 Skipping resource ${resource.id} because it exceeds the plan size limit (50MB for free users, 500MB for paid users)`
@@ -278,11 +277,14 @@ function lastScrapingDateIsNewerThanScrapeFrequency(
 
 async function fileSizeExceedsPlanLimit(
   resource: ResourceWithKnowledgeAndWorkflow,
-  isSubscribedToItzamPro: boolean
+  plan: "hobby" | "basic" | "pro" | null
 ) {
-  const maxKnowledgeSize = isSubscribedToItzamPro
-    ? 500 * 1024 * 1024
-    : 50 * 1024 * 1024;
+  const maxKnowledgeSize =
+    plan === "pro"
+      ? 200 * 1024 * 1024 // 200MB
+      : plan === "basic"
+        ? 50 * 1024 * 1024 // 50MB
+        : 5 * 1024 * 1024; // 5MB
 
   // Get all resources in the knowledge
   const otherResourcesSize = await db.query.resources.findMany({
