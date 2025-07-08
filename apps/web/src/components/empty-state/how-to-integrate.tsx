@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { CodeBlockCode } from "../ui/code-block";
 import { Card } from "../ui/card";
 import { Button } from "../ui/button";
@@ -8,7 +7,6 @@ import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export const HowToIntegrate = ({ workflowSlug }: { workflowSlug: string }) => {
-  const { resolvedTheme } = useTheme();
   const generateTextCode = `
 // Generate text: 
 
@@ -59,7 +57,6 @@ const response = await itzam.streamText({
               fontSize: "12px",
             }}
             language="typescript"
-            theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
           />
         </Card>
         <Card className="w-full p-2 relative">
@@ -81,7 +78,6 @@ const response = await itzam.streamText({
               fontSize: "12px",
             }}
             language="typescript"
-            theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
           />
         </Card>
       </div>

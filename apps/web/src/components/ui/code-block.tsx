@@ -3,6 +3,7 @@
 import { cn } from "~/lib/utils";
 import React, { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
+import { useTheme } from "next-themes";
 
 export type CodeBlockProps = {
   children?: React.ReactNode;
@@ -16,28 +17,17 @@ export type CodeBlockCodeProps = {
   className?: string;
 } & React.HTMLProps<HTMLDivElement>;
 
-export function CodeBlock({ children, className, ...props }: CodeBlockProps) {
-  return (
-    <div
-      className={cn(
-        "relative rounded-lg border bg-card text-card-foreground shadow-sm",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
-
 export function CodeBlockCode({
   code,
   language = "typescript",
-  theme = "github-dark",
   className,
   ...props
 }: CodeBlockCodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
+
+  const { resolvedTheme } = useTheme();
+
+  const theme = resolvedTheme === "dark" ? "vesper" : "github-light";
 
   useEffect(() => {
     async function highlight() {
@@ -67,7 +57,7 @@ export function CodeBlockCode({
   }, [code, language, theme]);
 
   const classNames = cn(
-    "w-full md:text-[13px] text-[12px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:bg-transparent md:overflow-hidden overflow-x-auto",
+    "w-full md:text-[13px] text-[12px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:bg-transparent [&>pre]:my-0 md:overflow-hidden overflow-x-auto",
     className
   );
 

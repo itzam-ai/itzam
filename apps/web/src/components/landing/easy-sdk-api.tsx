@@ -6,9 +6,7 @@ import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { CodeBlockCode } from "../ui/code-block";
 import { simulateTyping } from "./hero";
-import { useTheme } from "next-themes";
 export function EasySDKAPI() {
-  const { resolvedTheme } = useTheme();
   const [cycle, setCycle] = useState(0);
 
   const [typedText, setTypedText] = useState("");
@@ -50,11 +48,7 @@ const response = await itzam.generateText({
             "0px 0px 60px 30px rgb(128 128 128 / 50%), 0 0 100px 60px rgb(96 96 96 / 50%), 0 0 140px 90px rgb(64 64 64 / 50%)",
         }}
       />
-      <CodeBlockCode
-        code={code}
-        language="typescript"
-        theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
-      />
+      <CodeBlockCode code={code} language="typescript" />
       <Button
         variant="ghost"
         size="icon"

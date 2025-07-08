@@ -7,7 +7,6 @@ import {
   File,
   Globe,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useEffect, useState } from "react";
@@ -15,7 +14,6 @@ import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { Button } from "../ui/button";
 import { CodeBlockCode } from "../ui/code-block";
 import { Input } from "../ui/input";
-import { TextLoop } from "../ui/text-loop";
 
 interface StarBorderProps {
   as?: React.ElementType;
@@ -246,8 +244,6 @@ const response = await itzam.streamText({
 });
   `;
 
-  const { resolvedTheme } = useTheme();
-
   const [firstUserMessageTyped, setFirstUserMessageTyped] = useState("");
   const [secondAssistantMessageTyped, setSecondAssistantMessageTyped] =
     useState("");
@@ -283,7 +279,6 @@ const response = await itzam.streamText({
               fontSize: "12px",
             }}
             className="pl-3"
-            theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
           />
           <div className="flex gap-4 items-center justify-center">
             <hr className="w-full border-dashed" />

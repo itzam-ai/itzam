@@ -13,7 +13,7 @@ export default async function BlogPage() {
     <div className="mx-auto flex min-h-screen max-w-4xl flex-col justify-between bg-background px-6 xl:px-0">
       <NavBar />
 
-      <div className="mx-auto flex max-w-4xl pt-32">
+      <div className="mx-auto flex max-w-4xl pt-32 w-full">
         <Blog posts={posts} />
       </div>
 
@@ -34,7 +34,7 @@ function Blog({ posts }: BlogProps) {
   return (
     <section
       id="blog"
-      className="flex max-w-4xl flex-col gap-2 px-6 pt-12 pb-16 xl:px-0"
+      className="flex max-w-4xl flex-col gap-2 pt-12 pb-16 w-full"
     >
       <div className="flex w-full items-center justify-between">
         <div className="flex max-w-[calc(100%-150px)] flex-col gap-2">
@@ -47,7 +47,7 @@ function Blog({ posts }: BlogProps) {
         </div>
       </div>
 
-      <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
         {posts.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <p className="text-muted-foreground">No blog posts found.</p>
@@ -56,14 +56,14 @@ function Blog({ posts }: BlogProps) {
           posts.map((post) => (
             <article key={post.slug} className="group">
               <Link href={`/blog/${post.slug}`}>
-                <div className="overflow-hidden rounded-lg border bg-card transition-all hover:shadow-lg">
+                <div className="overflow-hidden rounded-3xl border bg-card transition-all hover:opacity-80">
                   {post.coverImage && (
                     <div className="aspect-video relative overflow-hidden">
                       <Image
                         src={post.coverImage}
                         alt={post.title}
                         fill
-                        className="object-cover transition-all group-hover:scale-105"
+                        className="object-cover transition-all"
                       />
                     </div>
                   )}
@@ -73,16 +73,16 @@ function Blog({ posts }: BlogProps) {
                         {format(new Date(post.date), "MMM dd, yyyy")}
                       </time>
                     </div>
-                    <h2 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+                    <h2 className="text-lg font-medium mb-2 group-hover:text-primary transition-colors">
                       {post.title}
                     </h2>
-                    <p className="text-muted-foreground mb-4 line-clamp-3">
+                    <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">
                       {post.description}
                     </p>
                     <div className="flex items-center gap-2">
                       {post.authors.map((author, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <div className="relative size-6 rounded-full overflow-hidden">
+                          <div className="relative size-4 rounded-full overflow-hidden">
                             <Image
                               src={author.image}
                               alt={author.name}
