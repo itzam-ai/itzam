@@ -43,5 +43,5 @@ supabase/.*
 .mintlify-last
 
 bin
-lib
+/lib
 lib64
