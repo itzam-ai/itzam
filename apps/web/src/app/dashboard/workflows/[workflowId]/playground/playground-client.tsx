@@ -13,23 +13,26 @@ import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
 import { useCallback, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { MessageList, type Message } from "~/components/message/message-list";
 import ChangeModel from "~/components/playground/change-model";
 import { DetailsCard } from "~/components/playground/details-card";
 import { ModeToggle } from "~/components/playground/mode-toggle";
 import { ResponseCard } from "~/components/playground/response-card";
 import { SyncChangesToWorkflow } from "~/components/playground/sync-changes-to-workflow";
-import {
-  ThreadMessages,
-  type Message,
-} from "~/components/playground/thread-messages";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "~/components/ui/resizable";
 import { Textarea } from "~/components/ui/textarea";
 import { useThread } from "~/hooks/use-thread";
 import { useKeyboardShortcut } from "~/lib/shortcut";
 import { cn } from "~/lib/utils";
 import type { Workflow } from "~/lib/workflows";
+import { sendMessage } from "~/app/actions/playground";
 
 // Type for the metadata returned by the stream
 type StreamMetadata = {
@@ -48,12 +51,10 @@ export default function PlaygroundClient({
   workflow,
   models,
   workflowId,
-  userId,
 }: {
   workflow: Workflow;
   models: ModelWithCostAndProvider[];
   workflowId: string;
-  userId: string;
 }) {
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflow);
   const [input, setInput] = useState<string>("");
@@ -70,14 +71,22 @@ export default function PlaygroundClient({
   const [metadata, setMetadata] = useState<StreamMetadata | null>(null);
 
   // Thread mode states
-  const [mode, setMode] = useState<"single" | "thread">("single");
-  const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState<string>("");
 
-  // Use thread hook
-  const { threadId, setThreadId, createThread } = useThread({
+  // Use thread hook with localStorage built-in and message persistence
+  const { 
+    threadId, 
+    setThreadId, 
+    createThread, 
+    messages, 
+    setMessages, 
+    clearMessages,
+    mode,
+    setMode 
+  } = useThread({
     workflowSlug: workflow.slug,
     contextSlugs: contexts,
+    workflowId,
   });
 
   const modelChanged = model?.id !== selectedWorkflow?.model?.id;
@@ -99,30 +108,73 @@ export default function PlaygroundClient({
     (newMode: "single" | "thread") => {
       setMode(newMode);
       if (newMode === "single") {
-        // Reset to single mode
-        setThreadId(null);
-        setMessages([]);
+        // When switching to single mode, just clear streaming content
+        // Messages are preserved in localStorage via the hook
         setStreamingContent("");
       }
     },
-    [setThreadId]
+    [setMode]
   );
 
   const handleNewThread = useCallback(async () => {
+    // Clear current thread messages
+    clearMessages();
     setThreadId(null);
-    setMessages([]);
     setStreamingContent("");
     setOutput("");
     setMetadata(null);
     // Create a new thread immediately
-    const newThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
+    const newThreadId = await createThread(
+      `playground_${uuidv4().slice(0, 8)}`
+    );
     if (!newThreadId) {
       console.error("Failed to create new thread");
     }
-  }, [setThreadId, createThread]);
+  }, [setThreadId, createThread, clearMessages]);
 
-  const handleSubmit = async () => {
-    if (!selectedWorkflow || !input.trim()) {
+  const handleSingleSubmit = async () => {
+    if (!selectedWorkflow || !input.trim() || !model?.id) {
+      return;
+    }
+
+    setIsPending(true);
+    setStreamStatus(null);
+    setOutput("");
+    setMetadata(null);
+
+    try {
+      setStreamStatus("loading");
+      setStreamStatus("streaming");
+
+      const response = await sendMessage(input, {
+        workflowId: selectedWorkflow.id,
+        contextSlugs: contexts,
+        threadId: null,
+        prompt,
+        modelId: model.id,
+      });
+
+      for await (const chunk of response.stream) {
+        setOutput((prev) => prev + chunk);
+      }
+
+      const meta = await response.metadata;
+      if (meta) {
+        setMetadata(meta);
+      }
+
+      setIsPending(false);
+      setStreamStatus("completed");
+    } catch (error) {
+      console.error("Error generating content:", error);
+      setOutput(error instanceof Error ? error.message : "An error occurred");
+      setIsPending(false);
+      setStreamStatus("error");
+    }
+  };
+
+  const handleThreadedSubmit = async () => {
+    if (!selectedWorkflow || !input.trim() || !model?.id) {
       return;
     }
 
@@ -131,108 +183,55 @@ export default function PlaygroundClient({
 
     let currentThreadId = threadId;
 
-    if (mode === "single") {
-      setOutput("");
-      setMetadata(null);
-    } else {
-      // Create thread if it doesn't exist
+    // Create thread if it doesn't exist
+    if (!currentThreadId) {
+      currentThreadId = await createThread(
+        `playground_${uuidv4().slice(0, 8)}`
+      );
       if (!currentThreadId) {
-        currentThreadId = await createThread(`playground_${uuidv4().slice(0, 8)}`);
-        if (!currentThreadId) {
-          setIsPending(false);
-          return;
-        }
+        setIsPending(false);
+        return;
       }
-
-      // Add user message to thread
-      const userMessage: Message = {
-        id: uuidv4(),
-        role: "user",
-        content: input,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, userMessage]);
-      setStreamingContent("");
     }
 
+    // Add user message to thread
+    const userMessage: Message = {
+      id: uuidv4(),
+      role: "user",
+      content: input,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setStreamingContent("");
+
     try {
-      const response = await fetch("/api/playground", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          input,
-          prompt,
-          modelId: model?.id,
-          workflowId: selectedWorkflow.id,
-          userId: userId,
-          contextSlugs: contexts,
-          threadId: mode === "thread" ? currentThreadId : null,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to generate content", response);
-        throw new Error("Failed to generate content");
-      }
-
       setStreamStatus("loading");
       setStreamStatus("streaming");
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+      const response = await sendMessage(input, {
+        workflowId: selectedWorkflow.id,
+        contextSlugs: contexts,
+        threadId: currentThreadId,
+        prompt,
+        modelId: model.id,
+      });
+
       let fullContent = "";
+      for await (const chunk of response.stream) {
+        fullContent += chunk;
+        setStreamingContent(fullContent);
+      }
 
-      while (reader) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value, { stream: true });
-
-        // Check if this chunk contains metadata
-        const metadataMatch = text.match(/<!-- METADATA: (.*?) -->/);
-        if (metadataMatch && metadataMatch[1]) {
-          try {
-            const parsedMetadata = JSON.parse(
-              metadataMatch[1]
-            ) as StreamMetadata;
-            setMetadata(parsedMetadata);
-          } catch (error) {
-            console.error("Error parsing metadata:", error);
-          }
-        }
-
-        // error handling
-        const errorMatch = text.match(/<!-- ERROR: (.*?) -->/);
-
-        if (errorMatch && errorMatch[1]) {
-          console.error("Error during streaming:", errorMatch[1]);
-          setStreamStatus("error");
-          if (mode === "single") {
-            setOutput(errorMatch[1]);
-          }
-          setIsPending(false);
-          return;
-        }
-
-        // Filter out metadata comments and only append actual text content
-        const cleanText = text.replace(/\n\n<!-- METADATA:.*?-->/g, "");
-        if (cleanText) {
-          fullContent += cleanText;
-          if (mode === "single") {
-            setOutput((prev) => prev + cleanText);
-          } else {
-            setStreamingContent((prev) => prev + cleanText);
-          }
-        }
+      const meta = await response.metadata;
+      if (meta) {
+        setMetadata(meta);
       }
 
       setIsPending(false);
       setStreamStatus("completed");
 
-      // In thread mode, add the assistant message once streaming is complete
-      if (mode === "thread" && fullContent) {
+      // Add the assistant message once streaming is complete
+      if (fullContent) {
         const assistantMessage: Message = {
           id: uuidv4(),
           role: "assistant",
@@ -246,26 +245,37 @@ export default function PlaygroundClient({
       }
     } catch (error) {
       console.error("Error generating content:", error);
-      if (mode === "single") {
-        setOutput("");
-      } else {
-        setStreamingContent("");
-      }
+      setStreamingContent("");
       setIsPending(false);
       setStreamStatus("error");
     }
   };
 
-  useKeyboardShortcut("Enter", false, true, false, () => {
-    if (!input.trim() || isPending || streamStatus === "streaming") {
-      return;
+  const handleSubmit = async () => {
+    if (mode === "single") {
+      await handleSingleSubmit();
+    } else {
+      await handleThreadedSubmit();
     }
+  };
 
-    handleSubmit();
-  });
+  useKeyboardShortcut(
+    "Enter",
+    false,
+    true,
+    false,
+    () => {
+      if (!input.trim() || isPending || streamStatus === "streaming") {
+        return;
+      }
+
+      handleSubmit();
+    },
+    { ignoreInputFocus: true }
+  );
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 h-[calc(100vh-12rem)] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">Playground</h2>
         <div className="flex items-center gap-2">
@@ -284,20 +294,9 @@ export default function PlaygroundClient({
         </div>
       </div>
 
-      <motion.div
-        layout
-        className={cn(
-          "grid gap-8",
-          mode === "single" ? "grid-cols-3" : "grid-cols-2"
-        )}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-        }}
-      >
-        <div className="flex h-full flex-col gap-8">
-          <div className="space-y-6">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={40} minSize={30}>
+          <div className="flex flex-col gap-6 h-full overflow-hidden pr-4">
             <div className="space-y-2">
               <Label
                 htmlFor="model"
@@ -327,211 +326,222 @@ export default function PlaygroundClient({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="prompt"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                System Prompt
-              </Label>
-              <Textarea
-                id="prompt"
-                placeholder="Enter your prompt here..."
-                value={prompt}
-                className="min-h-[200px]"
-                onChange={(e) => setPrompt(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="contexts"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                Contexts
-              </Label>
-              <div className="flex flex-col gap-2">
-                {workflow.contexts.map((context) => {
-                  return (
-                    <div
-                      key={context.id}
-                      className={cn(
-                        "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
-                        contexts.includes(context.slug) &&
-                          "text-primary font-medium opacity-100"
-                      )}
-                      onClick={() => {
-                        setContexts(
-                          contexts.includes(context.slug)
-                            ? contexts.filter((c) => c !== context.slug)
-                            : [...contexts, context.slug]
-                        );
-                      }}
+            <ResizablePanelGroup direction="vertical" className="flex-1">
+              <ResizablePanel defaultSize={55} minSize={30}>
+                <div className="flex flex-col gap-6 h-full">
+                  <div className="flex flex-col gap-2 flex-1 min-h-0">
+                    <Label
+                      htmlFor="prompt"
+                      className="text-muted-foreground text-sm font-normal ml-0.5 flex-shrink-0"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-1">
-                          <Label
-                            htmlFor={context.slug}
-                            className="text-xs font-medium"
-                          >
-                            {context.name}
-                          </Label>
-                          {contexts.includes(context.slug) && (
-                            <CheckIcon
-                              className={cn(
-                                "size-3",
-                                contexts.includes(context.slug)
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {context.resources.map((r) => (
-                            <div key={r.id} className="flex items-center gap-1">
-                              {r.type === "FILE" ? (
-                                <FileIcon className="size-2.5" />
-                              ) : (
-                                <GlobeIcon className="size-2.5" />
-                              )}
-                              <p className="text-xs text-muted-foreground truncate max-w-[100px]">
-                                {r.title}
-                              </p>
-                            </div>
-                          ))}
-                          {context.resources.length === 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              No resources
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                {workflow.contexts.length === 0 && (
-                  <Link
-                    href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}
-                  >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-dashed"
-                    >
-                      <PlusIcon className="w-4 h-4 -mr-1" />
-                      Create
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="input-text"
-                className="text-muted-foreground text-sm font-normal ml-0.5"
-              >
-                User Input
-              </Label>
-              <Textarea
-                id="input-text"
-                placeholder="I want to know about..."
-                className="min-h-[150px]"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center">
-              <AnimatePresence>
-                {(modelChanged || promptChanged) && (
-                  <SyncChangesToWorkflow
-                    workflowId={workflowId}
-                    modelId={model?.id ?? ""}
-                    prompt={prompt}
-                    enabled={modelChanged || promptChanged}
-                    onSuccess={handleSyncSuccess}
-                  />
-                )}
-              </AnimatePresence>
-              <Button
-                onClick={handleSubmit}
-                disabled={
-                  !input.trim() || isPending || streamStatus === "streaming"
-                }
-                className="w-full active:scale-[0.99] relative"
-                size="sm"
-                variant="primary"
-              >
-                <div className="flex items-center gap-1.5">
-                  Send
-                  <div className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center gap-1">
-                    <span
-                      style={{
-                        fontSize: "10px",
-                      }}
-                      className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
-                    >
-                      ⌘
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "8px",
-                      }}
-                      className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
-                    >
-                      Enter
-                    </span>
-                  </div>
-                </div>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={cn(
-            "flex h-full flex-col gap-6",
-            mode === "single" ? "col-span-2" : ""
-          )}
-        >
-          {mode === "single" ? (
-            <>
-              <DetailsCard metadata={metadata} />
-              <ResponseCard
-                output={output}
-                model={model ?? models[0]!}
-                isLoading={isPending}
-                streamStatus={streamStatus}
-              />
-            </>
-          ) : (
-            <motion.div
-              layout
-              className="flex flex-col h-full"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <div className="flex flex-col h-full gap-4">
-                <Card className="flex-1 overflow-hidden">
-                  <div className="flex flex-col h-full">
-                    <ThreadMessages
-                      messages={messages}
-                      currentModel={model}
-                      isLoading={isPending}
-                      streamingContent={streamingContent}
+                      System Prompt
+                    </Label>
+                    <Textarea
+                      id="prompt"
+                      placeholder="Enter your prompt here..."
+                      value={prompt}
+                      className="flex-1 resize-none min-h-0"
+                      onChange={(e) => setPrompt(e.target.value)}
                     />
                   </div>
-                </Card>
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <Label
+                      htmlFor="contexts"
+                      className="text-muted-foreground text-sm font-normal ml-0.5"
+                    >
+                      Contexts
+                    </Label>
+                    <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+                      {workflow.contexts.map((context) => {
+                        return (
+                          <div
+                            key={context.id}
+                            className={cn(
+                              "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
+                              contexts.includes(context.slug) &&
+                                "text-primary font-medium opacity-100"
+                            )}
+                            onClick={() => {
+                              setContexts(
+                                contexts.includes(context.slug)
+                                  ? contexts.filter((c) => c !== context.slug)
+                                  : [...contexts, context.slug]
+                              );
+                            }}
+                          >
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-1">
+                                <Label
+                                  htmlFor={context.slug}
+                                  className="text-xs font-medium"
+                                >
+                                  {context.name}
+                                </Label>
+                                {contexts.includes(context.slug) && (
+                                  <CheckIcon
+                                    className={cn(
+                                      "size-3",
+                                      contexts.includes(context.slug)
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {context.resources.map((r) => (
+                                  <div
+                                    key={r.id}
+                                    className="flex items-center gap-1"
+                                  >
+                                    {r.type === "FILE" ? (
+                                      <FileIcon className="size-2.5" />
+                                    ) : (
+                                      <GlobeIcon className="size-2.5" />
+                                    )}
+                                    <p className="text-xs text-muted-foreground truncate max-w-[100px]">
+                                      {r.title}
+                                    </p>
+                                  </div>
+                                ))}
+                                {context.resources.length === 0 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    No resources
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {workflow.contexts.length === 0 && (
+                        <Link
+                          href={`/dashboard/workflows/${workflowId}/knowledge/contexts`}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full border-dashed"
+                          >
+                            <PlusIcon className="w-4 h-4 -mr-1" />
+                            Create
+                          </Button>
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </ResizablePanel>
+
+              <ResizableHandle withHandle className="my-6" />
+
+              <ResizablePanel defaultSize={45} minSize={25}>
+                <div className="flex flex-col gap-2 h-full">
+                  <Label
+                    htmlFor="input-text"
+                    className="text-muted-foreground text-sm font-normal ml-0.5"
+                  >
+                    User Input
+                  </Label>
+                  <Textarea
+                    id="input-text"
+                    placeholder="I want to know about..."
+                    className="flex-1 resize-none"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                  />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+
+            <div className="flex flex-col gap-2 flex-shrink-0">
+              <div className="flex items-center">
+                <AnimatePresence>
+                  {(modelChanged || promptChanged) && (
+                    <SyncChangesToWorkflow
+                      workflowId={workflowId}
+                      modelId={model?.id ?? ""}
+                      prompt={prompt}
+                      enabled={modelChanged || promptChanged}
+                      onSuccess={handleSyncSuccess}
+                    />
+                  )}
+                </AnimatePresence>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={
+                    !input.trim() || isPending || streamStatus === "streaming"
+                  }
+                  className="w-full active:scale-[0.99] relative"
+                  size="sm"
+                  variant="primary"
+                >
+                  <div className="flex items-center gap-1.5">
+                    Send
+                    <div className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center gap-1">
+                      <span
+                        style={{
+                          fontSize: "10px",
+                        }}
+                        className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
+                      >
+                        ⌘
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "8px",
+                        }}
+                        className="text-muted font-mono bg-muted/20 rounded-sm px-1 border border-border/20 dark:text-foreground"
+                      >
+                        Enter
+                      </span>
+                    </div>
+                  </div>
+                </Button>
               </div>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
+            </div>
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        <ResizablePanel defaultSize={60} minSize={40}>
+          <div className="flex flex-col gap-6 h-full overflow-hidden pl-4">
+            {mode === "single" ? (
+              <>
+                <DetailsCard metadata={metadata} />
+                <div className="flex-1 overflow-hidden">
+                  <ResponseCard
+                    output={output}
+                    model={model ?? models[0]!}
+                    isLoading={isPending}
+                    streamStatus={streamStatus}
+                  />
+                </div>
+              </>
+            ) : (
+              <motion.div
+                layout
+                className="flex flex-col h-full overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Card className="flex-1 overflow-hidden flex flex-col">
+                  <MessageList
+                    messages={messages}
+                    currentModel={model}
+                    isLoading={isPending}
+                    streamingContent={streamingContent}
+                    showTimestamps={false}
+                    enableAnimations={true}
+                  />
+                </Card>
+              </motion.div>
+            )}
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </Card>
   );
 }

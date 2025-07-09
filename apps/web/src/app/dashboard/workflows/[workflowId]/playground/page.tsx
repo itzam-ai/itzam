@@ -20,7 +20,6 @@ export default async function PlaygroundPage({
       workflow={workflow}
       models={models}
       workflowId={workflowId}
-      userId={workflow.userId}
     />
   );
 }

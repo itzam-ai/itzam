@@ -74,8 +74,8 @@ export function ResponseTextArea({
   }, [children]);
 
   return (
-    <div className="relative" ref={scrollAreaRef}>
-      <ScrollArea className={cn("rounded-lg px-6 max-h-[800px]", className)}>
+    <div className="relative h-full" ref={scrollAreaRef}>
+      <ScrollArea className={cn("rounded-lg px-6 h-full", className)}>
         <div
           className="pr-6 pb-8 prose prose-sm dark:prose-invert prose-neutral max-w-none prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2"
           ref={contentRef}

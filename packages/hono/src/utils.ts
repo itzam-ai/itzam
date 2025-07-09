@@ -6,6 +6,8 @@ import {
 } from "@itzam/server/db/api-keys/actions";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
+import { createClient } from "@supabase/supabase-js";
+import { env } from "@itzam/utils/env";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -151,14 +153,31 @@ export const validateRequest = async (apiKey: string | undefined | null) => {
     return { error: "API key is required", status: 401 as StatusCode };
   }
 
-  // Validate API Key
-  const validatedApiKey = await validateApiKey(apiKey);
+  // Check if it's an API key (starts with itzam_) or an auth token
+  if (apiKey.startsWith("itzam_")) {
+    // Validate API Key
+    const validatedApiKey = await validateApiKey(apiKey);
 
-  if ("error" in validatedApiKey) {
-    return { error: "Invalid API key", status: 401 as StatusCode };
+    if ("error" in validatedApiKey) {
+      return { error: "Invalid API key", status: 401 as StatusCode };
+    }
+
+    void updateApiKeyLastUsed(validatedApiKey.id);
+
+    return { userId: validatedApiKey.userId };
+  } else {
+    // Validate auth token using Supabase
+    const supabase = createClient(
+      env.NEXT_PUBLIC_SUPABASE_URL,
+      env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+
+    const { data, error } = await supabase.auth.getUser(apiKey);
+    
+    if (error || !data.user) {
+      return { error: "Invalid auth token", status: 401 as StatusCode };
+    }
+
+    return { userId: data.user.id };
   }
-
-  void updateApiKeyLastUsed(validatedApiKey.id);
-
-  return { userId: validatedApiKey.userId };
 };

@@ -422,7 +422,11 @@ export async function getRunsByThreadIdWithResourcesAndAttachments(
     ),
     orderBy: (runs, { asc }) => [asc(runs.createdAt)],
     with: {
-      model: true,
+      model: {
+        with: {
+          provider: true,
+        },
+      },
       attachments: true,
       runResources: {
         with: {

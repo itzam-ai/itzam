@@ -1,37 +1,44 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useAtom } from "jotai";
+import { createThread as createThreadAction } from "~/app/dashboard/workflows/[workflowId]/playground/actions";
+import { getThreadAtoms } from "~/atoms/thread";
 
 interface ThreadHookProps {
   workflowSlug: string;
   contextSlugs?: string[];
+  workflowId: string;
 }
 
-export function useThread({ workflowSlug, contextSlugs = [] }: ThreadHookProps) {
-  const [threadId, setThreadId] = useState<string | null>(null);
+export function useThread({ workflowSlug, contextSlugs = [], workflowId }: ThreadHookProps) {
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Get atoms for this workflow
+  const atoms = getThreadAtoms(workflowId);
+  const [threadId, setThreadId] = useAtom(atoms.threadIdAtom);
+  const [mode, setMode] = useAtom(atoms.modeAtom);
+  
+  // Get messages atom for current thread
+  const messagesAtom = threadId ? atoms.getMessagesAtom(threadId) : null;
+  const [messages, setMessages] = useAtom(messagesAtom || atoms.getMessagesAtom("default"));
+
+  const clearMessages = useCallback(() => {
+    if (threadId) {
+      setMessages([]);
+    }
+  }, [threadId, setMessages]);
 
   const createThread = useCallback(async (name?: string) => {
     setIsCreating(true);
     try {
-      const response = await fetch("/api/threads", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          workflowSlug,
-          name: name || `Thread ${new Date().toLocaleString()}`,
-          lookupKeys: undefined,
-          contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
-        }),
+      const data = await createThreadAction({
+        workflowSlug,
+        name: name || `Thread ${new Date().toLocaleString()}`,
+        lookupKeys: ["playground"],
+        contextSlugs: contextSlugs.length > 0 ? contextSlugs : undefined,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create thread");
-      }
-
-      const data = await response.json();
       setThreadId(data.id);
       return data.id;
     } catch (error) {
@@ -40,12 +47,17 @@ export function useThread({ workflowSlug, contextSlugs = [] }: ThreadHookProps) 
     } finally {
       setIsCreating(false);
     }
-  }, [workflowSlug, contextSlugs]);
+  }, [workflowSlug, contextSlugs, setThreadId]);
 
   return {
     threadId,
     setThreadId,
     createThread,
     isCreating,
+    messages: threadId ? messages : [],
+    setMessages: threadId ? setMessages : () => {},
+    clearMessages,
+    mode,
+    setMode,
   };
 }

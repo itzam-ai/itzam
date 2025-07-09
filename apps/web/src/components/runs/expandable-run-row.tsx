@@ -17,7 +17,8 @@ import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { RunOriginType } from "~/lib/mappers/run-origin";
 import { formatDate } from "~/lib/utils";
-import { ImageAttachment, ThreadDrawer } from "../thread/drawer";
+import { ThreadDrawer } from "../thread/drawer";
+import { ImageAttachment } from "../message/image-attachment";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
 

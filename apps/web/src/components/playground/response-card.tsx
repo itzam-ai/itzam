@@ -18,11 +18,11 @@ export function ResponseCard({
   streamStatus: "loading" | "streaming" | "completed" | "error" | null;
 }) {
   return (
-    <Card className="h-full relative bg-transparent">
-      <CardHeader className="pb-0">
+    <Card className="h-full flex flex-col relative bg-transparent">
+      <CardHeader className="pb-0 flex-shrink-0">
         <CardTitle className="text-sm">Response</CardTitle>
       </CardHeader>
-      <CardContent className="px-0 pb-0 h-full">
+      <CardContent className="px-0 pb-0 flex-1 overflow-hidden">
         {streamStatus === "error" && (
           <div className="flex items-center gap-2 p-6 pt-4">
             <AlertTriangle className="size-4 text-red-500" />

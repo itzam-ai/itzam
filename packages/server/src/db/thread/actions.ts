@@ -1,6 +1,8 @@
 "use server";
 
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
+import { v7 } from "uuid";
+import { getUser } from "../auth/actions";
 import { db } from "../index";
 import { getRunsByThreadIdWithResourcesAndAttachments } from "../run/actions";
 import {
@@ -10,8 +12,6 @@ import {
   threads,
   workflows,
 } from "../schema";
-import { getUser } from "../auth/actions";
-import { v7 } from "uuid";
 
 export async function getThreadByIdAndUserIdWithContexts(
   threadId: string,

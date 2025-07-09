@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
-import { validateRequest } from "../utils";
 import { createErrorResponse } from "../errors";
+import { validateRequest } from "../utils";
 
 // Define the type for context variables set by this middleware
 type ApiKeyValidatorEnv = {
@@ -10,10 +10,12 @@ type ApiKeyValidatorEnv = {
 };
 
 /**
- * Hono middleware to validate the API key provided in the 'Api-Key' header.
- * It checks for the presence of the key, validates it against the database,
- * checks for an active subscription, and sets the validated organization
- * details in the context (`c.var.organization`) for downstream handlers.
+ * Hono middleware to validate authentication via the 'Api-Key' header.
+ * Supports two authentication methods:
+ * 1. API keys (starting with 'itzam_') - validated against the database
+ * 2. Auth tokens - validated via Supabase auth
+ *
+ * Sets the validated userId in the context (`c.var.userId`) for downstream handlers.
  *
  * @see https://hono.dev/docs/guides/middleware
  */
@@ -35,8 +37,7 @@ export const apiKeyMiddleware = createMiddleware<ApiKeyValidatorEnv>(
         );
       }
 
-      // Set the validated organization in the context for downstream handlers
-      // Organization is guaranteed to be non-null on success based on validateRequest types
+      // Set the validated userId in the context for downstream handlers
       c.set("userId", userId);
 
       // Proceed to the next middleware or handler
