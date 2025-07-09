@@ -9,7 +9,7 @@ import X from "public/logos/x-logo";
 export function Footer() {
   return (
     <footer className="border-t pt-12 pb-24">
-      <div className="px-8 md:px-2">
+      <div className="px-2">
         <div className="grid grid-cols-3 gap-4 md:grid-cols-6">
           <div className="col-span-3 flex flex-col md:mb-0 mb-6">
             <Link

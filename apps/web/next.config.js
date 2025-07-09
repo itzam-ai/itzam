@@ -3,8 +3,20 @@
  * for Docker builds.
  */
 
+import path from "path";
+import mdx from "@next/mdx";
+
+const withMDX = mdx({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+});
+
 /** @type {import("next").NextConfig} */
 const config = {
+  pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
   reactStrictMode: false,
   experimental: {
     serverActions: {
@@ -62,6 +74,12 @@ const config = {
     ];
   },
   webpack: (config, { isServer }) => {
+    // Add path alias for webpack to resolve ~ imports
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "~": path.resolve("./src"),
+    };
+
     if (isServer) {
       config.ignoreWarnings = [{ module: /opentelemetry/ }];
     } else {
@@ -81,4 +99,4 @@ const config = {
   },
 };
 
-export default config;
+export default withMDX(config);

@@ -1,0 +1,260 @@
+---
+title: "Itzam vs AI SDK"
+description: "What are the differences and when to use each?"
+date: "2025-07-07"
+authors:
+  - name: "Gustavo Fior"
+    image: "/blog/images/gustavo.png"
+coverImage: "/blog/images/itzam-vs-ai-sdk.png"
+slug: "itzam-vs-ai-sdk"
+---
+
+## TL;DR
+
+**AI SDK** is a low-level toolkit for developers, while **Itzam** is a platform for building AI workflows.
+
+AI SDK offers a unified API for providers and control over every aspect of the AI integration. Itzam, on the other hand, provides abstractions and a dashboard to enable developers to worry only about the feature they’re building.
+
+Currently, AI SDK is powering Itzam’s providers integration.
+
+## AI SDK
+
+AI SDK is a **TypeScript library** that provides direct access to AI models with a unified API. It's designed for developers who want maximum control over their AI integrations.
+
+### Features
+
+- **Unified API** for multiple AI providers (OpenAI, Anthropic, Google, etc.)
+- **React hooks** for building chat interfaces
+- **Structured outputs** with full type safety
+- **Tool calling** and function support
+
+### Pros
+
+- **Full control** over your implementation
+- **Easy** **to switch providers** in code
+- **Easy enough SDK** (better than providers SDKs)
+
+### Cons
+
+- **Don’t have observability** built-in
+- **Mix AI logic** with business logic
+- **Complex workflows can get messy** easily
+- **Slower** to prototype and create features
+
+This is a typical implementation of AI SDK:
+
+```tsx
+import { generateText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+const { text } = await generateText({
+  model: openai("gpt-4"),
+  prompt: "Summarize this customer feedback: " + userInput,
+});
+
+console.log(text); // "The customer is very happy with the product."
+```
+
+## Itzam
+
+Itzam is a **platform** that abstracts AI complexity into manageable workflows. It provides a complete management layer for AI apps, enabling developers to focus on building features rather than managing infrastructure.
+
+### Features
+
+- **Visual dashboard** for workflow management
+- **Hot-swap capabilities** for models and prompts without code changes
+- **Knowledge management** system with RAG support
+- **Usage analytics** and cost tracking across providers
+- **Observability** out of the box
+
+### Pros
+
+- **Don’t need to worry** about AI logic
+- **Easy and faster** to create apps
+- **Faster** to test models, prompts, RAG, and iterate your features
+- **Supports any programming language** - TS/Python SDKs and API
+
+### Cons
+
+- **No control over specifics** of the implementation
+- Introduces **another dependency** to your app
+
+This is a typical implementation of Itzam:
+
+```tsx
+import { Itzam } from "itzam";
+
+const itzam = new Itzam("your-api-key");
+
+const response = await itzam.generateText({
+  input: userInput,
+  workflowSlug: "customer-feedback-analysis",
+});
+
+console.log(response.text); // "The customer is very happy with the product."
+```
+
+## Differences
+
+### Abstraction Level
+
+**AI SDK** operates at the **code level** - every AI interaction requires explicit code with hardcoded models, prompts, and settings. Changes require code updates and redeployments.
+
+**Itzam** operates at the **workflow level** - AI logic is configured through a dashboard, separating it from business logic. Changes happen instantly without touching code.
+
+### Complex Workflows
+
+Because of the difference in abstraction level, complex AI workflows are significantly easier to implement and manage with Itzam.
+
+### RAG Example
+
+**With AI SDK**, you need to manually orchestrate everything:
+
+```tsx
+// Simple example using Supabase (pgvector) and Drizzle
+import { embed, streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
+
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { pgTable, text, integer, vector } from "drizzle-orm/pg-core";
+import { l2Distance, sql } from "drizzle-orm";
+
+const client = postgres(process.env.SUPABASE_DB_URL!, { prepare: false });
+export const db = drizzle(client);
+
+export const documents = pgTable("documents", {
+  id: text("id").primaryKey(),
+  url: text("url"),
+  chunkIndex: integer("chunk_index"),
+  content: text("content"),
+  embedding: vector("embedding", { dimensions: 1536 }), // pgvector column
+});
+
+// Simple Chunker
+function chunk(text: string, maxTokens = 300, overlap = 50) {
+  const words = text.split(/\s+/);
+  const step = maxTokens - overlap;
+  const out: string[] = [];
+  for (let i = 0; i < words.length; i += step)
+    out.push(words.slice(i, i + maxTokens).join(" "));
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* 1️⃣ INDEX – fetch ⭢ chunk ⭢ embed ⭢ upsert via Drizzle            */
+/* ------------------------------------------------------------------ */
+export async function indexDocuments(
+  urls: string[],
+  model = "text-embedding-3-small"
+) {
+  for (const url of urls) {
+    const raw = await (await fetch(url)).text();
+    const pieces = chunk(raw);
+
+    for (const [i, content] of pieces.entries()) {
+      const { embedding } = await embed({
+        model: openai.embedding(model),
+        value: content,
+      });
+
+      await db
+        .insert(documents)
+        .values({
+          id: `${url}::${i}`,
+          url,
+          chunkIndex: i,
+          content,
+          embedding,
+        })
+        .onConflictDoUpdate({
+          target: documents.id,
+          set: { content, embedding },
+        });
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 2️⃣  RETRIEVE + GENERATE – pure Drizzle similarity query            */
+/* ------------------------------------------------------------------ */
+export async function answerWithContext(
+  userQuery: string,
+  topK = 5,
+  genModel = "gpt-4o-mini"
+) {
+  const { embedding: q } = await embed({
+    model: openai.embedding("text-embedding-3-small"),
+    value: userQuery,
+  });
+
+  const matches = await db
+    .select({ content: documents.content })
+    .from(documents)
+    .orderBy(l2Distance(documents.embedding, q))
+    .limit(topK);
+
+  const context = matches.map((m) => m.content).join("\n\n");
+
+  const text = await generateText({
+    model: openai(genModel),
+    prompt: `
+<context>
+${context}
+</context>
+
+Q: ${userQuery}
+A:`,
+  });
+
+  console.log(text);
+}
+
+/* ------------------------------------------------------------------ */
+/* Quick demo                                                         */
+/* ------------------------------------------------------------------ */
+await indexDocuments([
+  "https://raw.githubusercontent.com/supabase/supabase/master/README.md",
+  "https://example.com/article.txt",
+]);
+
+await answerWithContext("Summarize the Supabase README.");
+```
+
+**With Itzam**, RAG is built-in:
+
+```tsx
+// RAG handled automatically
+const response = await itzam.generateText({
+  input: query,
+  workflowSlug: "knowledge-assistant", // RAG configured in dashboard
+});
+```
+
+The Itzam workflow automatically handles parsing documents, chunking, embedding generation, vector search, context injection, and model orchestration for you.
+
+## When to Choose Each
+
+### Choose AI SDK When:
+
+- You need **maximum control** over AI interactions
+- You want to **minimize external dependencies**
+- You have a **technical team** that can manage AI infrastructure
+- You are okay with **taking days** to implement chats or RAG
+
+### Choose Itzam When:
+
+- You want to **move quickly and** **focus on business logic**, not AI infrastructure
+- You need to **experiment quickly** with different models and prompts
+- You want **built-in analytics** and cost management
+- You're building **multiple AI features** across your application
+
+## Conclusion
+
+AI SDK and Itzam solve **different problems**. AI SDK provides the building blocks for AI applications, while Itzam provides the management layer to operate them easily.
+
+**Use AI SDK** when you need direct control and want to implement everything from scratch. **Use Itzam** when you want to move fast, and focus on business outcomes rather than AI plumbing.
+
+The best part? Since Itzam is built on AI SDK, you're not locked into either approach. You can start with Itzam for rapid development and always drop down to AI SDK for specific use cases that require custom implementation.
+
+Ready to streamline your AI workflows? [Try Itzam for free](https://itz.am/) and see how much easier your life will be.

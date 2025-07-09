@@ -1,15 +1,14 @@
 import { createApiKey } from "@itzam/server/db/api-keys/actions";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
-import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { cn } from "~/lib/utils";
 import { simulateTyping } from "../landing/hero";
 import { Button } from "../ui/button";
 import { CodeBlockCode } from "../ui/code-block";
 import { MiniWorkflow } from "./workflow-step";
-import { cn } from "~/lib/utils";
 
 export const IntegrationStep = ({
   handleNextStep,
@@ -18,8 +17,6 @@ export const IntegrationStep = ({
   handleNextStep: () => void;
   workflow: MiniWorkflow | null;
 }) => {
-  const { resolvedTheme } = useTheme();
-
   const [functionName, setFunctionName] = useState<
     "generateText" | "streamText"
   >("generateText");
@@ -168,7 +165,6 @@ const response = await itzam.${functionName}({
               <CodeBlockCode
                 code={code}
                 language="typescript"
-                theme={resolvedTheme === "dark" ? "vesper" : "github-light"}
                 style={{
                   fontSize: "12px",
                   overflow: "hidden",

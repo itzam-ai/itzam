@@ -58,7 +58,7 @@ export function NavBar() {
     <>
       <div className="fixed top-4 right-0 left-0 z-50 flex justify-center px-6 xl:px-0">
         <nav className="mx-auto w-full max-w-5xl rounded-2xl border bg-card">
-          <div className="grid h-16 grid-cols-2 items-center px-4 md:grid-cols-3">
+          <div className="grid h-14 grid-cols-2 items-center px-3 md:grid-cols-3">
             <div className="ml-2 flex items-center">
               <Link href="/" className="flex items-center gap-x-2">
                 <Image
@@ -105,6 +105,15 @@ export function NavBar() {
                       className={navigationMenuTriggerStyle()}
                     >
                       Roadmap
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      href="/blog"
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Blog
                     </NavigationMenuLink>
                   </NavigationMenuItem>
 
