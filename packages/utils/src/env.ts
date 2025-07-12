@@ -17,7 +17,6 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     // Stripe environment variables
-    TIKA_URL: z.string().url(),
     STRIPE_PUBLISHABLE_KEY: z.string().min(1),
     STRIPE_SECRET_KEY: z.string().min(1),
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
@@ -31,8 +30,8 @@ export const env = createEnv({
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
     PYTHON_KNOWLEDGE_API_URL: z.string().url(),
     RESCRAPE_CRON_SECRET: z.string().min(1),
-    HYPERDX_API_KEY: z.string().min(1),
-    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url(),
+    HYPERDX_API_KEY: z.string().optional(),
+    OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
   },
 
   /**
@@ -52,7 +51,6 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    TIKA_URL: process.env.TIKA_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     STATSIG_CONSOLE_KEY: process.env.STATSIG_CONSOLE_KEY,
     STATSIG_SERVER_KEY: process.env.STATSIG_SERVER_KEY,

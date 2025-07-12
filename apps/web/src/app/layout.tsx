@@ -46,14 +46,16 @@ const fontSerif = FontSerif({
   weight: "400",
 });
 
-HyperDX.init({
-  apiKey: env.HYPERDX_API_KEY,
-  service: "itzam-nextjs",
-  tracePropagationTargets: [env.NEXT_PUBLIC_APP_URL], // Set to link traces from frontend to backend requests
-  consoleCapture: true, // Capture console logs (default false)
-  advancedNetworkCapture: true, // Capture full HTTP request/response headers and bodies (default false)
-  debug: env.NODE_ENV === "development",
-});
+if (env.HYPERDX_API_KEY) {
+  HyperDX.init({
+    apiKey: env.HYPERDX_API_KEY,
+    service: "itzam-nextjs",
+    tracePropagationTargets: [env.NEXT_PUBLIC_APP_URL], // Set to link traces from frontend to backend requests
+    consoleCapture: true, // Capture console logs (default false)
+    advancedNetworkCapture: true, // Capture full HTTP request/response headers and bodies (default false)
+    debug: env.NODE_ENV === "development",
+  });
+}
 
 export default async function RootLayout({
   children,

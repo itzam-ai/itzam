@@ -115,7 +115,7 @@ export async function sendMessage(
   }
 
   // Setup run generation using the same logic as the API
-  const { error, status, aiParams, run, workflow: workflowWithModel } = await setupRunGeneration({
+  const { error, aiParams, run, workflow: workflowWithModel } = await setupRunGeneration({
     userId: workflow.userId,
     workflowSlug: workflow.slug,
     threadId: options.threadId || null,
@@ -164,7 +164,7 @@ export async function sendMessage(
     run,
     workflowWithModel.model,
     startTime,
-    mockSSE as any,
+    mockSSE as Parameters<typeof generateTextOrObjectStream>[4],
     "text"
   ).catch((error) => {
     console.error("Stream error:", error);

@@ -8,7 +8,6 @@ import {
   Globe,
 } from "lucide-react";
 import Link from "next/link";
-import ModelIcon from "public/models/svgs/model-icon";
 import { useEffect, useState } from "react";
 import { useCurrentUser } from "~/hooks/useCurrentUser";
 import { Button } from "../ui/button";
@@ -22,7 +21,7 @@ interface StarBorderProps {
   speed?: string;
   thickness?: number;
   children: React.ReactNode;
-  [key: string]: any; // Allow any additional props to be passed through
+  [key: string]: unknown; // Allow any additional props to be passed through
 }
 
 const StarBorder = ({
@@ -34,14 +33,15 @@ const StarBorder = ({
   children,
   ...rest
 }: StarBorderProps) => {
+  const { style, ...otherProps } = rest;
   return (
     <Component
       className={`relative inline-block overflow-hidden rounded-[20px] ${className}`}
       style={{
         padding: `${thickness}px 0`,
-        ...rest.style,
+        ...(style as React.CSSProperties),
       }}
-      {...rest}
+      {...otherProps}
     >
       <div
         className="absolute w-[300%] h-[50%] opacity-70 bottom-[-11px] right-[-250%] rounded-full animate-star-movement-bottom z-0"
@@ -64,83 +64,6 @@ const StarBorder = ({
   );
 };
 
-const heroModels = [
-  {
-    icon: <ModelIcon tag="anthropic:claude-3-7-sonnet" size="lg" />,
-    name: <p className="text-[#D97757]">Claude</p>,
-  },
-  {
-    icon: <ModelIcon tag="openai:gpt-4o" size="lg" />,
-    name: <p className="text-foreground">GPT</p>,
-  },
-  {
-    icon: <ModelIcon tag="google:gemini-2.0-flash" size="lg" />,
-    name: (
-      <p className="bg-gradient-to-tr from-[#1C7DFF] via-[#1C69FF] to-[#F0DCD6] via-50% text-transparent bg-clip-text">
-        Gemini
-      </p>
-    ),
-  },
-  {
-    icon: <ModelIcon tag="xai:grok-2-vision-1212" size="lg" />,
-    name: <p className="text-foreground">Grok</p>,
-  },
-  {
-    icon: <ModelIcon tag="mistral:mistral-large-latest" size="lg" />,
-    name: (
-      <p className="bg-gradient-to-b from-[#F7D046] via-[#EE792F] to-[#EA3326] via-50% text-transparent bg-clip-text">
-        Mistral
-      </p>
-    ),
-  },
-  {
-    icon: <ModelIcon tag="deepseek:deepseek-chat" size="lg" />,
-    name: <p className="text-[#4D6BFE]">DeepSeek</p>,
-  },
-  {
-    icon: <ModelIcon tag="cohere:command-r-plus" size="lg" />,
-    name: <p className="text-[#39594D]">Command</p>,
-  },
-];
-
-const heroModelsMobile = [
-  {
-    icon: <ModelIcon tag="anthropic:claude-3-7-sonnet" size="md" />,
-    name: <p className="text-[#D97757]">Claude</p>,
-  },
-  {
-    icon: <ModelIcon tag="openai:gpt-4o" size="md" />,
-    name: <p className="text-foreground">GPT</p>,
-  },
-  {
-    icon: <ModelIcon tag="google:gemini-2.0-flash" size="md" />,
-    name: (
-      <p className="bg-gradient-to-tr from-[#1C7DFF] via-[#1C69FF] to-[#F0DCD6] via-50% text-transparent bg-clip-text">
-        Gemini
-      </p>
-    ),
-  },
-  {
-    icon: <ModelIcon tag="xai:grok-2-vision-1212" size="md" />,
-    name: <p className="text-foreground">Grok</p>,
-  },
-  {
-    icon: <ModelIcon tag="mistral:mistral-large-latest" size="md" />,
-    name: (
-      <p className="bg-gradient-to-b from-[#F7D046] via-[#EE792F] to-[#EA3326] via-50% text-transparent bg-clip-text">
-        Mistral
-      </p>
-    ),
-  },
-  {
-    icon: <ModelIcon tag="deepseek:deepseek-chat" size="md" />,
-    name: <p className="text-[#4D6BFE]">DeepSeek</p>,
-  },
-  {
-    icon: <ModelIcon tag="cohere:command-r-plus" size="md" />,
-    name: <p className="text-[#39594D]">Command</p>,
-  },
-];
 
 export function Hero() {
   const { isSignedIn } = useCurrentUser();

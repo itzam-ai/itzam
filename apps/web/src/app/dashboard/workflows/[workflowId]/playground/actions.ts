@@ -50,8 +50,8 @@ export async function createThread({
       contextSlugs,
     });
 
-    if (!thread) {
-      throw new Error("Failed to create thread");
+    if ("error" in thread) {
+      throw new Error(thread.error);
     }
 
     return {
