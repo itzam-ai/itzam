@@ -22,9 +22,9 @@ export default async function ContextsPage({
       acc +
       (context.resources.reduce(
         (acc, resource) => acc + (resource.fileSize ?? 0),
-        0
+        0,
       ) ?? 0),
-    0
+    0,
   );
 
   if (!contexts || "error" in contexts) {

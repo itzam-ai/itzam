@@ -25,7 +25,7 @@ export default async function KnowledgePage({
 
   const totalSize = knowledge?.resources.reduce(
     (acc, resource) => acc + (resource.fileSize ?? 0),
-    0
+    0,
   );
 
   if (!knowledge || "error" in knowledge) {

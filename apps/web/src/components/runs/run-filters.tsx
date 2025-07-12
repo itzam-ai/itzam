@@ -140,7 +140,7 @@ export default function RunFilters({
                 size="sm"
                 className={cn(
                   "w-[225px] justify-start text-left font-normal text-sm active:scale-100",
-                  (!startDate || !endDate) && "text-muted-foreground"
+                  (!startDate || !endDate) && "text-muted-foreground",
                 )}
               >
                 <CalendarIcon className="size-3" />
@@ -209,7 +209,7 @@ export default function RunFilters({
                       to: new Date(),
                     });
                     setStartDate(
-                      startOfDay(addDays(new Date(), -7)).toISOString()
+                      startOfDay(addDays(new Date(), -7)).toISOString(),
                     );
                     setEndDate(endOfDay(new Date()).toISOString());
                   }}
@@ -223,7 +223,7 @@ export default function RunFilters({
                   size="sm"
                   className={cn(
                     "w-full",
-                    (plan === null || plan === "hobby") && "opacity-50"
+                    (plan === null || plan === "hobby") && "opacity-50",
                   )}
                   onClick={() => {
                     if (plan === null || plan === "hobby") {
@@ -236,7 +236,7 @@ export default function RunFilters({
                       to: new Date(),
                     });
                     setStartDate(
-                      startOfDay(addDays(new Date(), -30)).toISOString()
+                      startOfDay(addDays(new Date(), -30)).toISOString(),
                     );
                     setEndDate(endOfDay(new Date()).toISOString());
                   }}
@@ -261,7 +261,7 @@ export default function RunFilters({
                       to: new Date(),
                     });
                     setStartDate(
-                      startOfDay(addDays(new Date(), -90)).toISOString()
+                      startOfDay(addDays(new Date(), -90)).toISOString(),
                     );
                     setEndDate(endOfDay(new Date()).toISOString());
                   }}

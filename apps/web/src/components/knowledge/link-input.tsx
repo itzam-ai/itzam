@@ -72,7 +72,7 @@ export const LinkInput = ({
       .map((resource) => ({
         ...resource,
         processedChunks: resource.chunks.length ?? 0,
-      })) ?? []
+      })) ?? [],
   );
 
   const [link, setLink] = useState<string>("");
@@ -86,7 +86,7 @@ export const LinkInput = ({
 
   const handleResourceDelete = (resourceId: string) => {
     setWorkflowLinks((prevLinks) =>
-      prevLinks.filter((link) => link.id !== resourceId)
+      prevLinks.filter((link) => link.id !== resourceId),
     );
   };
 
@@ -157,7 +157,7 @@ export const LinkInput = ({
     } catch (error) {
       setWorkflowLinks((prevLinks) => {
         return prevLinks.filter(
-          (link) => !linksToAdd.some((l) => l.id === link.id)
+          (link) => !linksToAdd.some((l) => l.id === link.id),
         );
       });
 
@@ -212,7 +212,7 @@ export const LinkInput = ({
             return link;
           });
         });
-      }
+      },
     );
 
     return () => {
@@ -281,7 +281,7 @@ export const LinkInput = ({
                     value={scrapeFrequency}
                     onValueChange={(value) =>
                       setScrapeFrequency(
-                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY",
                       )
                     }
                   >
@@ -473,7 +473,7 @@ export const LinkInput = ({
                     value={scrapeFrequency}
                     onValueChange={(value) =>
                       setScrapeFrequency(
-                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY",
                       )
                     }
                   >

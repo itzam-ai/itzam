@@ -44,7 +44,7 @@ const response = await itzam.${functionName}({
       0,
       setApiKeyTyped,
       40,
-      setIsCreatingApiKey
+      setIsCreatingApiKey,
     );
 
     setApiKey(apiKey.plainKey ?? "");
@@ -143,7 +143,7 @@ const response = await itzam.${functionName}({
                 size="sm"
                 className={cn(
                   "w-full rounded-none rounded-tl-xl py-4 active:scale-100",
-                  functionName === "generateText" && "bg-accent"
+                  functionName === "generateText" && "bg-accent",
                 )}
                 onClick={() => setFunctionName("generateText")}
               >
@@ -154,7 +154,7 @@ const response = await itzam.${functionName}({
                 size="sm"
                 className={cn(
                   "w-full rounded-none rounded-tr-xl border-l py-4 active:scale-100",
-                  functionName === "streamText" && "bg-accent"
+                  functionName === "streamText" && "bg-accent",
                 )}
                 onClick={() => setFunctionName("streamText")}
               >

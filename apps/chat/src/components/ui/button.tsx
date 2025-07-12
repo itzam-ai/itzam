@@ -41,7 +41,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
@@ -53,7 +53,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     { className, variant = "default", size, asChild = false, ...props },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? Slot : "button";
 
@@ -63,7 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <Comp
           className={cn(
             buttonVariants({ variant, size, className }),
-            variant === "default" ? "group relative overflow-hidden" : ""
+            variant === "default" ? "group relative overflow-hidden" : "",
           )}
           ref={ref}
           {...props}
@@ -83,7 +83,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {props.children}
       </Comp>
     );
-  }
+  },
 );
 Button.displayName = "Button";
 

@@ -58,7 +58,7 @@ export function CodeBlockCode({
 
   const classNames = cn(
     "w-full md:text-[13px] text-[12px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:bg-transparent [&>pre]:my-0 md:overflow-hidden overflow-x-auto",
-    className
+    className,
   );
 
   // SSR fallback: render plain code if not hydrated yet

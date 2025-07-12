@@ -115,7 +115,7 @@ export function UsageChart({
                     <NumberFlow
                       value={formattedData.reduce(
                         (acc, item) => acc + item.cost,
-                        0
+                        0,
                       )}
                       format={{
                         currency: "USD",
@@ -131,7 +131,7 @@ export function UsageChart({
                     <NumberFlow
                       value={formattedData.reduce(
                         (acc, item) => acc + item.count,
-                        0
+                        0,
                       )}
                     />
                   </p>

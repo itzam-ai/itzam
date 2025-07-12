@@ -780,6 +780,11 @@ async function seed() {
     }
   }
 
+  // Seed tools
+  console.log("🔧 Seeding tools...");
+  const { seedTools } = await import("./tools/seed");
+  await seedTools();
+
   // Create admin users in our database
   await seedLocalUsers();
 

@@ -49,11 +49,11 @@ export const getAllPosts = cache(async (): Promise<BlogPostMetadata[]> => {
           authors: data.authors,
           coverImage: data.coverImage,
         } as BlogPostMetadata;
-      })
+      }),
   );
 
   return posts.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 });
 
@@ -77,5 +77,5 @@ export const getPostBySlug = cache(
       console.error(error);
       return null;
     }
-  }
+  },
 );

@@ -1,30 +1,30 @@
-'use client';
+"use client";
 
-import { ModelWithProvider, updateModel } from '@itzam/server/db/model/actions';
-import { Brain, Code, Eye, Pencil } from 'lucide-react';
-import ProviderIcon from 'public/models/svgs/provider-icon';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { cn } from '~/lib/utils';
-import { Button } from '../ui/button';
+import { ModelWithProvider, updateModel } from "@itzam/server/db/model/actions";
+import { Brain, Code, Eye, Pencil } from "lucide-react";
+import ProviderIcon from "public/models/svgs/provider-icon";
+import { useState } from "react";
+import { toast } from "sonner";
+import { cn } from "~/lib/utils";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
+} from "../ui/dialog";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Spinner } from '../ui/spinner';
-import { Switch } from '../ui/switch';
+} from "../ui/select";
+import { Spinner } from "../ui/spinner";
+import { Switch } from "../ui/switch";
 
 type Provider = {
   id: string;
@@ -43,13 +43,13 @@ export function UpdateModel({
   const [modelName, setModelName] = useState(model.name);
   const [modelTag, setModelTag] = useState(model.tag);
   const [modelProviderId, setModelProviderId] = useState(
-    model.provider?.id ?? '',
+    model.provider?.id ?? "",
   );
   const [modelInputCost, setModelInputCost] = useState(
-    model.inputPerMillionTokenCost ?? '',
+    model.inputPerMillionTokenCost ?? "",
   );
   const [modelOutputCost, setModelOutputCost] = useState(
-    model.outputPerMillionTokenCost ?? '',
+    model.outputPerMillionTokenCost ?? "",
   );
   const [modelContextWindow, setModelContextWindow] = useState(
     model.contextWindowSize,
@@ -145,9 +145,9 @@ export function UpdateModel({
             </SelectTrigger>
             <SelectContent>
               {providers.map((provider) => (
-                <SelectItem key={provider?.id} value={provider?.id ?? ''}>
+                <SelectItem key={provider?.id} value={provider?.id ?? ""}>
                   <div className="flex items-center gap-2">
-                    <ProviderIcon id={provider?.id ?? ''} size="xs" />
+                    <ProviderIcon id={provider?.id ?? ""} size="xs" />
                     {provider?.name}
                   </div>
                 </SelectItem>
@@ -159,24 +159,24 @@ export function UpdateModel({
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label>
-              Input Cost{' '}
+              Input Cost{" "}
               <span className="text-muted-foreground text-xs">(1M tokens)</span>
             </Label>
             <Input
               type="text"
-              value={modelInputCost ?? ''}
+              value={modelInputCost ?? ""}
               onChange={(e) => setModelInputCost(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>
-              Output Cost{' '}
+              Output Cost{" "}
               <span className="text-muted-foreground text-xs">(1M tokens)</span>
             </Label>
             <Input
               type="text"
-              value={modelOutputCost ?? ''}
+              value={modelOutputCost ?? ""}
               onChange={(e) => setModelOutputCost(e.target.value)}
             />
           </div>
@@ -196,7 +196,7 @@ export function UpdateModel({
             <Label>Max Temperature</Label>
             <Input
               type="text"
-              value={modelMaxTemperature ?? ''}
+              value={modelMaxTemperature ?? ""}
               onChange={(e) => setModelMaxTemperature(e.target.value)}
             />
           </div>
@@ -205,7 +205,7 @@ export function UpdateModel({
             <Label>Default Temperature</Label>
             <Input
               type="text"
-              value={modelDefaultTemperature ?? ''}
+              value={modelDefaultTemperature ?? ""}
               onChange={(e) => setModelDefaultTemperature(e.target.value)}
             />
           </div>
@@ -228,9 +228,9 @@ export function UpdateModel({
                 setModelHasReasoningCapability(!modelHasReasoningCapability)
               }
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelHasReasoningCapability &&
-                  'border-green-600 bg-green-600/10 text-primary',
+                  "border-green-600 bg-green-600/10 text-primary",
               )}
             >
               <Brain className="inline-block size-3" /> Reasoning
@@ -239,8 +239,8 @@ export function UpdateModel({
             <div
               onClick={() => setModelHasVision(!modelHasVision)}
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
-                modelHasVision && 'border-sky-600 bg-sky-600/10 text-primary',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
+                modelHasVision && "border-sky-600 bg-sky-600/10 text-primary",
               )}
             >
               <Eye className="size-3" /> Vision
@@ -249,9 +249,9 @@ export function UpdateModel({
             <div
               onClick={() => setModelIsOpenSource(!modelIsOpenSource)}
               className={cn(
-                'flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200',
+                "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelIsOpenSource &&
-                  'border-orange-600 bg-orange-600/10 text-primary',
+                  "border-orange-600 bg-orange-600/10 text-primary",
               )}
             >
               <Code className="size-3" /> Open Source
@@ -275,7 +275,7 @@ export function UpdateModel({
             className="w-40"
             disabled={isLoading}
           >
-            {isLoading ? <Spinner /> : 'Save Changes'}
+            {isLoading ? <Spinner /> : "Save Changes"}
           </Button>
         </div>
       </DialogContent>

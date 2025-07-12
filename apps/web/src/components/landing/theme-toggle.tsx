@@ -15,7 +15,7 @@ export function ThemeToggle() {
         size="icon"
         className={cn(
           "size-6 rounded-md",
-          theme === "light" && "bg-white shadow-sm"
+          theme === "light" && "bg-white shadow-sm",
         )}
         onClick={() => setTheme("light")}
         aria-label="Light theme"
@@ -28,7 +28,7 @@ export function ThemeToggle() {
         size="icon"
         className={cn(
           "size-6 rounded-md",
-          theme === "dark" && "bg-white/10 shadow-sm"
+          theme === "dark" && "bg-white/10 shadow-sm",
         )}
         onClick={() => setTheme("dark")}
         aria-label="Dark theme"
@@ -41,7 +41,7 @@ export function ThemeToggle() {
         size="icon"
         className={cn(
           "size-6 rounded-md",
-          theme === "system" && "bg-white/50 shadow-sm dark:bg-white/10"
+          theme === "system" && "bg-white/50 shadow-sm dark:bg-white/10",
         )}
         onClick={() => setTheme("system")}
         aria-label="System theme"

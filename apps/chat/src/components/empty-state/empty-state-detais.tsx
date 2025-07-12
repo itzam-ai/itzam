@@ -20,7 +20,7 @@ export default function EmptyStateDetails({
     <div
       className={cn(
         "mx-auto flex flex-col items-center justify-center",
-        className
+        className,
       )}
     >
       <div className="rounded-lg border-2 border-dashed p-2">

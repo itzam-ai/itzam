@@ -64,7 +64,6 @@ const StarBorder = ({
   );
 };
 
-
 export function Hero() {
   const { isSignedIn } = useCurrentUser();
 
@@ -180,7 +179,7 @@ const response = await itzam.streamText({
       secondAssistantMessage,
       8000,
       setSecondAssistantMessageTyped,
-      30
+      30,
     );
   }, []);
 
@@ -353,7 +352,7 @@ export function simulateTyping(
   setText: (text: string) => void,
   speed?: number,
   setIsTyping?: (isTyping: boolean) => void,
-  onFinish?: () => void
+  onFinish?: () => void,
 ) {
   let currentIndex = 0;
 

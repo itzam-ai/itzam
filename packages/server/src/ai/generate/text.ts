@@ -168,6 +168,7 @@ export async function generateTextOrObjectStream(
           (event as unknown as { metadata: unknown }).metadata = metadata;
         }
 
+        // Pass all events through, including tool-related events
         await streamSSE?.writeSSE({
           data: JSON.stringify(event),
           event: event.type,

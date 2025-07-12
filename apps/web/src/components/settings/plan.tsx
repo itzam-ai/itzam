@@ -30,12 +30,13 @@ export function Plan({
 
   const monthlyPrice = prices.find(
     (price) =>
-      price.lookup_key === "pro_monthly" || price.lookup_key === "basic_monthly"
+      price.lookup_key === "pro_monthly" ||
+      price.lookup_key === "basic_monthly",
   );
 
   const yearlyPrice = prices.find(
     (price) =>
-      price.lookup_key === "pro_yearly" || price.lookup_key === "basic_yearly"
+      price.lookup_key === "pro_yearly" || price.lookup_key === "basic_yearly",
   );
 
   const [currentPrice, setCurrentPrice] = useState(yearlyPrice);
@@ -61,7 +62,7 @@ export function Plan({
                   currentPrice?.lookup_key === "pro_yearly" ||
                     currentPrice?.lookup_key === "basic_yearly"
                     ? monthlyPrice
-                    : yearlyPrice
+                    : yearlyPrice,
                 )
               }
               onClick={(e) => {
@@ -84,7 +85,7 @@ export function Plan({
             className="w-full"
             onClick={async () => {
               const session = await createCheckoutSession(
-                currentPrice?.id ?? ""
+                currentPrice?.id ?? "",
               );
 
               if ("error" in session) {

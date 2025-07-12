@@ -97,7 +97,7 @@ async function Models() {
                       {models
                         .sort(
                           (a, b) =>
-                            b.createdAt.getTime() - a.createdAt.getTime()
+                            b.createdAt.getTime() - a.createdAt.getTime(),
                         )
                         .map((model) => (
                           <tr key={model.id}>
@@ -162,12 +162,12 @@ async function Models() {
                             </td>
                             <td className="py-2 text-right text-muted-foreground">
                               {formatCurrency(
-                                Number(model.inputPerMillionTokenCost ?? 0)
+                                Number(model.inputPerMillionTokenCost ?? 0),
                               )}
                             </td>
                             <td className="py-2 text-right text-muted-foreground">
                               {formatCurrency(
-                                Number(model.outputPerMillionTokenCost ?? 0)
+                                Number(model.outputPerMillionTokenCost ?? 0),
                               )}
                             </td>
                             <td className="py-2 text-right text-muted-foreground">

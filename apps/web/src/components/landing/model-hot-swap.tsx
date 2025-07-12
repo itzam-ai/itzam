@@ -73,7 +73,7 @@ export const ModelHotSwap = () => {
       setModels(models);
 
       const defaultModel = models.find(
-        (m) => m.tag === recommendedCheapAndFastModel
+        (m) => m.tag === recommendedCheapAndFastModel,
       );
 
       if (defaultModel) {
@@ -350,7 +350,7 @@ export function PromptCard({
                           className="w-32"
                           onClick={() => {
                             toast.success(
-                              "Enhance your prompts with AI inside the dashboard"
+                              "Enhance your prompts with AI inside the dashboard",
                             );
                           }}
                         >
@@ -405,7 +405,7 @@ export function ModelCard({
 }) {
   const [open, setOpen] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState<string | undefined>(
-    model?.id
+    model?.id,
   );
   const [isLoading, setIsLoading] = useState(false);
 
@@ -417,7 +417,7 @@ export function ModelCard({
     (m) =>
       m.tag === recommendedCheapAndFastModel ||
       m.tag === recommendedAccurateModel ||
-      m.tag === recommendedGoodBalanceModel
+      m.tag === recommendedGoodBalanceModel,
   );
 
   const handleSwitchModel = async () => {

@@ -69,7 +69,7 @@ export function ModelDescription({
                   <br />
                   This is around{" "}
                   {formatNumber(
-                    Math.floor(workflow.model.contextWindowSize * 0.75)
+                    Math.floor(workflow.model.contextWindowSize * 0.75),
                   )}{" "}
                   English words.
                 </TooltipContent>
@@ -81,7 +81,7 @@ export function ModelDescription({
             <span className="text-xs text-muted-foreground font-normal ml-2">
               ~
               {formatNumber(
-                Math.floor(workflow.model.contextWindowSize * 0.75)
+                Math.floor(workflow.model.contextWindowSize * 0.75),
               )}{" "}
               words
             </span>
@@ -102,7 +102,7 @@ export function ModelDescription({
                   <br />
                   This is around{" "}
                   {formatNumber(
-                    Math.floor(workflow.model.maxTokens * 0.75)
+                    Math.floor(workflow.model.maxTokens * 0.75),
                   )}{" "}
                   English words
                 </TooltipContent>

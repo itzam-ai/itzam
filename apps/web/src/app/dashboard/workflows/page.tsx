@@ -100,7 +100,7 @@ export default async function WorkflowsPage() {
                         {workflow.runs[0]?.createdAt
                           ? formatDistanceToNow(
                               new Date(workflow.runs[0].createdAt),
-                              { addSuffix: true }
+                              { addSuffix: true },
                             )
                           : "Never"}
                       </span>

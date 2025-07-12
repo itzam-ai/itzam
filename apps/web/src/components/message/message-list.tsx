@@ -19,6 +19,15 @@ export interface Message {
   timestamp: Date;
   model?: ModelWithCostAndProvider;
   isLoading?: boolean;
+  toolCalls?: ToolCall[];
+}
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  args?: Record<string, unknown>;
+  result?: unknown;
+  status?: "pending" | "running" | "completed" | "failed";
 }
 
 interface MessageListProps {
@@ -48,7 +57,9 @@ export function MessageList({
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
 
-    const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+    const viewport = scrollRef.current.querySelector(
+      "[data-radix-scroll-area-viewport]",
+    ) as HTMLElement;
     if (!viewport) return;
 
     const { scrollTop, scrollHeight, clientHeight } = viewport;
@@ -61,7 +72,9 @@ export function MessageList({
   // Auto-scroll to bottom when new content arrives (if enabled)
   useEffect(() => {
     if (scrollRef.current && isAutoScrollEnabled) {
-      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      const viewport = scrollRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]",
+      ) as HTMLElement;
       if (viewport) {
         viewport.scrollTop = viewport.scrollHeight;
       }
@@ -71,7 +84,9 @@ export function MessageList({
   // Jump to bottom function
   const jumpToBottom = useCallback(() => {
     if (scrollRef.current) {
-      const viewport = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
+      const viewport = scrollRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]",
+      ) as HTMLElement;
       if (viewport) {
         viewport.scrollTop = viewport.scrollHeight;
         setIsAutoScrollEnabled(true);
@@ -94,19 +109,26 @@ export function MessageList({
       timestamp={message.timestamp}
       model={message.model}
       showTimestamp={showTimestamps}
+      toolCalls={message.toolCalls}
     />
   );
 
   return (
     <div className={`relative h-full flex flex-col ${className}`}>
-      <ScrollArea className="flex-1" ref={scrollRef} onScrollCapture={handleScroll}>
+      <ScrollArea
+        className="flex-1"
+        ref={scrollRef}
+        onScrollCapture={handleScroll}
+      >
         <div className="flex flex-col gap-6 p-6 pb-4">
           {enableAnimations ? (
             <AnimatePresence initial={false} mode="popLayout">
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={message.role === "user" ? false : { opacity: 0, y: 10 }}
+                  initial={
+                    message.role === "user" ? false : { opacity: 0, y: 10 }
+                  }
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{

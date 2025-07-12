@@ -1,4 +1,5 @@
 import { CoreMessage, jsonSchema, type UserContent, zodSchema } from "ai";
+import { StatusCode } from "hono/utils/http-status";
 import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
 import type { Model } from "../db/model/actions";
@@ -11,8 +12,8 @@ import { uploadFileToBucket } from "../r2/server";
 import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
+import { getWorkflowComposioTools } from "./tools";
 import type { Attachment, AttachmentWithUrl, CreateAiParamsFn } from "./types";
-import { StatusCode } from "hono/utils/http-status";
 
 // return a promise that resolves with a File instance
 export async function getFileFromString(
@@ -202,6 +203,25 @@ export const createAiParams: CreateAiParamsFn = async ({
   console.log("System prompt with knowledge ⬇️");
   console.log(systemPromptWithKnowledge);
 
+  // Get tools configured for this workflow
+  let tools = undefined;
+  if (run.workflowId) {
+    try {
+      const workflowTools = await getWorkflowComposioTools(
+        run.workflowId,
+        userId
+      );
+      if (workflowTools.length > 0) {
+        tools = workflowTools;
+        console.log(
+          `Loaded ${workflowTools.length} tools for workflow ${run.workflowId}`
+        );
+      }
+    } catch (error) {
+      console.error("Failed to load workflow tools:", error);
+    }
+  }
+
   return {
     model: providerRegistry.languageModel(model.tag as any),
     system: systemPromptWithKnowledge,
@@ -209,6 +229,7 @@ export const createAiParams: CreateAiParamsFn = async ({
     schema,
     output,
     attachments,
+    tools,
     ...rest,
   };
 };

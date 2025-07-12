@@ -24,7 +24,7 @@ export default async function ContextPage({
 
   const totalSize = context?.resources.reduce(
     (acc, resource) => acc + (resource.fileSize ?? 0),
-    0
+    0,
   );
 
   return (

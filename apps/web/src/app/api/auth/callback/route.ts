@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         const stripeCustomer = await createStripeCustomer(
           data.user.id,
           data.user.user_metadata.name ?? "",
-          data.user.email ?? ""
+          data.user.email ?? "",
         );
 
         // update user metadata with stripe customer id

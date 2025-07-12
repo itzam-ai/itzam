@@ -54,7 +54,7 @@ export function Usage({
       channelId,
       (payload: UsageUpdatePayload) => {
         setTotalSizeUsed((prev) => prev + payload.newFileSize);
-      }
+      },
     );
 
     return () => {

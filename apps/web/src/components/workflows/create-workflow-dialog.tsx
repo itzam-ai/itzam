@@ -82,7 +82,7 @@ export function CreateWorkflowDialog({
   const [direction, setDirection] = useState(0);
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [selectedModel, setSelectedModel] = useState<ModelWithProvider | null>(
-    null
+    null,
   );
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [isSlugAvailable, setIsSlugAvailable] = useState(true);
@@ -196,7 +196,7 @@ export function CreateWorkflowDialog({
       const response = await fillPrompt(
         form.getValues("name"),
         prompt,
-        form.getValues("description")
+        form.getValues("description"),
       );
 
       form.setValue("prompt", "");
@@ -227,7 +227,7 @@ export function CreateWorkflowDialog({
       router.push(`/dashboard/workflows/${workflow?.id}`);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Error creating workflow"
+        error instanceof Error ? error.message : "Error creating workflow",
       );
       console.error(error);
     }
@@ -356,7 +356,7 @@ export function CreateWorkflowDialog({
     (m) =>
       m.tag === recommendedCheapAndFastModel ||
       m.tag === recommendedAccurateModel ||
-      m.tag === recommendedGoodBalanceModel
+      m.tag === recommendedGoodBalanceModel,
   );
 
   const sortedModels = groupModelsByProviderAndSort(models);
@@ -680,8 +680,8 @@ export function CreateWorkflowDialog({
                                                 setSelectedModelId={(id) => {
                                                   setSelectedModel(
                                                     models.find(
-                                                      (m) => m.id === id
-                                                    ) || null
+                                                      (m) => m.id === id,
+                                                    ) || null,
                                                   );
                                                   field.onChange(id);
                                                 }}
@@ -689,7 +689,7 @@ export function CreateWorkflowDialog({
                                             ))}
                                           </div>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 </ScrollArea>

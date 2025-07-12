@@ -234,7 +234,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
               className={cn(
                 "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelHasReasoningCapability &&
-                  "border-green-600 bg-green-600/10 text-primary"
+                  "border-green-600 bg-green-600/10 text-primary",
               )}
             >
               <Brain className="inline-block size-3" /> Reasoning
@@ -244,7 +244,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
               onClick={() => setModelHasVision(!modelHasVision)}
               className={cn(
                 "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
-                modelHasVision && "border-sky-600 bg-sky-600/10 text-primary"
+                modelHasVision && "border-sky-600 bg-sky-600/10 text-primary",
               )}
             >
               <Eye className="size-3" /> Vision
@@ -255,7 +255,7 @@ export function CreateModel({ providers }: { providers: Provider[] }) {
               className={cn(
                 "flex cursor-pointer items-center justify-center gap-2 rounded-md border border-input py-4 text-center text-muted-foreground text-sm transition-all duration-200",
                 modelIsOpenSource &&
-                  "border-orange-600 bg-orange-600/10 text-primary"
+                  "border-orange-600 bg-orange-600/10 text-primary",
               )}
             >
               <Code className="size-3" /> Open Source

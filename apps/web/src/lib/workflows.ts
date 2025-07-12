@@ -8,5 +8,5 @@ export type Workflow = Exclude<
 >;
 
 export const getWorkflow = cache(
-  async (workflowId: string) => await getWorkflowByIdWithRelations(workflowId)
+  async (workflowId: string) => await getWorkflowByIdWithRelations(workflowId),
 );

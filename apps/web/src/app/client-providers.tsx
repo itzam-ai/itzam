@@ -56,7 +56,7 @@ export default function MyStatsig({
         new StatsigAutoCapturePlugin(),
         new StatsigSessionReplayPlugin(),
       ],
-    }
+    },
   );
 
   return <StatsigProvider client={client}>{children}</StatsigProvider>;

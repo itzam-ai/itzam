@@ -6,7 +6,7 @@ import Claude from "./claude";
 import Gemini from "./gemini";
 import Google from "./google";
 import XAI from "./xai";
-import DeepSeek from "./deepseek";  
+import DeepSeek from "./deepseek";
 
 const aiLogos = {
   openai: OpenAI,

@@ -21,7 +21,7 @@ export const groupModelsByProviderAndSort = (models: ModelWithProvider[]) => {
       acc[providerName].push(model);
       return acc;
     },
-    {}
+    {},
   );
 
   // Sort providers based on providersIdSortingOrder
@@ -42,7 +42,7 @@ export const groupModelsByProviderAndSort = (models: ModelWithProvider[]) => {
       if (indexB !== -1) return 1;
       // For providers not in the sorting order, maintain alphabetical order
       return providerNameA.localeCompare(providerNameB);
-    }
+    },
   );
 
   return sortedProviderEntries.map(([providerName, models]) => ({

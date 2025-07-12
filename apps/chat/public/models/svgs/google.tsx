@@ -1,11 +1,11 @@
-const Google = (className: string, size: string = 'md') => {
+const Google = (className: string, size: string = "md") => {
   const sizeMap = {
-    us: '8',
-    xs: '12',
-    sm: '16',
-    md: '24',
-    lg: '32',
-    xl: '40',
+    us: "8",
+    xs: "12",
+    sm: "16",
+    md: "24",
+    lg: "32",
+    xl: "40",
   };
 
   return (

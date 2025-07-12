@@ -51,7 +51,7 @@ export default async function RunsTable({
     workflowId,
     Number(queryParams.page) || 1,
     paramsFromQuery,
-    queryParams.sort as string
+    queryParams.sort as string,
   );
 
   const models = await getAvailableModelsWithCost();

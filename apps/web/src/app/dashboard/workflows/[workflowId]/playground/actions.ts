@@ -35,7 +35,7 @@ export async function createThread({
       where: and(
         eq(workflows.slug, workflowSlug),
         eq(workflows.userId, userId),
-        eq(workflows.isActive, true)
+        eq(workflows.isActive, true),
       ),
     });
 

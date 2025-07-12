@@ -93,7 +93,7 @@ const initialBillingInformation = [
 
 export const UnifiedBillingCard = () => {
   const [billingInformation, setBillingInformation] = useState(
-    initialBillingInformation
+    initialBillingInformation,
   );
 
   useEffect(() => {

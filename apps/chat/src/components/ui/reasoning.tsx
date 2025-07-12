@@ -17,14 +17,14 @@ type ReasoningContextType = {
 };
 
 const ReasoningContext = createContext<ReasoningContextType | undefined>(
-  undefined
+  undefined,
 );
 
 function useReasoningContext() {
   const context = useContext(ReasoningContext);
   if (!context) {
     throw new Error(
-      "useReasoningContext must be used within a Reasoning provider"
+      "useReasoningContext must be used within a Reasoning provider",
     );
   }
   return context;
@@ -89,7 +89,7 @@ function ReasoningTrigger({
       <div
         className={cn(
           "transform transition-transform",
-          isOpen ? "rotate-180" : ""
+          isOpen ? "rotate-180" : "",
         )}
       >
         <ChevronDownIcon className="size-4" />
@@ -135,7 +135,7 @@ function ReasoningContent({
       ref={contentRef}
       className={cn(
         "overflow-hidden transition-[max-height] duration-300 ease-out",
-        className
+        className,
       )}
       style={{
         maxHeight: isOpen ? contentRef.current?.scrollHeight : "0px",
@@ -159,7 +159,7 @@ function ReasoningResponse({ text, className }: ReasoningResponseProps) {
     <div
       className={cn(
         "text-muted-foreground prose prose-sm dark:prose-invert text-sm transition-opacity duration-300 ease-out",
-        className
+        className,
       )}
       style={{
         opacity: isOpen ? 1 : 0,

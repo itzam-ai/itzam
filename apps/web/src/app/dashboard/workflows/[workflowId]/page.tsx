@@ -5,6 +5,7 @@ import { GraphCard } from "~/components/workflows/graph-card";
 import { ModelCard } from "~/components/workflows/model-card";
 import { PromptCard } from "~/components/workflows/prompt-card";
 import { SlugCard } from "~/components/workflows/slug-card";
+import { ToolsCard } from "~/components/workflows/tools-card";
 import { getWorkflow } from "~/lib/workflows";
 
 export default async function WorkflowPage({
@@ -25,8 +26,13 @@ export default async function WorkflowPage({
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="flex flex-col gap-4">
           <SlugCard workflowSlug={workflow?.slug ?? ""} />
-
           <ModelCard model={workflow?.model} workflowId={workflowId} />
+          <ToolsCard
+            workflowId={workflowId}
+            enabledToolsCount={
+              workflow?.workflowTools?.filter((wt) => wt.enabled).length || 0
+            }
+          />
         </div>
         <PromptCard prompt={workflow?.prompt ?? ""} workflowId={workflowId} />
         <GraphCard workflowId={workflowId} />

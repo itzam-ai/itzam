@@ -66,7 +66,7 @@ export default function PlaygroundClient({
   const [contexts, setContexts] = useState<string[]>([]);
   const [prompt, setPrompt] = useState<string>(workflow?.prompt || "");
   const [model, setModel] = useState<ModelWithCostAndProvider | null>(
-    workflow?.model || null
+    workflow?.model || null,
   );
   const [metadata, setMetadata] = useState<StreamMetadata | null>(null);
 
@@ -74,15 +74,15 @@ export default function PlaygroundClient({
   const [streamingContent, setStreamingContent] = useState<string>("");
 
   // Use thread hook with localStorage built-in and message persistence
-  const { 
-    threadId, 
-    setThreadId, 
-    createThread, 
-    messages, 
-    setMessages, 
+  const {
+    threadId,
+    setThreadId,
+    createThread,
+    messages,
+    setMessages,
     clearMessages,
     mode,
-    setMode 
+    setMode,
   } = useThread({
     workflowSlug: workflow.slug,
     contextSlugs: contexts,
@@ -113,7 +113,7 @@ export default function PlaygroundClient({
         setStreamingContent("");
       }
     },
-    [setMode]
+    [setMode],
   );
 
   const handleNewThread = useCallback(async () => {
@@ -125,7 +125,7 @@ export default function PlaygroundClient({
     setMetadata(null);
     // Create a new thread immediately
     const newThreadId = await createThread(
-      `playground_${uuidv4().slice(0, 8)}`
+      `playground_${uuidv4().slice(0, 8)}`,
     );
     if (!newThreadId) {
       console.error("Failed to create new thread");
@@ -186,7 +186,7 @@ export default function PlaygroundClient({
     // Create thread if it doesn't exist
     if (!currentThreadId) {
       currentThreadId = await createThread(
-        `playground_${uuidv4().slice(0, 8)}`
+        `playground_${uuidv4().slice(0, 8)}`,
       );
       if (!currentThreadId) {
         setIsPending(false);
@@ -227,17 +227,21 @@ export default function PlaygroundClient({
         setMetadata(meta);
       }
 
+      // Get tool calls if any
+      const toolCalls = await response.toolCalls;
+
       setIsPending(false);
       setStreamStatus("completed");
 
       // Add the assistant message once streaming is complete
-      if (fullContent) {
+      if (fullContent || toolCalls.length > 0) {
         const assistantMessage: Message = {
           id: uuidv4(),
           role: "assistant",
-          content: fullContent,
+          content: fullContent || "",
           timestamp: new Date(),
           model: model || undefined,
+          toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
         };
         setMessages((prev) => [...prev, assistantMessage]);
         setStreamingContent("");
@@ -271,7 +275,7 @@ export default function PlaygroundClient({
 
       handleSubmit();
     },
-    { ignoreInputFocus: true }
+    { ignoreInputFocus: true },
   );
 
   return (
@@ -359,13 +363,13 @@ export default function PlaygroundClient({
                             className={cn(
                               "flex items-center gap-2 cursor-pointer text-sm font-normal text-muted-foreground p-3 rounded-md hover:bg-muted/30 transition-all border border-border opacity-50",
                               contexts.includes(context.slug) &&
-                                "text-primary font-medium opacity-100"
+                                "text-primary font-medium opacity-100",
                             )}
                             onClick={() => {
                               setContexts(
                                 contexts.includes(context.slug)
                                   ? contexts.filter((c) => c !== context.slug)
-                                  : [...contexts, context.slug]
+                                  : [...contexts, context.slug],
                               );
                             }}
                           >
@@ -383,7 +387,7 @@ export default function PlaygroundClient({
                                       "size-3",
                                       contexts.includes(context.slug)
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                 )}

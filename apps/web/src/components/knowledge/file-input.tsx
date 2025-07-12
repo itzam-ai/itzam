@@ -32,7 +32,7 @@ interface ExtendedFile extends File {
 
 const uploadFileToSupabase = async (
   file: File,
-  userId: string
+  userId: string,
 ): Promise<{ url: string; id: string; createdAt: Date }> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -80,7 +80,7 @@ export const FileInput = ({
       .map((resource) => ({
         ...resource,
         processedChunks: resource.chunks.length ?? 0,
-      })) ?? []
+      })) ?? [],
   );
 
   const { user } = useCurrentUser();
@@ -131,7 +131,7 @@ export const FileInput = ({
               url: null,
             };
           }
-        })
+        }),
       );
 
       const filesToRemove = uploadedFiles.filter((file) => file.url === null);
@@ -197,8 +197,8 @@ export const FileInput = ({
       // remove the files from the workflow files
       setWorkflowFiles((prevFiles) =>
         prevFiles.filter(
-          (file) => !resourcesToAdd.some((f) => f.id === file.id)
-        )
+          (file) => !resourcesToAdd.some((f) => f.id === file.id),
+        ),
       );
     }
 
@@ -208,7 +208,7 @@ export const FileInput = ({
 
   const handleDelete = (resourceId: string) => {
     setWorkflowFiles((prevFiles) =>
-      prevFiles.filter((file) => file.id !== resourceId)
+      prevFiles.filter((file) => file.id !== resourceId),
     );
   };
 
@@ -255,7 +255,7 @@ export const FileInput = ({
             return file;
           });
         });
-      }
+      },
     );
 
     return () => {
@@ -360,7 +360,7 @@ export const FileInput = ({
                                 className="size-3 hover:opacity-70 transition-opacity cursor-pointer text-muted-foreground"
                                 onClick={() =>
                                   setFiles((prevFiles) =>
-                                    prevFiles.filter((f) => f.id !== file.id)
+                                    prevFiles.filter((f) => f.id !== file.id),
                                   )
                                 }
                               />

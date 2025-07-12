@@ -27,7 +27,7 @@ export function ResponseTextArea({
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       const viewportElement = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
+        "[data-radix-scroll-area-viewport]",
       ) as HTMLElement;
       if (viewportElement) {
         viewportElement.scrollTo({

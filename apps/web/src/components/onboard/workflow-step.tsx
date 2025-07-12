@@ -191,7 +191,7 @@ export const WorkflowDetailsStep = ({
                 onClick={() => handleSetModel(model)}
                 className={cn(
                   "flex flex-col gap-0.5 border rounded-lg p-3 active:scale-[0.98] active:duration-75 active:ease-in-out px-3 shadow-sm cursor-pointer hover:bg-accent transition-all duration-200",
-                  model.id === selectedModel?.id && "bg-muted"
+                  model.id === selectedModel?.id && "bg-muted",
                 )}
               >
                 <div className="flex items-center gap-1.5">

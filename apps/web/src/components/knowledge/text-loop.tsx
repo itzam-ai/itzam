@@ -50,7 +50,7 @@ export function TextLoop({
     <div
       className={cn(
         "relative inline-block whitespace-nowrap overflow-hidden",
-        className
+        className,
       )}
     >
       <AnimatePresence mode="popLayout">

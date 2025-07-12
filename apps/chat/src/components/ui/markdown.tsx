@@ -34,7 +34,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
         <span
           className={cn(
             "bg-primary-foreground rounded-sm px-1 font-mono text-sm",
-            className
+            className,
           )}
           {...props}
         >
@@ -72,7 +72,7 @@ const MemoizedMarkdownBlock = memo(
   },
   function propsAreEqual(prevProps, nextProps) {
     return prevProps.content === nextProps.content;
-  }
+  },
 );
 
 MemoizedMarkdownBlock.displayName = "MemoizedMarkdownBlock";

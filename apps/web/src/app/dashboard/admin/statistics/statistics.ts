@@ -34,11 +34,11 @@ export async function getTokenUsage() {
       totals: {
         inputTokens: overviewResults.reduce(
           (acc, run) => acc + run.inputTokens,
-          0
+          0,
         ),
         outputTokens: overviewResults.reduce(
           (acc, run) => acc + run.outputTokens,
-          0
+          0,
         ),
         cost: overviewResults.reduce((acc, run) => acc + Number(run.cost), 0),
       },
@@ -85,7 +85,7 @@ export async function getModelUsage(): Promise<ModelUsageData> {
         }
         return acc;
       },
-      {} as Record<string, string>
+      {} as Record<string, string>,
     );
 
     // Format distribution data

@@ -103,7 +103,7 @@ export default async function BlogPostPage({
                   <h1
                     className={cn(
                       "scroll-m-20 text-4xl font-medium tracking-tight lg:text-5xl",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -112,7 +112,7 @@ export default async function BlogPostPage({
                   <h2
                     className={cn(
                       "scroll-m-20 text-2xl font-medium tracking-tight first:mt-0",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -121,7 +121,7 @@ export default async function BlogPostPage({
                   <h3
                     className={cn(
                       "scroll-m-20 text-lg font-medium tracking-tight",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -130,7 +130,7 @@ export default async function BlogPostPage({
                   <h4
                     className={cn(
                       "scroll-m-20 text-base font-medium tracking-tight",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -139,7 +139,7 @@ export default async function BlogPostPage({
                   <p
                     className={cn(
                       "leading-7 [&:not(:first-child)]:mt-4 text-neutral-800 dark:text-neutral-400",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -150,7 +150,7 @@ export default async function BlogPostPage({
                     target="_blank"
                     className={cn(
                       "group cursor-pointer underline decoration-neutral-400 decoration-1 underline-offset-2 transition-all duration-200 ease-in-out hover:decoration-neutral-500",
-                      className
+                      className,
                     )}
                   >
                     {children}
@@ -165,7 +165,7 @@ export default async function BlogPostPage({
                   <ul
                     className={cn(
                       "my-0 ml-4 list-disc text-neutral-800 dark:text-neutral-400 marker:text-neutral-600",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -174,7 +174,7 @@ export default async function BlogPostPage({
                   <ol
                     className={cn(
                       "my-0 ml-4 list-decimal text-neutral-800 dark:text-neutral-400 marker:text-neutral-400",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -183,7 +183,7 @@ export default async function BlogPostPage({
                   <li
                     className={cn(
                       "mt-0 text-neutral-800 dark:text-neutral-400",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -192,7 +192,7 @@ export default async function BlogPostPage({
                   <blockquote
                     className={cn(
                       "mt-6 border-l-2 border-slate-300 pl-6 italic text-slate-800 [&>*]:text-slate-600",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -219,7 +219,7 @@ export default async function BlogPostPage({
                   <tr
                     className={cn(
                       "m-0 border-t border-slate-300 p-0 even:bg-slate-50",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -228,7 +228,7 @@ export default async function BlogPostPage({
                   <th
                     className={cn(
                       "border border-slate-200 px-4 py-2 text-left font-medium [&[align=center]]:text-center [&[align=right]]:text-right",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -237,7 +237,7 @@ export default async function BlogPostPage({
                   <td
                     className={cn(
                       "border border-slate-200 px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right",
-                      className
+                      className,
                     )}
                     {...props}
                   />
@@ -245,7 +245,7 @@ export default async function BlogPostPage({
                 pre: ({ className, children }) => {
                   // Extract code content and language from children
                   const codeElement = React.Children.only(
-                    children
+                    children,
                   ) as React.ReactElement<{
                     children?: string;
                     className?: string;

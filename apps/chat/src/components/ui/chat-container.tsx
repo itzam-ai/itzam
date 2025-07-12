@@ -5,7 +5,7 @@ import { Children, useCallback, useEffect, useRef, useState } from "react";
 
 const useAutoScroll = (
   containerRef: React.RefObject<HTMLDivElement | null>,
-  enabled: boolean
+  enabled: boolean,
 ) => {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const lastScrollTopRef = useRef(0);
@@ -67,7 +67,7 @@ const useAutoScroll = (
         console.error(e);
       }
     },
-    [containerRef]
+    [containerRef],
   );
 
   useEffect(() => {

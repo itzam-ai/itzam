@@ -68,7 +68,7 @@ export const Resource = ({
   >(resource.scrapeFrequency ?? "NEVER");
   const fileSize = resource.fileSize ? formatBytes(resource.fileSize) : "0";
   const [fileTitle, setFileTitle] = useState(
-    resource.title ?? (resource.fileName as string)
+    resource.title ?? (resource.fileName as string),
   );
 
   const handleDelete = async () => {
@@ -79,7 +79,7 @@ export const Resource = ({
   };
 
   const handleUpdateRescrapeFrequency = async (
-    frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+    frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY",
   ) => {
     setIsUpdatingRescrapeFrequency(true);
     await updateRescrapeFrequency(resource.id, frequency);
@@ -177,7 +177,7 @@ export const Resource = ({
                   resource.lastScrapedAt ?? resource.createdAt,
                   {
                     addSuffix: true,
-                  }
+                  },
                 )}
               </span>
             )}
@@ -277,7 +277,7 @@ export const Resource = ({
                     value={scrapeFrequency}
                     onValueChange={(value) =>
                       setScrapeFrequency(
-                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
+                        value as "NEVER" | "HOURLY" | "DAILY" | "WEEKLY",
                       )
                     }
                   >

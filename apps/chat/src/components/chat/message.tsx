@@ -62,20 +62,20 @@ export const Message = ({
     <div
       className={cn(
         "flex gap-2 w-full group",
-        isUser ? "justify-end" : "justify-start"
+        isUser ? "justify-end" : "justify-start",
       )}
     >
       <div
         className={cn(
           "flex flex-col gap-2 max-w-[80%]",
-          isUser ? "items-end" : "items-start"
+          isUser ? "items-end" : "items-start",
         )}
       >
         <div className="flex gap-2 items-end flex-wrap justify-end w-[30rem]">
           {message.experimental_attachments &&
             message.experimental_attachments
               ?.filter((attachment) =>
-                attachment.contentType?.startsWith("image/")
+                attachment.contentType?.startsWith("image/"),
               )
               .map((attachment, index) => (
                 <ChatImage
@@ -88,7 +88,7 @@ export const Message = ({
         <div
           className={cn(
             "flex flex-col gap-2 py-3 rounded-2xl",
-            isUser ? "bg-muted rounded-full px-4 " : ""
+            isUser ? "bg-muted rounded-full px-4 " : "",
           )}
         >
           {message.parts?.map((part, index) => {
@@ -106,7 +106,7 @@ export const Message = ({
 
             if (part.type === "reasoning") {
               const reasoning = part.details.find(
-                (detail) => detail.type === "text"
+                (detail) => detail.type === "text",
               );
 
               return (
@@ -233,7 +233,7 @@ export const Message = ({
               transition={{ duration: 0.3 }}
               className={cn(
                 "flex flex-col gap-2",
-                isUser ? "items-end" : "items-start"
+                isUser ? "items-end" : "items-start",
               )}
             >
               <motion.div

@@ -33,10 +33,10 @@ const exampleResponses = [
 
 export const PlaygroundCard = () => {
   const [prompt, setPrompt] = useState(
-    "You are a helpful customer support assistant. Be concise and to the point. Do not add any extra information."
+    "You are a helpful customer support assistant. Be concise and to the point. Do not add any extra information.",
   );
   const [input, setInput] = useState(
-    "Hey! I'm having trouble with my account."
+    "Hey! I'm having trouble with my account.",
   );
 
   const [model, setModel] = useState<ModelWithCostAndProvider | null>(null);
@@ -56,7 +56,7 @@ export const PlaygroundCard = () => {
 
       setOutput(
         exampleResponses[Math.floor(Math.random() * exampleResponses.length)] ??
-          null
+          null,
       );
     }, 1000);
   };
@@ -71,7 +71,7 @@ export const PlaygroundCard = () => {
       setModels(models);
 
       const defaultModel = models.find(
-        (m) => m.tag === recommendedAccurateModel
+        (m) => m.tag === recommendedAccurateModel,
       );
 
       if (defaultModel) {

@@ -6,17 +6,20 @@ export const createThreadAtoms = (workflowId: string) => {
   // Thread ID atom with localStorage persistence
   const threadIdAtom = atomWithStorage<string | null>(
     `playground-threadId-${workflowId}`,
-    null
+    null,
   );
 
   // Mode atom with localStorage persistence
   const modeAtom = atomWithStorage<"single" | "thread">(
     `playground-mode-${workflowId}`,
-    "single"
+    "single",
   );
 
   // Messages atoms with localStorage persistence per thread
-  const messagesAtomsMap = new Map<string, ReturnType<typeof atomWithStorage<Message[]>>>();
+  const messagesAtomsMap = new Map<
+    string,
+    ReturnType<typeof atomWithStorage<Message[]>>
+  >();
 
   const getMessagesAtom = (threadId: string) => {
     if (!messagesAtomsMap.has(threadId)) {
@@ -30,9 +33,9 @@ export const createThreadAtoms = (workflowId: string) => {
             try {
               const parsed = JSON.parse(stored) as Message[];
               // Convert timestamp strings back to Date objects
-              return parsed.map(msg => ({
+              return parsed.map((msg) => ({
                 ...msg,
-                timestamp: new Date(msg.timestamp)
+                timestamp: new Date(msg.timestamp),
               }));
             } catch {
               return [];
@@ -44,7 +47,7 @@ export const createThreadAtoms = (workflowId: string) => {
             localStorage.setItem(key, JSON.stringify(messagesToStore));
           },
           removeItem: (key) => localStorage.removeItem(key),
-        }
+        },
       );
       messagesAtomsMap.set(threadId, messagesAtom);
     }
@@ -59,7 +62,10 @@ export const createThreadAtoms = (workflowId: string) => {
 };
 
 // Store for workflow-specific atoms to avoid recreating them
-const workflowAtomsStore = new Map<string, ReturnType<typeof createThreadAtoms>>();
+const workflowAtomsStore = new Map<
+  string,
+  ReturnType<typeof createThreadAtoms>
+>();
 
 export const getThreadAtoms = (workflowId: string) => {
   if (!workflowAtomsStore.has(workflowId)) {

@@ -161,7 +161,7 @@ const ProviderKey = ({
           }}
           className={cn(
             "w-[calc(100%-20rem)] font-mono text-xs ",
-            error ? "ring-1 ring-red-500" : ""
+            error ? "ring-1 ring-red-500" : "",
           )}
           placeholder={providerDetails?.placeholder || ""}
           style={{

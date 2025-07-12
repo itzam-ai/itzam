@@ -53,7 +53,7 @@ const badgeVariants = cva(
       variant: "orange",
       size: "md",
     },
-  }
+  },
 );
 
 export interface BadgeProps

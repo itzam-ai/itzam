@@ -37,7 +37,7 @@ export default function ChangeModel({
     (m) =>
       m.tag === recommendedCheapAndFastModel ||
       m.tag === recommendedAccurateModel ||
-      m.tag === recommendedGoodBalanceModel
+      m.tag === recommendedGoodBalanceModel,
   );
 
   const sortedModels = groupModelsByProviderAndSort(models);
@@ -85,7 +85,7 @@ export default function ChangeModel({
                       selectedModelId={selectedModel?.id ?? ""}
                       setSelectedModelId={(id) => {
                         setSelectedModel(
-                          models.find((m) => m.id === id) ?? null
+                          models.find((m) => m.id === id) ?? null,
                         );
                       }}
                     />

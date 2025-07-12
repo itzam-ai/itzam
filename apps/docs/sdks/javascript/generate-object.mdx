@@ -17,7 +17,7 @@ const schema = z.array(
   z.object({
     name: z.string(),
     description: z.string(),
-  })
+  }),
 );
 
 const response = await itzam.generateObject({
@@ -32,7 +32,11 @@ console.log(response.metadata); // Metadata about the run
 
 ### Parameters
 
-<Note>When using a JSON schema, you must add `as const` to the schema object for it to be properly typed. [More info](https://www.npmjs.com/package/json-schema-to-ts#fromschema)</Note>
+<Note>
+  When using a JSON schema, you must add `as const` to the schema object for it
+  to be properly typed. [More
+  info](https://www.npmjs.com/package/json-schema-to-ts#fromschema)
+</Note>
 
 | Parameter      | Type           | Required | Description                                                                               |
 | -------------- | -------------- | -------- | ----------------------------------------------------------------------------------------- |
@@ -46,7 +50,6 @@ console.log(response.metadata); // Metadata about the run
 ### Return Value
 
 The `generateObject` method returns the following object:
-
 
 ```typescript
 type GenerateObjectResponse<T> = {

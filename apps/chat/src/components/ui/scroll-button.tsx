@@ -64,7 +64,7 @@ function ScrollButton({
         isVisible
           ? "translate-y-0 scale-100 opacity-100 dark:bg-muted bg-background text-primary"
           : "pointer-events-none translate-y-4 scale-95 opacity-0",
-        className
+        className,
       )}
       onClick={handleScroll}
       {...props}

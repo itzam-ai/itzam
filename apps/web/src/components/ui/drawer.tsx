@@ -44,7 +44,7 @@ const DrawerContent = React.forwardRef<
       ref={ref}
       className={cn(
         "right-3 top-3 bottom-3 fixed z-50 outline-none flex",
-        className
+        className,
       )}
       {...props}
       style={
@@ -89,7 +89,7 @@ const DrawerTitle = React.forwardRef<
     ref={ref}
     className={cn(
       "font-semibold text-lg leading-none tracking-tight",
-      className
+      className,
     )}
     {...props}
   />

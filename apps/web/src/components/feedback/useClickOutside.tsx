@@ -4,7 +4,7 @@ import { useEffect, RefObject } from "react";
 
 export function useClickOutside<T extends HTMLElement>(
   ref: RefObject<T | null>,
-  handler: (event: MouseEvent | TouchEvent) => void
+  handler: (event: MouseEvent | TouchEvent) => void,
 ): void {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {

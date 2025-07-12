@@ -81,7 +81,7 @@ const toBase64 = (file: File): Promise<string> =>
 export default function AdminSdkPage() {
   const [apiKey, setApiKey] = useLocalStorage<"abdul" | "gustavo">(
     "whos_api_key",
-    "abdul"
+    "abdul",
   );
 
   const itzam = useMemo(
@@ -89,7 +89,7 @@ export default function AdminSdkPage() {
       new Itzam(apiKey === "abdul" ? abdulLocalKey : gustavoLocalKey, {
         basePath: env.NEXT_PUBLIC_APP_URL,
       }),
-    [apiKey]
+    [apiKey],
   );
 
   const [models, setModels] = useState<{ name: string; tag: string }[]>([]);
@@ -289,7 +289,7 @@ export default function AdminSdkPage() {
     try {
       const models = await itzam.getModels();
       setModels(
-        models.models.map((model) => ({ name: model.name, tag: model.tag }))
+        models.models.map((model) => ({ name: model.name, tag: model.tag })),
       );
     } catch (error) {
       console.error(error);

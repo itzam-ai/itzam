@@ -23,7 +23,7 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
         new StatsigSessionReplayPlugin(),
       ],
       disableLogging: true,
-    }
+    },
   );
 
   return (

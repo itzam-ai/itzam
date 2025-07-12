@@ -87,7 +87,7 @@ export function AppSidebar({
                         asChild
                         size="sm"
                         isActive={pathname.includes(
-                          `/dashboard/workflows/${workflow.id}`
+                          `/dashboard/workflows/${workflow.id}`,
                         )}
                       >
                         <Link

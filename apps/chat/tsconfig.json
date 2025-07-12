@@ -19,9 +19,7 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": [
-        "./src/*"
-      ]
+      "~/*": ["./src/*"]
     }
   },
   "include": [
@@ -31,8 +29,5 @@
     "next.config.js",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "sdk"
-  ]
+  "exclude": ["node_modules", "sdk"]
 }

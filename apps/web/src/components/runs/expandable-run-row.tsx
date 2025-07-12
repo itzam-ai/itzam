@@ -32,10 +32,10 @@ export function ExpandableRunRow({
   const contexts = run?.workflow?.contexts;
 
   const resourcesFromKnowledge = run?.runResources.filter(
-    (resource) => resource.resource.knowledgeId
+    (resource) => resource.resource.knowledgeId,
   );
   const resourcesFromContexts = run?.runResources.filter(
-    (resource) => resource.resource.contextId
+    (resource) => resource.resource.contextId,
   );
 
   const contextResourcesGroupedByContext = resourcesFromContexts?.reduce(
@@ -53,7 +53,7 @@ export function ExpandableRunRow({
     {} as Record<
       string,
       RunWithModelAndResourcesAndAttachmentsAndThreads["runResources"]
-    >
+    >,
   );
 
   if (!run) {
@@ -136,7 +136,7 @@ export function ExpandableRunRow({
               <motion.div
                 onAnimationStart={() => {
                   const parentRow = document.getElementById(
-                    `run-row-${run.id}`
+                    `run-row-${run.id}`,
                   );
 
                   if (parentRow) {
@@ -191,7 +191,7 @@ export function ExpandableRunRow({
                       Object.keys(contextResourcesGroupedByContext).map(
                         (contextId) => {
                           const context = contexts?.find(
-                            (context) => context.id === contextId
+                            (context) => context.id === contextId,
                           );
                           return (
                             <div
@@ -224,7 +224,7 @@ export function ExpandableRunRow({
                               </div>
                             </div>
                           );
-                        }
+                        },
                       )}
                     <div className="flex flex-col gap-1">
                       <h4 className="text-muted-foreground text-sm">Input</h4>

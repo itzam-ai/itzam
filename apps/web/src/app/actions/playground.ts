@@ -26,7 +26,7 @@ export async function streamPlaygroundContent({
 }) {
   // Get workflow to get the slug
   const workflow = await getWorkflowByIdWithRelations(workflowId);
-  
+
   if (!workflow || "error" in workflow) {
     throw new Error("Workflow not found");
   }
@@ -63,7 +63,9 @@ export async function streamPlaygroundContent({
       content.done();
     } catch (error) {
       console.error("Error streaming content:", error);
-      content.error(error instanceof Error ? error : new Error("Streaming error"));
+      content.error(
+        error instanceof Error ? error : new Error("Streaming error"),
+      );
     }
   })();
 
@@ -97,6 +99,14 @@ type StreamMetadata = {
   cost: string;
 };
 
+export type ToolCallEvent = {
+  id: string;
+  name: string;
+  args?: Record<string, unknown>;
+  result?: unknown;
+  status?: "pending" | "running" | "completed" | "failed";
+};
+
 export async function sendMessage(
   input: string,
   options: {
@@ -105,17 +115,22 @@ export async function sendMessage(
     threadId?: string | null;
     prompt?: string;
     modelId?: string;
-  }
+  },
 ) {
   // Get workflow to get the slug
   const workflow = await getWorkflowByIdWithRelations(options.workflowId);
-  
+
   if (!workflow || "error" in workflow) {
     throw new Error("Workflow not found");
   }
 
   // Setup run generation using the same logic as the API
-  const { error, aiParams, run, workflow: workflowWithModel } = await setupRunGeneration({
+  const {
+    error,
+    aiParams,
+    run,
+    workflow: workflowWithModel,
+  } = await setupRunGeneration({
     userId: workflow.userId,
     workflowSlug: workflow.slug,
     threadId: options.threadId || null,
@@ -129,7 +144,7 @@ export async function sendMessage(
   }
 
   const startTime = Date.now();
-  
+
   // Create a custom stream that mimics the SDK's response
   let metadataResolve: (value: StreamMetadata) => void;
   const metadataPromise = new Promise<StreamMetadata>((resolve) => {
@@ -138,14 +153,36 @@ export async function sendMessage(
 
   // Create a custom SSE handler to capture events
   const chunks: string[] = [];
+  const toolCalls: ToolCallEvent[] = [];
+  const activeToolCalls = new Map<string, ToolCallEvent>();
   let isComplete = false;
-  
+
   const mockSSE = {
     writeSSE: async ({ data, event }: { data: string; event: string }) => {
       const parsedData = JSON.parse(data);
-      
+
       if (event === "text-delta") {
         chunks.push(parsedData.textDelta);
+      } else if (event === "tool-call") {
+        const toolCall: ToolCallEvent = {
+          id: parsedData.toolCallId,
+          name: parsedData.toolName,
+          args: parsedData.args,
+          status: "pending",
+        };
+        activeToolCalls.set(toolCall.id, toolCall);
+        toolCalls.push(toolCall);
+      } else if (event === "tool-call-streaming-start") {
+        const toolCall = activeToolCalls.get(parsedData.toolCallId);
+        if (toolCall) {
+          toolCall.status = "running";
+        }
+      } else if (event === "tool-result") {
+        const toolCall = activeToolCalls.get(parsedData.toolCallId);
+        if (toolCall) {
+          toolCall.result = parsedData.result;
+          toolCall.status = parsedData.result?.error ? "failed" : "completed";
+        }
       } else if (event === "finish") {
         metadataResolve(parsedData.metadata);
         isComplete = true;
@@ -165,7 +202,7 @@ export async function sendMessage(
     workflowWithModel.model,
     startTime,
     mockSSE as Parameters<typeof generateTextOrObjectStream>[4],
-    "text"
+    "text",
   ).catch((error) => {
     console.error("Stream error:", error);
     isComplete = true;
@@ -174,19 +211,28 @@ export async function sendMessage(
   // Create an async generator that yields chunks as they come
   async function* streamGenerator() {
     let lastIndex = 0;
-    
+
     while (!isComplete || lastIndex < chunks.length) {
       if (lastIndex < chunks.length) {
         yield chunks[lastIndex++];
       } else {
         // Wait a bit for more chunks
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
     }
   }
 
+  // Wait for completion to ensure we have all tool calls
+  const waitForCompletion = async () => {
+    while (!isComplete) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return toolCalls;
+  };
+
   return {
     stream: streamGenerator(),
     metadata: metadataPromise,
+    toolCalls: waitForCompletion(),
   };
 }

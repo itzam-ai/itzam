@@ -17,7 +17,7 @@ const Command = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-      className
+      className,
     )}
     {...props}
   />
@@ -46,7 +46,7 @@ const CommandInput = React.forwardRef<
       ref={ref}
       className={cn(
         "flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     />
@@ -67,7 +67,7 @@ const CommandInputWithFilters = React.forwardRef<
       ref={ref}
       className={cn(
         "flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     />
@@ -111,7 +111,7 @@ const CommandGroup = React.forwardRef<
     ref={ref}
     className={cn(
       "overflow-hidden py-2 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:text-xs",
-      className
+      className,
     )}
     {...props}
   />
@@ -139,7 +139,7 @@ const CommandItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50 [&_svg]:pointer-events-none",
-      className
+      className,
     )}
     {...props}
   />
@@ -155,7 +155,7 @@ const CommandShortcut = ({
     <span
       className={cn(
         "ml-auto text-muted-foreground text-xs tracking-widest",
-        className
+        className,
       )}
       {...props}
     />
@@ -173,7 +173,7 @@ const CommandDialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[97%] data-[state=open]:zoom-in-[97%] data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[50%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[50%] fixed top-[50%] left-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border bg-background p-6 shadow-md duration-100 data-[state=closed]:animate-out data-[state=open]:animate-in sm:rounded-xl",
-        className
+        className,
       )}
       {...props}
     >

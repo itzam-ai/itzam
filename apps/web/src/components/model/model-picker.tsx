@@ -61,7 +61,7 @@ export function ModelPicker({
           setPinnedModels={setPinnedModels}
           workflowId={workflowId}
           providerKey={providerKeys.find(
-            (key) => key.providerId === models[0]?.providerId
+            (key) => key.providerId === models[0]?.providerId,
           )}
         />
       ))}
@@ -287,7 +287,7 @@ function SwitchModelButton({
     } catch (error) {
       console.error(error);
       toast.error(
-        error instanceof Error ? error.message : "Error switching model"
+        error instanceof Error ? error.message : "Error switching model",
       );
     } finally {
       setIsLoading(false);

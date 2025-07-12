@@ -48,6 +48,7 @@
     "@supabase/supabase-js": "^2.49.4",
     "@types/mime-types": "^2.1.4",
     "ai": "^4.3.9",
+    "composio-core": "^0.5.39",
     "date-fns": "^3.6.0",
     "decimal.js": "^10.5.0",
     "dotenv": "^16.4.7",

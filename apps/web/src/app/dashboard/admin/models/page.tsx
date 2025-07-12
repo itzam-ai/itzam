@@ -21,7 +21,7 @@ export default async function AdminModelsPage() {
     .map((model) => model.provider)
     .filter(
       (provider, index, self) =>
-        self.findIndex((p) => p?.id === provider?.id) === index
+        self.findIndex((p) => p?.id === provider?.id) === index,
     );
 
   const sortedModels = groupModelsByProviderAndSort(models);

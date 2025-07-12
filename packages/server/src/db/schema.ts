@@ -553,6 +553,92 @@ export const messageFiles = createTable("message_file", {
   ),
 });
 
+// -------- 📋 ENUMS <> TOOLS --------
+export const toolTypeEnum = pgEnum("tool_type", [
+  "WEB_SEARCH",
+  "CODE_INTERPRETER",
+  "FILE_READER",
+  "IMAGE_GENERATION",
+  "CALCULATOR",
+  "API_CALLER",
+  "DATABASE_QUERY",
+  "EMAIL_SENDER",
+]);
+
+// -------- 🔧 TOOLS --------
+export const tools = createTable("tool", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  type: toolTypeEnum("type").notNull().unique(),
+  name: varchar("name", { length: 256 }).notNull(),
+  description: text("description").notNull(),
+  requiresApiKey: boolean("requires_api_key").notNull().default(false),
+  apiKeyName: varchar("api_key_name", { length: 256 }), // e.g., "OPENAI_API_KEY", "SENDGRID_API_KEY"
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+// -------- 🔧 WORKFLOW <> TOOLS (N:N) --------
+export const workflowTools = createTable(
+  "workflow_tool",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    workflowId: varchar("workflow_id", { length: 256 })
+      .notNull()
+      .references(() => workflows.id),
+    toolId: varchar("tool_id", { length: 256 })
+      .notNull()
+      .references(() => tools.id),
+    enabled: boolean("enabled").notNull().default(true),
+    configuration: jsonb("configuration").default({}), // Tool-specific configuration
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    workflowIdIndex: index("workflow_tool_workflow_id_idx").on(table.workflowId),
+    toolIdIndex: index("workflow_tool_tool_id_idx").on(table.toolId),
+    uniqueWorkflowTool: index("workflow_tool_unique_idx")
+      .on(table.workflowId, table.toolId),
+  })
+);
+
+// -------- 🔑 USER <> TOOL API KEYS --------
+export const userToolApiKeys = createTable(
+  "user_tool_api_key",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id),
+    toolId: varchar("tool_id", { length: 256 })
+      .notNull()
+      .references(() => tools.id),
+    encryptedApiKey: text("encrypted_api_key").notNull(), // Encrypted API key
+    keyName: varchar("key_name", { length: 256 }).notNull(), // Display name for the key
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => ({
+    userIdIndex: index("user_tool_api_key_user_id_idx").on(table.userId),
+    toolIdIndex: index("user_tool_api_key_tool_id_idx").on(table.toolId),
+    uniqueUserTool: index("user_tool_api_key_unique_idx")
+      .on(table.userId, table.toolId),
+  })
+);
+
 // -------- RELATIONS --------
 
 // -------- 🏗️ WORKFLOW --------
@@ -572,6 +658,7 @@ export const workflowRelations = relations(workflows, ({ one, many }) => ({
     fields: [workflows.knowledgeId],
     references: [knowledge.id],
   }),
+  workflowTools: many(workflowTools),
 }));
 
 // -------- 📂 CONTEXT --------
@@ -602,6 +689,7 @@ export const userRelations = relations(users, ({ many }) => ({
   chats: many(chats),
   apiKeys: many(apiKeys),
   providerKeys: many(providerKeys),
+  userToolApiKeys: many(userToolApiKeys),
 }));
 
 // -------- 🏃🏻‍➡️ RUN --------
@@ -736,6 +824,39 @@ export const threadRelations = relations(threads, ({ many, one }) => ({
   lookupKeys: many(threadLookupKeys),
   threadContexts: many(threadContexts),
 }));
+
+// -------- 🔧 TOOLS --------
+export const toolRelations = relations(tools, ({ many }) => ({
+  workflowTools: many(workflowTools),
+  userToolApiKeys: many(userToolApiKeys),
+}));
+
+// -------- 🔧 WORKFLOW <> TOOLS --------
+export const workflowToolRelations = relations(workflowTools, ({ one }) => ({
+  workflow: one(workflows, {
+    fields: [workflowTools.workflowId],
+    references: [workflows.id],
+  }),
+  tool: one(tools, {
+    fields: [workflowTools.toolId],
+    references: [tools.id],
+  }),
+}));
+
+// -------- 🔑 USER <> TOOL API KEYS --------
+export const userToolApiKeyRelations = relations(
+  userToolApiKeys,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userToolApiKeys.userId],
+      references: [users.id],
+    }),
+    tool: one(tools, {
+      fields: [userToolApiKeys.toolId],
+      references: [tools.id],
+    }),
+  })
+);
 
 // -------- 💬 THREAD <> 📂 CONTEXT --------
 export const threadContextRelations = relations(threadContexts, ({ one }) => ({

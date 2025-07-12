@@ -15,6 +15,7 @@ import {
   models,
   resources,
   workflows,
+  workflowTools,
 } from "../schema";
 import { getCustomerSubscriptionStatus } from "../billing/actions";
 
@@ -46,6 +47,11 @@ export const getWorkflowByIdWithRelations = protectedProcedure(
               },
               orderBy: (resources, { desc }) => [desc(resources.createdAt)],
             },
+          },
+        },
+        workflowTools: {
+          with: {
+            tool: true,
           },
         },
         runs: {
@@ -301,5 +307,50 @@ export const deleteWorkflow = protectedProcedure(
 
     revalidatePath(`/dashboard/workflows`);
     redirect(`/dashboard/workflows`);
+  }
+);
+
+export const updateWorkflowTools = protectedProcedure(
+  async (_, workflowId: string, enabledToolIds: string[]) => {
+    const { disableWorkflowTool, enableWorkflowTool, getWorkflowTools } = await import("../tools/actions");
+    
+    // Get current workflow tools
+    const currentTools = await getWorkflowTools(workflowId);
+    if ("error" in currentTools) {
+      return currentTools;
+    }
+
+    const currentToolIds = currentTools.map((wt: any) => wt.tool.id);
+    
+    // Disable tools that are no longer enabled
+    const toolsToDisable = currentToolIds.filter(
+      (toolId: string) => !enabledToolIds.includes(toolId)
+    );
+    
+    // Enable new tools
+    const toolsToEnable = enabledToolIds.filter(
+      (toolId) => !currentToolIds.includes(toolId)
+    );
+
+    // Process disables
+    for (const toolId of toolsToDisable) {
+      const result = await disableWorkflowTool(workflowId, toolId);
+      if ("error" in result) {
+        return result;
+      }
+    }
+
+    // Process enables
+    for (const toolId of toolsToEnable) {
+      const result = await enableWorkflowTool(workflowId, toolId);
+      if (result && "error" in result) {
+        return result;
+      }
+    }
+
+    // Revalidate the workflow tools page
+    revalidatePath(`/dashboard/workflows/${workflowId}/tools`);
+    
+    return { success: true, data: null };
   }
 );

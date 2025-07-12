@@ -3,7 +3,7 @@ import { useEffect } from "react";
 export const useKeyboardShortcut = (
   shortcut: string,
   modifiers: boolean,
-  callback: () => void
+  callback: () => void,
 ) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

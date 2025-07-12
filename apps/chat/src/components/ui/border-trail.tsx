@@ -1,6 +1,6 @@
-'use client';
-import { cn } from '~/lib/utils';
-import { motion, Transition } from 'motion/react';
+"use client";
+import { cn } from "~/lib/utils";
+import { motion, Transition } from "motion/react";
 
 export type BorderTrailProps = {
   className?: string;
@@ -17,19 +17,18 @@ export function BorderTrail({
   size = 60,
   transition,
   duration = 10,
-  color = 'orange',
+  color = "orange",
   onAnimationComplete,
   style,
 }: BorderTrailProps) {
-
   const defaultTransition: Transition = {
     repeat: Infinity,
     duration: duration,
-    ease: 'linear',
+    ease: "linear",
   };
 
   return (
-    <div className='pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]'>
+    <div className="pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]">
       <motion.div
         className={cn(`absolute aspect-square bg-${color}-400/80`, className)}
         style={{
@@ -38,7 +37,7 @@ export function BorderTrail({
           ...style,
         }}
         animate={{
-          offsetDistance: ['0%', '100%'],
+          offsetDistance: ["0%", "100%"],
         }}
         transition={transition || defaultTransition}
         onAnimationComplete={onAnimationComplete}

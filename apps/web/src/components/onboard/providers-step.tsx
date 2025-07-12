@@ -38,7 +38,7 @@ export const ProvidersStep = ({
             key={provider.id}
             provider={provider}
             providerKey={providerKeys.find(
-              (key) => key.providerId === provider.id
+              (key) => key.providerId === provider.id,
             )}
             setCreatedAnyKey={setCreatedAnyKey}
           />
@@ -79,10 +79,10 @@ const ProviderKey = ({
   const [error, setError] = useState<boolean>(false);
   const [isCreatingKey, setIsCreatingKey] = useState<boolean>(false);
   const [isKeySaved, setIsKeySaved] = useState<boolean>(
-    !!providerKey?.secretName
+    !!providerKey?.secretName,
   );
   const [key, setKey] = useState(
-    providerKey?.secretName ? "• • • • • • • • • • • • • • • • " : ""
+    providerKey?.secretName ? "• • • • • • • • • • • • • • • • " : "",
   );
 
   const handleHideKey = async () => {
@@ -128,7 +128,7 @@ const ProviderKey = ({
           }}
           className={cn(
             "w-full font-mono text-xs",
-            error ? "ring-1 ring-red-500" : ""
+            error ? "ring-1 ring-red-500" : "",
           )}
           placeholder={
             error

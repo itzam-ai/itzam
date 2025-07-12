@@ -26,7 +26,7 @@ export const FilterButton = ({
             "transition-all duration-200 border rounded-md p-1",
             active
               ? "border-orange-600/10 hover:border-orange-600/20 bg-orange-600/10 hover:bg-orange-600/20 text-orange-600"
-              : "opacity-50"
+              : "opacity-50",
           )}
         >
           {icon}

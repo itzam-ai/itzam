@@ -146,7 +146,7 @@ function chunk(text: string, maxTokens = 300, overlap = 50) {
 /* ------------------------------------------------------------------ */
 export async function indexDocuments(
   urls: string[],
-  model = "text-embedding-3-small"
+  model = "text-embedding-3-small",
 ) {
   for (const url of urls) {
     const raw = await (await fetch(url)).text();
@@ -181,7 +181,7 @@ export async function indexDocuments(
 export async function answerWithContext(
   userQuery: string,
   topK = 5,
-  genModel = "gpt-4o-mini"
+  genModel = "gpt-4o-mini",
 ) {
   const { embedding: q } = await embed({
     model: openai.embedding("text-embedding-3-small"),

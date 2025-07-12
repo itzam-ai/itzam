@@ -80,7 +80,7 @@ function getTemperaturePresetLabel(preset: string, customTemperature: string) {
 
 function getResponseLengthPresetLabel(
   preset: string,
-  customResponseLength: number
+  customResponseLength: number,
 ) {
   switch (preset) {
     case "SHORT":
@@ -138,10 +138,10 @@ export function ModelSettings({
   const [isAdvancedSettingsOpen, setIsAdvancedSettingsOpen] = useState(false);
 
   const [customTemperature, setCustomTemperature] = useState(
-    workflow.modelSettings.temperature
+    workflow.modelSettings.temperature,
   );
   const [customResponseLength, setCustomResponseLength] = useState(
-    workflow.modelSettings.maxTokens
+    workflow.modelSettings.maxTokens,
   );
 
   // Add state for height animation
@@ -162,7 +162,7 @@ export function ModelSettings({
   }, [workflow.modelSettings]);
 
   const handleTemperatureChange = (
-    temperature: "STRICT" | "BALANCED" | "CREATIVE" | "CUSTOM"
+    temperature: "STRICT" | "BALANCED" | "CREATIVE" | "CUSTOM",
   ) => {
     setNewTemperaturePreset(temperature);
 
@@ -178,7 +178,7 @@ export function ModelSettings({
   };
 
   const handleResponseLengthChange = (
-    responseLength: "SHORT" | "MEDIUM" | "LONG" | "CUSTOM"
+    responseLength: "SHORT" | "MEDIUM" | "LONG" | "CUSTOM",
   ) => {
     setNewResponseLengthPreset(responseLength);
 
@@ -297,12 +297,12 @@ export function ModelSettings({
                     Style:{" "}
                     {getTemperaturePresetLabel(
                       workflow.modelSettings.temperaturePreset,
-                      workflow.modelSettings.temperature
+                      workflow.modelSettings.temperature,
                     )}
                     <ArrowRight className="size-3" />
                     {getTemperaturePresetLabel(
                       newTemperaturePreset,
-                      customTemperature
+                      customTemperature,
                     )}
                   </div>
                 )}
@@ -312,12 +312,12 @@ export function ModelSettings({
                     Response Length:{" "}
                     {getResponseLengthPresetLabel(
                       workflow.modelSettings.maxTokensPreset,
-                      workflow.modelSettings.maxTokens
+                      workflow.modelSettings.maxTokens,
                     )}
                     <ArrowRight className="size-3" />
                     {getResponseLengthPresetLabel(
                       newResponseLengthPreset,
-                      customResponseLength
+                      customResponseLength,
                     )}
                   </div>
                 )}

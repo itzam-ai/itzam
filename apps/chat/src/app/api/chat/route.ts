@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   if (messagesSentToday >= MAX_MESSAGES_PER_DAY && plan === "hobby") {
     return new Response(
       "You have reached the limit of free messages today. Subscribe to continue.",
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
           responseMessages: messagesWithModel,
         }),
         usage,
-        startTime
+        startTime,
       );
     },
     onError(error) {

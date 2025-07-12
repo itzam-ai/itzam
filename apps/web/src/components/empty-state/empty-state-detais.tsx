@@ -18,7 +18,7 @@ export default function EmptyStateDetails({
     <div
       className={cn(
         "mx-auto flex flex-col items-center justify-center",
-        className
+        className,
       )}
     >
       <div className="rounded-lg border border-dashed p-2 bg-card border-muted-foreground/30">

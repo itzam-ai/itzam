@@ -114,7 +114,7 @@ const BikeSheddingDisclaimer = async () => {
     <div
       className={cn(
         "text-black absolute transition-all duration-300 right-4 bg-yellow-500  rounded-lg p-4",
-        position?.value === "bottom" ? "bottom-4" : "top-4"
+        position?.value === "bottom" ? "bottom-4" : "top-4",
       )}
     >
       <p>10x better DX</p>

@@ -97,7 +97,7 @@ export default function Chat({
   messagesSentToday: number;
 }) {
   const [selectedModel, setSelectedModel] = useState<Model | null>(
-    models.find((m) => m.tag === chat.lastModelTag) ?? null
+    models.find((m) => m.tag === chat.lastModelTag) ?? null,
   );
 
   const { user } = useCurrentUser();
@@ -154,7 +154,7 @@ export default function Chat({
     },
     onResponse(response) {
       const messagesSentToday = response.headers.get(
-        "x-itzam-messages-sent-today"
+        "x-itzam-messages-sent-today",
       );
 
       setUserMessagesSentToday(parseInt(messagesSentToday ?? "0"));
@@ -169,7 +169,7 @@ export default function Chat({
         extendedAssistantMessage.tokensUsed = options.usage.completionTokens;
         extendedAssistantMessage.cost = calculateOutputCost(
           selectedModel?.outputPerMillionTokenCost ?? "0",
-          options.usage.completionTokens
+          options.usage.completionTokens,
         ).toString();
 
         const oldMessages = [...prevMessages];
@@ -180,14 +180,14 @@ export default function Chat({
 
         const userMessageCost = calculateInputCost(
           selectedModel?.inputPerMillionTokenCost ?? "0",
-          options.usage.promptTokens
+          options.usage.promptTokens,
         ).toString();
 
         const totalTokensInContext = prevMessages.reduce(
           (acc, message: ExtendedMessage) => {
             return acc + (message.tokensUsed ?? 0);
           },
-          0
+          0,
         );
 
         // Updating the metadata of the user message
@@ -240,14 +240,14 @@ export default function Chat({
   const handleSendMessage = (
     e:
       | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     if (
       !hasActiveSubscription &&
       userMessagesSentToday >= MAX_MESSAGES_PER_DAY
     ) {
       toast.error(
-        "You have reached the limit of free messages today. Subscribe to continue."
+        "You have reached the limit of free messages today. Subscribe to continue.",
       );
       return;
     }
@@ -307,17 +307,17 @@ export default function Chat({
             id: file.id,
             imageUrl: null,
           };
-        })
-      )
+        }),
+      ),
     );
 
     // Remove files that failed to upload
     const filesToRemove = uploadedFiles.filter(
-      (file) => file.imageUrl === null
+      (file) => file.imageUrl === null,
     );
 
     setFiles((prevFiles) =>
-      prevFiles.filter((file) => !filesToRemove.some((f) => f.id === file.id))
+      prevFiles.filter((file) => !filesToRemove.some((f) => f.id === file.id)),
     );
 
     // Update the files in state with their URLs
@@ -328,7 +328,7 @@ export default function Chat({
           file.url = uploadedFile.imageUrl;
         }
         return file;
-      })
+      }),
     );
 
     setIsUploadingFiles(false);
@@ -597,7 +597,7 @@ export default function Chat({
                                     }
                                     onSelect={(currentValue) => {
                                       const model = models.find(
-                                        (m) => m.id === currentValue
+                                        (m) => m.id === currentValue,
                                       );
                                       if (model) {
                                         setSelectedModel(model);
@@ -722,7 +722,7 @@ export default function Chat({
                                               <span className="text-foreground">
                                                 $
                                                 {Number(
-                                                  model.inputPerMillionTokenCost
+                                                  model.inputPerMillionTokenCost,
                                                 )?.toFixed(2)}
                                                 /M
                                               </span>
@@ -734,7 +734,7 @@ export default function Chat({
                                               <span className="text-foreground">
                                                 $
                                                 {Number(
-                                                  model.outputPerMillionTokenCost
+                                                  model.outputPerMillionTokenCost,
                                                 )?.toFixed(2)}
                                                 /M
                                               </span>

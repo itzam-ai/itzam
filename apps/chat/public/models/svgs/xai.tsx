@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useTheme } from 'next-themes';
-const xAI = (className: string, size: string = 'md') => {
+import { useTheme } from "next-themes";
+const xAI = (className: string, size: string = "md") => {
   const { resolvedTheme } = useTheme();
 
   const sizeMap = {
-    us: '8',
-    xs: '12',
-    sm: '16',
-    md: '24',
-    lg: '32',
-    xl: '40',
+    us: "8",
+    xs: "12",
+    sm: "16",
+    md: "24",
+    lg: "32",
+    xl: "40",
   };
 
   return (
     <svg
-      fill={resolvedTheme === 'dark' ? '#fff' : '#000'}
+      fill={resolvedTheme === "dark" ? "#fff" : "#000"}
       height={sizeMap[size as keyof typeof sizeMap]}
       style={{
-        flex: 'none',
+        flex: "none",
         lineHeight: 1,
       }}
       viewBox="0 0 24 24"

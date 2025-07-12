@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { deleteModel } from '@itzam/server/db/model/actions';
-import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '../ui/button';
+import { deleteModel } from "@itzam/server/db/model/actions";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,8 +11,8 @@ import {
   DialogFooter,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
-import { Spinner } from '../ui/spinner';
+} from "../ui/dialog";
+import { Spinner } from "../ui/spinner";
 
 export function DeleteModel({ modelId }: { modelId: string }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +50,7 @@ export function DeleteModel({ modelId }: { modelId: string }) {
             onClick={handleDelete}
             disabled={isLoading}
           >
-            {isLoading ? <Spinner /> : 'Delete'}
+            {isLoading ? <Spinner /> : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -33,7 +33,7 @@ const response = await itzam.generateText({
           setTypedText("");
           setCycle((c) => c + 1);
         }, 7000);
-      }
+      },
     );
   }, [cycle]);
 
