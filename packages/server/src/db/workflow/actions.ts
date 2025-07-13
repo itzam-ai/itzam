@@ -7,17 +7,16 @@ import "server-only";
 import { v7 as uuidv7 } from "uuid";
 import { sendDiscordNotification } from "../../discord/actions";
 import { protectedProcedure } from "../../procedures";
+import { getCustomerSubscriptionStatus } from "../billing/actions";
 import { db } from "../index";
 import {
   contexts,
   knowledge,
-  modelSettings,
   models,
+  modelSettings,
   resources,
   workflows,
-  workflowTools,
 } from "../schema";
-import { getCustomerSubscriptionStatus } from "../billing/actions";
 
 export type WorkflowWithRelations = Awaited<
   ReturnType<typeof getWorkflowByIdWithRelations>
@@ -312,8 +311,9 @@ export const deleteWorkflow = protectedProcedure(
 
 export const updateWorkflowTools = protectedProcedure(
   async (_, workflowId: string, enabledToolIds: string[]) => {
-    const { disableWorkflowTool, enableWorkflowTool, getWorkflowTools } = await import("../tools/actions");
-    
+    const { disableWorkflowTool, enableWorkflowTool, getWorkflowTools } =
+      await import("../tools/actions");
+
     // Get current workflow tools
     const currentTools = await getWorkflowTools(workflowId);
     if ("error" in currentTools) {
@@ -321,12 +321,12 @@ export const updateWorkflowTools = protectedProcedure(
     }
 
     const currentToolIds = currentTools.map((wt: any) => wt.tool.id);
-    
+
     // Disable tools that are no longer enabled
     const toolsToDisable = currentToolIds.filter(
       (toolId: string) => !enabledToolIds.includes(toolId)
     );
-    
+
     // Enable new tools
     const toolsToEnable = enabledToolIds.filter(
       (toolId) => !currentToolIds.includes(toolId)
@@ -350,7 +350,7 @@ export const updateWorkflowTools = protectedProcedure(
 
     // Revalidate the workflow tools page
     revalidatePath(`/dashboard/workflows/${workflowId}/tools`);
-    
+
     return { success: true, data: null };
   }
 );

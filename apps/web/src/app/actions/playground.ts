@@ -1,11 +1,11 @@
 "use server";
 
-import Itzam from "itzam";
-import { env } from "@itzam/utils";
-import { getWorkflowByIdWithRelations } from "@itzam/server/db/workflow/actions";
-import { createStreamableValue } from "ai/rsc";
-import { generateTextOrObjectStream } from "@itzam/server/ai/generate/text";
 import { setupRunGeneration } from "@itzam/hono/utils";
+import { generateTextOrObjectStream } from "@itzam/server/ai/generate/text";
+import { getWorkflowByIdWithRelations } from "@itzam/server/db/workflow/actions";
+import { env } from "@itzam/utils";
+import { createStreamableValue } from "ai/rsc";
+import Itzam from "itzam";
 
 const itzam = new Itzam(env.ITZAM_API_KEY);
 
@@ -64,7 +64,7 @@ export async function streamPlaygroundContent({
     } catch (error) {
       console.error("Error streaming content:", error);
       content.error(
-        error instanceof Error ? error : new Error("Streaming error"),
+        error instanceof Error ? error : new Error("Streaming error")
       );
     }
   })();
@@ -115,7 +115,7 @@ export async function sendMessage(
     threadId?: string | null;
     prompt?: string;
     modelId?: string;
-  },
+  }
 ) {
   // Get workflow to get the slug
   const workflow = await getWorkflowByIdWithRelations(options.workflowId);
@@ -202,7 +202,7 @@ export async function sendMessage(
     workflowWithModel.model,
     startTime,
     mockSSE as Parameters<typeof generateTextOrObjectStream>[4],
-    "text",
+    "text"
   ).catch((error) => {
     console.error("Stream error:", error);
     isComplete = true;

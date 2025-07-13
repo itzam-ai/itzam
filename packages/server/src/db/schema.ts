@@ -553,22 +553,10 @@ export const messageFiles = createTable("message_file", {
   ),
 });
 
-// -------- 📋 ENUMS <> TOOLS --------
-export const toolTypeEnum = pgEnum("tool_type", [
-  "WEB_SEARCH",
-  "CODE_INTERPRETER",
-  "FILE_READER",
-  "IMAGE_GENERATION",
-  "CALCULATOR",
-  "API_CALLER",
-  "DATABASE_QUERY",
-  "EMAIL_SENDER",
-]);
-
 // -------- 🔧 TOOLS --------
 export const tools = createTable("tool", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  type: toolTypeEnum("type").notNull().unique(),
+  tag: varchar("tag", { length: 256 }).notNull().unique(),
   name: varchar("name", { length: 256 }).notNull(),
   description: text("description").notNull(),
   requiresApiKey: boolean("requires_api_key").notNull().default(false),
@@ -603,10 +591,14 @@ export const workflowTools = createTable(
       .notNull(),
   },
   (table) => ({
-    workflowIdIndex: index("workflow_tool_workflow_id_idx").on(table.workflowId),
+    workflowIdIndex: index("workflow_tool_workflow_id_idx").on(
+      table.workflowId
+    ),
     toolIdIndex: index("workflow_tool_tool_id_idx").on(table.toolId),
-    uniqueWorkflowTool: index("workflow_tool_unique_idx")
-      .on(table.workflowId, table.toolId),
+    uniqueWorkflowTool: index("workflow_tool_unique_idx").on(
+      table.workflowId,
+      table.toolId
+    ),
   })
 );
 
@@ -634,8 +626,10 @@ export const userToolApiKeys = createTable(
   (table) => ({
     userIdIndex: index("user_tool_api_key_user_id_idx").on(table.userId),
     toolIdIndex: index("user_tool_api_key_tool_id_idx").on(table.toolId),
-    uniqueUserTool: index("user_tool_api_key_unique_idx")
-      .on(table.userId, table.toolId),
+    uniqueUserTool: index("user_tool_api_key_unique_idx").on(
+      table.userId,
+      table.toolId
+    ),
   })
 );
 
