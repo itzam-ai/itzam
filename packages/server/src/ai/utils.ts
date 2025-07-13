@@ -211,10 +211,10 @@ export const createAiParams: CreateAiParamsFn = async ({
         run.workflowId,
         userId
       );
-      if (workflowTools.length > 0) {
+      if (Object.keys(workflowTools).length > 0) {
         tools = workflowTools;
         console.log(
-          `Loaded ${workflowTools.length} tools for workflow ${run.workflowId}`
+          `Loaded ${Object.keys(workflowTools).length} tools for workflow ${run.workflowId}`
         );
       }
     } catch (error) {
