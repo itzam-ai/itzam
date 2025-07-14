@@ -36,6 +36,7 @@ export const setupRunGeneration = async ({
   input,
   attachments,
   contextSlugs,
+  runId,
 }: {
   userId: string;
   workflowSlug?: string;
@@ -44,6 +45,7 @@ export const setupRunGeneration = async ({
   input: string;
   attachments?: Attachment[];
   contextSlugs?: string[];
+  runId?: string;
 }) => {
   let workflow;
 
@@ -93,7 +95,7 @@ export const setupRunGeneration = async ({
   }
 
   const run: PreRunDetails = {
-    id: uuidv7(),
+    id: runId || uuidv7(),
     origin: "SDK" as const,
     input,
     prompt: workflow.prompt,

@@ -48,6 +48,7 @@
     "@stripe/stripe-js": "^5.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@upstash/qstash": "^2.8.1",
     "ai": "^4.3.9",
     "date-fns": "^3.6.0",
     "decimal.js": "^10.5.0",

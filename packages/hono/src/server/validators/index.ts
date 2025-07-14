@@ -100,7 +100,7 @@ export const zValidator = <
 
 export const generateTextCompletionValidator = zValidator(
   "json",
-  z.union([TextCompletionInputSchema, TextCompletionEventInputSchema])
+  z.union([TextCompletionEventInputSchema, TextCompletionInputSchema])
 );
 
 export const generateObjectCompletionValidator = zValidator(

@@ -91,6 +91,38 @@ export async function getFileFromString(
   throw new Error("Invalid file: must be a data URI, base64 string, or URL");
 }
 
+export const handleSchema = (
+  schemaProp: Parameters<CreateAiParamsFn>[0]["schema"]
+) => {
+  let schema: ReturnType<typeof zodSchema> | undefined = undefined;
+  let output: "no-schema" | "object" | "array" | "enum" = "no-schema";
+  let enumProp: string[] | undefined = undefined;
+
+  if (schemaProp) {
+    const schemaPropType = schemaProp["type"];
+    if (schemaPropType === "array") {
+      const zodArraySchema = eval(
+        jsonSchemaToZod(schemaProp, { module: "cjs" })
+      );
+      output = "array";
+      schema = zodSchema(zodArraySchema.element);
+    } else if (schemaPropType === "string" && "enum" in schemaProp) {
+      enumProp = schemaProp["enum"] as string[];
+      schema = undefined;
+      output = "enum";
+    } else {
+      schema = jsonSchema(schemaProp);
+      output = "object";
+    }
+  }
+
+  return {
+    schema,
+    output,
+    enum: enumProp,
+  };
+};
+
 // @ts-expect-error TODO: fix typing
 export const createAiParams: CreateAiParamsFn = async ({
   userId,
@@ -102,26 +134,12 @@ export const createAiParams: CreateAiParamsFn = async ({
   run,
   ...rest
 }) => {
-  let schema: ReturnType<typeof zodSchema> | undefined = undefined;
-  let output: "no-schema" | "object" | "array" | "enum" = "no-schema";
+  const { schema, output, enum: enumProp } = handleSchema(schemaProp);
 
-  if (schemaProp) {
-    const schemaPropType = schemaProp["type"];
-    if (schemaPropType === "array") {
-      const zodArraySchema = eval(
-        jsonSchemaToZod(schemaProp, { module: "cjs" })
-      );
-      output = "array";
-      schema = zodSchema(zodArraySchema.element);
-    } else if (schemaPropType === "string" && "enum" in schemaProp) {
-      rest.enum = schemaProp["enum"] as string[];
-      schema = undefined;
-      output = "enum";
-    } else {
-      schema = jsonSchema(schemaProp);
-      output = "object";
-    }
+  if (enumProp) {
+    rest.enum = enumProp;
   }
+
   const imageTypes = ["png", "jpeg", "jpg", "webp"];
 
   const content: UserContent = input
