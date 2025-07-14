@@ -1,4 +1,5 @@
 import { CoreMessage, jsonSchema, type UserContent, zodSchema } from "ai";
+import { StatusCode } from "hono/utils/http-status";
 import jsonSchemaToZod from "json-schema-to-zod";
 import { extension } from "mime-types";
 import type { Model } from "../db/model/actions";
@@ -12,7 +13,6 @@ import type { PreRunDetails } from "../types";
 import { findRelevantContent } from "./embeddings";
 import { createUserProviderRegistry } from "./registry";
 import type { Attachment, AttachmentWithUrl, CreateAiParamsFn } from "./types";
-import { StatusCode } from "hono/utils/http-status";
 
 // return a promise that resolves with a File instance
 export async function getFileFromString(
@@ -122,6 +122,7 @@ export const createAiParams: CreateAiParamsFn = async ({
       output = "object";
     }
   }
+  const imageTypes = ["png", "jpeg", "jpg", "webp"];
 
   const content: UserContent = input
     ? [
@@ -134,11 +135,20 @@ export const createAiParams: CreateAiParamsFn = async ({
 
   if (attachments) {
     for (const attachment of attachments) {
-      content.push({
-        type: "image",
-        image: attachment.file,
-        mimeType: attachment.mimeType,
-      });
+      if (imageTypes.some((type) => attachment.mimeType?.includes(type))) {
+        content.push({
+          type: "image",
+          image: attachment.file,
+          mimeType: attachment.mimeType,
+        });
+      } else {
+        content.push({
+          type: "file",
+          image: attachment.file,
+          // @ts-expect-error
+          mimeType: attachment.mimeType,
+        });
+      }
     }
   }
 
