@@ -16,7 +16,12 @@
   },
   "favicon": "/favicon.ico",
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   },
   "navigation": {
     "tabs": [
@@ -34,7 +39,9 @@
           },
           {
             "group": "Guides",
-            "pages": ["guides/chatbot"]
+            "pages": [
+              "guides/chatbot"
+            ]
           }
         ]
       },
@@ -70,7 +77,9 @@
           {
             "group": "Python (Community)",
             "icon": "python",
-            "pages": ["sdks/python/overview"]
+            "pages": [
+              "sdks/python/overview"
+            ]
           }
         ]
       },
@@ -102,11 +111,15 @@
           },
           {
             "group": "Runs",
-            "pages": ["api-reference/endpoints/get-run-by-id"]
+            "pages": [
+              "api-reference/endpoints/get-run-by-id"
+            ]
           },
           {
             "group": "Models",
-            "pages": ["api-reference/endpoints/get-models"]
+            "pages": [
+              "api-reference/endpoints/get-models"
+            ]
           },
           {
             "group": "Errors",
@@ -115,7 +128,8 @@
               "api-reference/errors/VALIDATION_ERROR",
               "api-reference/errors/FIELD_REQUIRED",
               "api-reference/errors/INVALID_TYPE_ERROR",
-              "api-reference/errors/NOT_FOUND_ERROR"
+              "api-reference/errors/NOT_FOUND_ERROR",
+              "api-reference/errors/INTERNAL_SERVER_ERROR"
             ]
           }
         ]
