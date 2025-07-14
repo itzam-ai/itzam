@@ -18,7 +18,7 @@ export async function notifyError(
   options?: NotifyErrorOptions
 ): Promise<void> {
   // Skip notifications in non-production unless explicitly overridden
-  if (!options?.skipProductionCheck && process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== "production") {
     return;
   }
 
