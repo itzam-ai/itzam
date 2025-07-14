@@ -9,8 +9,8 @@ import {
   GenerateObjectResponseSchema,
   GenerateTextResponseSchema,
 } from "../../client/schemas";
-import { setupRunGeneration } from "../../utils";
 import { createErrorResponse } from "../../errors";
+import { setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
@@ -77,7 +77,34 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
-        console.error(error);
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/text",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/text",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {
@@ -154,6 +181,34 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/object",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/object",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {

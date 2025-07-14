@@ -93,6 +93,34 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/text",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/text",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         const errorResponse = createErrorResponse(500, "Unknown error", {
           context: {
             userId,
@@ -189,6 +217,34 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/object",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/object",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         const errorResponse = createErrorResponse(500, "Unknown error", {
           context: {
             userId,
