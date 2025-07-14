@@ -9,8 +9,8 @@ import { setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
-  objectCompletionValidator,
-  textCompletionValidator,
+  streamObjectCompletionValidator,
+  streamTextCompletionValidator,
 } from "../validators";
 
 export const streamRoute = new Hono()
@@ -35,7 +35,7 @@ export const streamRoute = new Hono()
         description: "Successfully streaming content",
       }),
     }),
-    textCompletionValidator,
+    streamTextCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
       const { workflowSlug, threadId, input, attachments, contextSlugs } =
@@ -152,7 +152,7 @@ export const streamRoute = new Hono()
         description: "Successfully streaming content",
       }),
     }),
-    objectCompletionValidator,
+    streamObjectCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
       const {

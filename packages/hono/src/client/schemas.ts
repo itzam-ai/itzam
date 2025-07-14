@@ -138,6 +138,48 @@ const BaseInput = z.object({
     }),
 });
 
+const BaseEvent = BaseInput.omit({
+  threadId: true,
+  workflowSlug: true,
+}).extend({
+  type: z.literal("event"),
+  callback: z.object({
+    url: z
+      .string({
+        required_error: FIELD_REQUIRED,
+        invalid_type_error: INVALID_TYPE_ERROR,
+      })
+      .url({
+        message: "Must be a valid URL",
+      })
+      .openapi({
+        example: "https://example.com/callback",
+        description: "Callback URL to send events to",
+      }),
+    customProperties: z.record(z.string(), z.any()).optional(),
+    headers: z.record(z.string(), z.any()).optional(),
+  }),
+  workflowSlug: z
+    .string({
+      required_error: FIELD_REQUIRED,
+      invalid_type_error: INVALID_TYPE_ERROR,
+    })
+    .openapi({
+      example: "my_great_workflow",
+      description: "The slug of the Workflow to use for generation",
+    }),
+});
+
+export const TextCompletionEventInputSchema = BaseEvent.openapi({
+  ref: "TextCompletionEventInput",
+}).refine(
+  (data) => (data.attachments && data.attachments.length > 0) || data.input,
+  {
+    message: "Attachments or input are required",
+    path: ["attachments", "input"],
+  }
+);
+
 export const TextCompletionInputSchema = BaseInput.openapi({
   ref: "TextCompletionInput",
 })
@@ -224,6 +266,74 @@ export const ObjectCompletionInputSchema = BaseInput.extend({
     path: ["workflowSlug", "threadId"],
   })
   .openapi({ ref: "ObjectCompletionInput" });
+
+export const ObjectCompletionEventInputSchema = BaseEvent.extend({
+  schema: z
+    .custom<NonLiteralJson>(
+      (data) => {
+        if (!data) return false;
+
+        // Must be an object with a type property
+        if (typeof data !== "object" || !data["type"]) {
+          return false;
+        }
+
+        const schemaType = data["type"];
+
+        // Valid JSON Schema types for structured output
+        switch (schemaType) {
+          case "object":
+          case "array":
+            return true;
+          case "string":
+            // String schemas with enum are valid for structured output
+            return Array.isArray(data["enum"]) && data["enum"].length > 0;
+          default:
+            return false;
+        }
+      },
+      {
+        message:
+          "Must be a valid JSON Schema object with type 'object', 'array', or 'string' with enum values. See https://json-schema.org/ for specification.",
+        params: {
+          required_error: FIELD_REQUIRED,
+          invalid_type_error: INVALID_TYPE_ERROR,
+        },
+      }
+    )
+    .openapi({
+      example: {
+        type: "object",
+        title: "User Profile",
+        description: "A user profile object",
+        properties: {
+          name: {
+            type: "string",
+            description: "The user's full name",
+          },
+          age: {
+            type: "number",
+            description: "The user's age",
+          },
+          interests: {
+            type: "array",
+            items: {
+              type: "string",
+            },
+            description: "List of user interests",
+          },
+        },
+        required: ["name", "age"],
+      },
+      description:
+        "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification.",
+    }),
+})
+  .refine(
+    (data) => (data.attachments && data.attachments.length > 0) || data.input,
+    "Attachments or input are required"
+  )
+  .openapi({ ref: "ObjectCompletionEventInput" });
 
 export const StreamEventSchema = z
   .discriminatedUnion("type", [

@@ -1,13 +1,15 @@
 import type { ValidationTargets } from "hono";
 import { validator as zv } from "hono-openapi/zod";
 import { HTTPException } from "hono/http-exception";
-import { ZodSchema } from "zod";
+import { z, ZodSchema } from "zod";
 import {
   CreateThreadInputSchema,
   GetRunsByThreadParamsSchema,
   GetThreadsByWorkflowParamsSchema,
   GetThreadsByWorkflowQuerySchema,
+  ObjectCompletionEventInputSchema,
   ObjectCompletionInputSchema,
+  TextCompletionEventInputSchema,
   TextCompletionInputSchema,
 } from "../../client/schemas";
 import { ValidationAPIError } from "../../errors";
@@ -96,12 +98,21 @@ export const zValidator = <
     }
   });
 
-export const textCompletionValidator = zValidator(
+export const generateTextCompletionValidator = zValidator(
+  "json",
+  z.union([TextCompletionInputSchema, TextCompletionEventInputSchema])
+);
+
+export const generateObjectCompletionValidator = zValidator(
+  "json",
+  z.union([ObjectCompletionEventInputSchema, ObjectCompletionInputSchema])
+);
+
+export const streamTextCompletionValidator = zValidator(
   "json",
   TextCompletionInputSchema
 );
-
-export const objectCompletionValidator = zValidator(
+export const streamObjectCompletionValidator = zValidator(
   "json",
   ObjectCompletionInputSchema
 );

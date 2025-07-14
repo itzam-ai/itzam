@@ -13,12 +13,12 @@ import { openAPISpecs } from "hono-openapi";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import "zod-openapi/extend";
+import { createErrorResponse } from "../errors";
 import { generateRoute } from "./routes/generate";
 import { modelsRoute } from "./routes/models";
 import { runsRoute } from "./routes/runs";
 import { streamRoute } from "./routes/stream";
 import { threadsRoute } from "./routes/threads";
-import { createErrorResponse } from "../errors";
 
 const app = new Hono()
   .basePath("/api/v1")
