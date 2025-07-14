@@ -24,6 +24,7 @@ export interface ValidationAPIError extends BaseAPIError {
 
 export interface ServerAPIError extends BaseAPIError {
   status: 500;
+  providerError?: any;
 }
 
 export type StatusCode = 200 | 400 | 401 | 404 | 500;
@@ -38,6 +39,7 @@ export const createErrorResponse = (
     expected?: string;
     possibleValues?: string[];
     context?: { userId?: string; workflowSlug?: string; endpoint?: string };
+    providerError?: any;
   }
 ) => {
   console.error("Error in endpoint:", message);
@@ -86,6 +88,7 @@ export const createErrorResponse = (
         error: "INTERNAL_SERVER_ERROR",
         message: message,
         documentation: `https://docs.itz.am/api-reference/errors/INTERNAL_SERVER_ERROR`,
+        providerError: options?.providerError,
       };
       return error;
     }
@@ -95,6 +98,7 @@ export const createErrorResponse = (
         error: "INTERNAL_SERVER_ERROR",
         message: message,
         documentation: `https://docs.itz.am/api-reference/errors/INTERNAL_SERVER_ERROR`,
+        providerError: options?.providerError,
       };
       return error;
     }
