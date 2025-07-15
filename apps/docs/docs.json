@@ -16,12 +16,7 @@
   },
   "favicon": "/favicon.ico",
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "navigation": {
     "tabs": [
@@ -39,9 +34,7 @@
           },
           {
             "group": "Guides",
-            "pages": [
-              "guides/chatbot"
-            ]
+            "pages": ["guides/chatbot"]
           }
         ]
       },
@@ -71,15 +64,14 @@
               },
               "sdks/javascript/get-run-by-id",
               "sdks/javascript/get-models",
-              "sdks/javascript/errors"
+              "sdks/javascript/errors",
+              "sdks/javascript/webhooks"
             ]
           },
           {
             "group": "Python (Community)",
             "icon": "python",
-            "pages": [
-              "sdks/python/overview"
-            ]
+            "pages": ["sdks/python/overview"]
           }
         ]
       },
@@ -111,15 +103,11 @@
           },
           {
             "group": "Runs",
-            "pages": [
-              "api-reference/endpoints/get-run-by-id"
-            ]
+            "pages": ["api-reference/endpoints/get-run-by-id"]
           },
           {
             "group": "Models",
-            "pages": [
-              "api-reference/endpoints/get-models"
-            ]
+            "pages": ["api-reference/endpoints/get-models"]
           },
           {
             "group": "Errors",
