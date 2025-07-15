@@ -69,6 +69,7 @@ export const generateRoute = new Hono()
         if ("type" in params && params.type === "event") {
           await client.publishJSON({
             url: `${env.NEXT_PUBLIC_APP_URL}/api/events`,
+            retries: 0,
             body: {
               run,
               workflow,
@@ -190,6 +191,7 @@ export const generateRoute = new Hono()
         if ("type" in params && params.type === "event") {
           await client.publishJSON({
             url: `${env.NEXT_PUBLIC_APP_URL}/api/events`,
+            retries: 0,
             body: {
               schema: params.schema,
               run,
