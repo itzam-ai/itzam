@@ -32,6 +32,10 @@ export const env = createEnv({
     RESCRAPE_CRON_SECRET: z.string().min(1),
     HYPERDX_API_KEY: z.string().optional(),
     OTEL_EXPORTER_OTLP_ENDPOINT: z.string().url().optional(),
+    QSTASH_URL: z.string().url(),
+    QSTASH_TOKEN: z.string().min(1),
+    QSTASH_CURRENT_SIGNING_KEY: z.string().min(1),
+    QSTASH_NEXT_SIGNING_KEY: z.string().min(1),
   },
 
   /**
@@ -80,6 +84,10 @@ export const env = createEnv({
     HYPERDX_API_KEY: process.env.HYPERDX_API_KEY,
     OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
     STRIPE_ITZAM_BASIC_PRODUCT_ID: process.env.STRIPE_ITZAM_BASIC_PRODUCT_ID,
+    QSTASH_URL: process.env.QSTASH_URL,
+    QSTASH_TOKEN: process.env.QSTASH_TOKEN,
+    QSTASH_CURRENT_SIGNING_KEY: process.env.QSTASH_CURRENT_SIGNING_KEY,
+    QSTASH_NEXT_SIGNING_KEY: process.env.QSTASH_NEXT_SIGNING_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
