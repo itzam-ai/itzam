@@ -189,9 +189,12 @@ export default function AdminSdkPage() {
     const config = await makeConfig();
     try {
       const response = await itzam.generateText(config);
+      // @ts-expect-error TODO: fix typing
       setResponse(response.text);
+      // @ts-expect-error TODO: fix typing
       setMetadata(response.metadata);
 
+      // @ts-expect-error TODO: fix typing
       handleGetRunById({ runId: response.metadata.runId });
 
       setIsLoading(false);
