@@ -35,3 +35,16 @@ export type InferReturnFromSchema<T extends JsonOrZodSchema> =
       : T extends JsonSchema
         ? InferFromJsonSchema<T>
         : never;
+
+type UnionToParm<U> = U extends unknown ? (k: U) => void : never;
+type UnionToSect<U> = UnionToParm<U> extends (k: infer I) => void ? I : never;
+type ExtractParm<F> = F extends { (a: infer A): void } ? A : never;
+
+type SpliceOne<Union> = Exclude<Union, ExtractOne<Union>>;
+type ExtractOne<Union> = ExtractParm<UnionToSect<UnionToParm<Union>>>;
+
+export type ToTuple<Union> = ToTupleRec<Union, []>;
+type ToTupleRec<Union, Rslt extends unknown[]> =
+  SpliceOne<Union> extends never
+    ? [ExtractOne<Union>, ...Rslt]
+    : ToTupleRec<SpliceOne<Union>, [ExtractOne<Union>, ...Rslt]>;

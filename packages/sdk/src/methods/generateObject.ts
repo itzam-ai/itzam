@@ -2,11 +2,12 @@ import type { AppType } from "@itzam/hono/client/index.d";
 import { hc } from "hono/client";
 import {
   type InferRequestType,
+  type InferResponseType,
   type StreamMetadata,
   type WithAttachments,
 } from "..";
 import { createItzamError } from "../errors";
-import type { InferReturnFromSchema, JsonOrZodSchema } from "../types";
+import type { InferReturnFromSchema, JsonOrZodSchema, ToTuple } from "../types";
 import { blobToBase64, getJsonSchema } from "../utils";
 
 // Create a temporary client for type inference
@@ -14,21 +15,52 @@ const tempClient = hc<AppType>("");
 
 type GenerateObjectRequest<T extends JsonOrZodSchema> = WithAttachments<
   Omit<
-    InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"],
+    ToTuple<
+      InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"]
+    >["0"],
     "schema"
   > & {
     schema: T;
   }
 >;
 
-async function generateObject<T extends JsonOrZodSchema>(
+type GenerateObjectEventRequest<T extends JsonOrZodSchema> = WithAttachments<
+  Omit<
+    ToTuple<
+      InferRequestType<typeof tempClient.api.v1.generate.object.$post>["json"]
+    >["1"],
+    "schema"
+  > & {
+    schema: T;
+  }
+>;
+
+type GenerateObjectEventResponse = ToTuple<
+  Exclude<
+    InferResponseType<typeof tempClient.api.v1.generate.object.$post>,
+    {
+      error: any;
+    }
+  >
+>["0"];
+
+async function generateObject<
+  T extends JsonOrZodSchema,
+  E extends "event" | undefined = undefined,
+>(
   client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
-  request: GenerateObjectRequest<T>
-): Promise<{
-  metadata: StreamMetadata;
-  object: InferReturnFromSchema<T>;
-}> {
+  request: E extends "event"
+    ? GenerateObjectEventRequest<T>
+    : GenerateObjectRequest<T>
+): Promise<
+  T extends "event"
+    ? GenerateObjectEventResponse
+    : {
+        metadata: StreamMetadata;
+        object: InferReturnFromSchema<T>;
+      }
+> {
   try {
     const schema = getJsonSchema(request.schema);
 
@@ -75,12 +107,26 @@ async function generateObject<T extends JsonOrZodSchema>(
 
     const data = await res.json();
 
+    if ("type" in processedRequest) {
+      return data as T extends "event"
+        ? GenerateObjectEventResponse
+        : {
+            metadata: StreamMetadata;
+            object: InferReturnFromSchema<T>;
+          };
+    }
+
     return {
       // @ts-expect-error TODO: fix typing
       metadata: data.metadata,
       // @ts-expect-error TODO: fix typing
       object: data.object as InferReturnFromSchema<T>,
-    };
+    } as T extends "event"
+      ? GenerateObjectEventResponse
+      : {
+          metadata: StreamMetadata;
+          object: InferReturnFromSchema<T>;
+        };
   } catch (error) {
     throw createItzamError(error);
   }

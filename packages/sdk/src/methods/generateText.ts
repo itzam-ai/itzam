@@ -1,15 +1,53 @@
 import type { AppType } from "@itzam/hono/client/index.d";
 import { hc } from "hono/client";
-import { type InferRequestType, type WithAttachments } from "..";
+import {
+  type InferRequestType,
+  type InferResponseType,
+  type WithAttachments,
+} from "..";
 import { createItzamError } from "../errors";
+import type { ToTuple } from "../types";
 import { blobToBase64 } from "../utils";
 
-async function generateText(
+// Create a temporary client for type inference
+const tempClient = hc<AppType>("");
+
+type GenerateTextRequest = ToTuple<
+  WithAttachments<
+    InferRequestType<typeof tempClient.api.v1.generate.text.$post>["json"]
+  >
+>["0"];
+
+type GenerateTextEventRequest = ToTuple<
+  WithAttachments<
+    InferRequestType<typeof tempClient.api.v1.generate.text.$post>["json"]
+  >
+>["1"];
+
+type GenerateTextResponse = ToTuple<
+  Exclude<
+    InferResponseType<typeof tempClient.api.v1.generate.text.$post>,
+    {
+      error: any;
+    }
+  >
+>["0"];
+
+type GenerateTextEventResponse = ToTuple<
+  Exclude<
+    InferResponseType<typeof tempClient.api.v1.generate.text.$post>,
+    {
+      error: any;
+    }
+  >
+>["1"];
+
+async function generateText<T extends "event" | undefined = undefined>(
   client: ReturnType<typeof hc<AppType>>,
   apiKey: string,
-  generateTextRequest: WithAttachments<
-    InferRequestType<typeof client.api.v1.generate.text.$post>["json"]
-  >
+  generateTextRequest: T extends "event"
+    ? GenerateTextEventRequest
+    : GenerateTextRequest
 ) {
   try {
     // Create a copy of the request to avoid mutating the original
@@ -47,7 +85,9 @@ async function generateText(
       }
     );
 
-    const data = await res.json();
+    const data = (await res.json()) as T extends "event"
+      ? GenerateTextEventResponse
+      : GenerateTextResponse;
 
     if (!res.ok || "error" in data) {
       throw createItzamError(data);
