@@ -33,7 +33,7 @@
             ]
           },
           {
-            "group": "Guides (JS/TS)",
+            "group": "Guides",
             "pages": ["guides/chatbot", "guides/webhook"]
           }
         ]
