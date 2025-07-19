@@ -6,8 +6,8 @@ import {
 } from "@itzam/server/db/api-keys/actions";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
-import { createClient } from "@supabase/supabase-js";
 import { env } from "@itzam/utils/env";
+import { createClient } from "@supabase/supabase-js";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
@@ -36,6 +36,7 @@ export const setupRunGeneration = async ({
   input,
   attachments,
   contextSlugs,
+  runId,
 }: {
   userId: string;
   workflowSlug?: string;
@@ -44,6 +45,7 @@ export const setupRunGeneration = async ({
   input: string;
   attachments?: Attachment[];
   contextSlugs?: string[];
+  runId?: string;
 }) => {
   let workflow;
 
@@ -93,7 +95,7 @@ export const setupRunGeneration = async ({
   }
 
   const run: PreRunDetails = {
-    id: uuidv7(),
+    id: runId || uuidv7(),
     origin: "SDK" as const,
     input,
     prompt: workflow.prompt,
@@ -173,7 +175,7 @@ export const validateRequest = async (apiKey: string | undefined | null) => {
     );
 
     const { data, error } = await supabase.auth.getUser(apiKey);
-    
+
     if (error || !data.user) {
       return { error: "Invalid auth token", status: 401 as StatusCode };
     }

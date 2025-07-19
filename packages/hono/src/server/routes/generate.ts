@@ -2,6 +2,8 @@ import {
   generateObjectResponse,
   generateTextResponse,
 } from "@itzam/server/ai/generate/text";
+import { env } from "@itzam/utils/env";
+import { Client } from "@upstash/qstash";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver } from "hono-openapi/zod";
@@ -9,14 +11,16 @@ import {
   GenerateObjectResponseSchema,
   GenerateTextResponseSchema,
 } from "../../client/schemas";
-import { setupRunGeneration } from "../../utils";
 import { createErrorResponse } from "../../errors";
+import { setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
-  objectCompletionValidator,
-  textCompletionValidator,
+  generateObjectCompletionValidator,
+  generateTextCompletionValidator,
 } from "../validators";
+
+const client = new Client({ token: process.env.QSTASH_TOKEN! });
 
 export const generateRoute = new Hono()
   .use(apiKeyMiddleware)
@@ -25,7 +29,6 @@ export const generateRoute = new Hono()
     describeRoute({
       summary: "Generate text",
       description: "Generate text for a specific workflow",
-      validateResponse: true,
       operationId: "generateText",
       responses: createOpenApiErrors({
         content: {
@@ -37,21 +40,20 @@ export const generateRoute = new Hono()
           "Successfully generated content (we also return the run ID in the header X-Run-ID)",
       }),
     }),
-    textCompletionValidator,
+    generateTextCompletionValidator,
     async (c) => {
       try {
         const userId = c.get("userId");
-        const { workflowSlug, threadId, input, attachments, contextSlugs } =
-          c.req.valid("json");
+        const params = c.req.valid("json");
 
         const { error, status, possibleValues, aiParams, run, workflow } =
           await setupRunGeneration({
             userId,
-            workflowSlug,
-            threadId: threadId || null,
-            input,
-            attachments,
-            contextSlugs,
+            workflowSlug: params.workflowSlug,
+            threadId: "threadId" in params ? params.threadId || null : null,
+            input: params.input,
+            attachments: params.attachments,
+            contextSlugs: params.contextSlugs,
           });
 
         if (error || status) {
@@ -64,6 +66,31 @@ export const generateRoute = new Hono()
         }
 
         const startTime = Date.now();
+        if ("type" in params && params.type === "event") {
+          await client.publishJSON({
+            url: `${env.NEXT_PUBLIC_APP_URL}/api/events`,
+            retries: 0,
+            body: {
+              run,
+              workflow,
+              startTime,
+              input: params.input,
+              callback: {
+                url: params.callback.url,
+                headers: params.callback.headers,
+                customProperties: params.callback.customProperties,
+              },
+            },
+          });
+
+          return c.json(
+            {
+              runId: run.id,
+              message: "Event queued",
+            },
+            200
+          );
+        }
 
         const { text, metadata } = await generateTextResponse(
           aiParams,
@@ -77,7 +104,34 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
-        console.error(error);
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/text",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/text",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {
@@ -107,28 +161,21 @@ export const generateRoute = new Hono()
           "Successfully generated object (we also return the run ID in the header X-Run-ID)",
       }),
     }),
-    objectCompletionValidator,
+    generateObjectCompletionValidator,
     async (c) => {
       try {
         const userId = c.get("userId");
-        const {
-          workflowSlug,
-          threadId,
-          input,
-          schema,
-          attachments,
-          contextSlugs,
-        } = c.req.valid("json");
-
+        const params = c.req.valid("json");
+        const threadId = "threadId" in params ? params.threadId || null : null;
         const { error, status, possibleValues, aiParams, run, workflow } =
           await setupRunGeneration({
             userId,
-            workflowSlug,
-            threadId: threadId || null,
-            input,
-            schema,
-            attachments,
-            contextSlugs,
+            workflowSlug: params.workflowSlug,
+            threadId,
+            input: params.input,
+            schema: params.schema,
+            attachments: params.attachments,
+            contextSlugs: params.contextSlugs,
           });
 
         if (error || status) {
@@ -141,6 +188,32 @@ export const generateRoute = new Hono()
         }
 
         const startTime = Date.now();
+        if ("type" in params && params.type === "event") {
+          await client.publishJSON({
+            url: `${env.NEXT_PUBLIC_APP_URL}/api/events`,
+            retries: 0,
+            body: {
+              schema: params.schema,
+              run,
+              workflow,
+              startTime,
+              input: params.input,
+              callback: {
+                url: params.callback.url,
+                headers: params.callback.headers,
+                customProperties: params.callback.customProperties,
+              },
+            },
+          });
+
+          return c.json(
+            {
+              runId: run.id,
+              message: "Event queued",
+            },
+            200
+          );
+        }
 
         const { object, metadata } = await generateObjectResponse(
           aiParams,
@@ -154,6 +227,34 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/object",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/generate/object",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         return c.json(
           createErrorResponse(500, "Unknown error", {
             context: {

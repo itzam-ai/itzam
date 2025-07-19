@@ -9,8 +9,8 @@ import { setupRunGeneration } from "../../utils";
 import { apiKeyMiddleware } from "../api-key-validator";
 import { createOpenApiErrors } from "../docs";
 import {
-  objectCompletionValidator,
-  textCompletionValidator,
+  streamObjectCompletionValidator,
+  streamTextCompletionValidator,
 } from "../validators";
 
 export const streamRoute = new Hono()
@@ -35,7 +35,7 @@ export const streamRoute = new Hono()
         description: "Successfully streaming content",
       }),
     }),
-    textCompletionValidator,
+    streamTextCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
       const { workflowSlug, threadId, input, attachments, contextSlugs } =
@@ -93,6 +93,34 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/text",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/text",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         const errorResponse = createErrorResponse(500, "Unknown error", {
           context: {
             userId,
@@ -124,7 +152,7 @@ export const streamRoute = new Hono()
         description: "Successfully streaming content",
       }),
     }),
-    objectCompletionValidator,
+    streamObjectCompletionValidator,
     async (c) => {
       const userId = c.get("userId");
       const {
@@ -189,6 +217,34 @@ export const streamRoute = new Hono()
           }
         });
       } catch (error) {
+        if (error instanceof Error && "responseBody" in error) {
+          try {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/object",
+                },
+                providerError: JSON.parse(error.responseBody as string),
+              }),
+              500
+            );
+          } catch {
+            return c.json(
+              createErrorResponse(500, "Unknown error", {
+                context: {
+                  userId: c.get("userId"),
+                  workflowSlug: c.req.valid("json").workflowSlug,
+                  endpoint: "/stream/object",
+                },
+                providerError: error.responseBody as string,
+              }),
+              500
+            );
+          }
+        }
+
         const errorResponse = createErrorResponse(500, "Unknown error", {
           context: {
             userId,

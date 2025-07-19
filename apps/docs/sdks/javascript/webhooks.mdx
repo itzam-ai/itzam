@@ -1,0 +1,84 @@
+---
+title: "Webhooks"
+description: "Receive webhooks after text or object generations."
+icon: "webhook"
+keywords:
+  [
+    "webhooks",
+    "JavaScript",
+    "SDK",
+    "response",
+    "complete",
+    "events",
+    "hooks",
+    "callbacks",
+  ]
+---
+
+## Usage
+
+```typescript
+import Itzam from "itzam";
+
+const itzam = new Itzam("YOUR_API_KEY");
+
+const response = await itzam.generateText({
+  input: "What is the capital of France?",
+  workflowSlug: "my-workflow",
+  type: "event",
+  callback: {
+    url: "https://example.com/webhook",
+    headers: {
+      Authorization: "your_secret_key",
+    },
+    customProperties: {
+      user_id: "user_123",
+    },
+  },
+});
+
+console.log(response.message); // "Event queued"
+```
+
+This will send a POST request to the URL you provide after the generation is complete. You can also add headers and custom properties to the request.
+
+This is the body of the request:
+
+```json
+// TEXT GENERATION
+{
+  "text": "The capital of France is Paris",
+  "metadata": {
+    // The standard metadata object...
+  },
+  "customProperties": {
+    // Any other custom properties you added
+    "user_id": "user_123",
+  },
+}
+
+// OBJECT GENERATION
+{
+  "object": {
+    // The generated object
+  },
+  "metadata": {
+    // The standard metadata object...
+  },
+  "customProperties": {
+    // Any other custom properties you added
+    "user_id": "user_123",
+  },
+}
+```
+
+### Return Value
+
+The `generateText` or `generateObject` methods will return the following if you're using a callback:
+
+```typescript
+type WebhookResponse = {
+  message: string; // A message to indicate that the webhook was queued
+  runId: string; // The ID of the run
+};
+```

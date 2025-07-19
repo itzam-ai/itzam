@@ -30,6 +30,8 @@ console.log(response.text); // "The capital of France is Paris"
 | `threadId`     | `string`       | No       | Identifier for associating runs with a conversation thread.                               |
 | `attachments`  | `Attachment[]` | No       | Array of attachments to include in the generation.                                        |
 | `contextSlugs` | `string[]`     | No       | The slugs of the contexts that the AI model can access.                                   |
+| `type`         | `string`       | No       | Used to indicate the response type (only "event" is supported for now).                   |
+| `callback`     | `Callback`     | No       | The callback object to receive the webhook.                                               |
 
 ### Return Value
 
@@ -49,5 +51,14 @@ type GenerateTextResponse = {
     inputTokens: number; // The number of input tokens used for this generation
     outputTokens: number; // The number of output tokens used for this generation
   };
+};
+```
+
+If you use the `type` and `callback` parameters, this will return the following object:
+
+```typescript
+type WebhookResponse = {
+  message: string; // A message to indicate that the webhook was queued
+  runId: string; // The ID of the run
 };
 ```

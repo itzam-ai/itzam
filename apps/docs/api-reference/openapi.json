@@ -81,6 +81,77 @@
         },
         "required": ["text", "metadata"]
       },
+      "TextCompletionEventInput": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Tell me about renewable energy",
+            "description": "The input text to generate a response for"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "Base64 encoded file"
+                    },
+                    {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Remote URI to the file"
+                    }
+                  ]
+                },
+                "mimeType": { "type": "string" }
+              },
+              "required": ["file"]
+            },
+            "example": [
+              { "file": "file_data", "mimeType": "application/pdf" },
+              { "file": "image_data", "mimeType": "image/png" },
+              { "file": "https://example.com/image.jpg" }
+            ],
+            "description": "Optional attachments to include in the generation"
+          },
+          "contextSlugs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "Optional context slugs to add contexts to the run"
+          },
+          "type": { "type": "string", "const": "event" },
+          "callback": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://example.com/callback",
+                "description": "Callback URL to send events to"
+              },
+              "customProperties": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "headers": { "type": "object", "additionalProperties": {} }
+            },
+            "required": ["url"]
+          },
+          "workflowSlug": {
+            "type": "string",
+            "example": "my_great_workflow",
+            "description": "The slug of the Workflow to use for generation"
+          }
+        },
+        "required": ["input", "type", "callback", "workflowSlug"]
+      },
       "TextCompletionInput": {
         "type": "object",
         "properties": {
@@ -203,6 +274,98 @@
           }
         },
         "required": ["object", "metadata"]
+      },
+      "ObjectCompletionEventInput": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Tell me about renewable energy",
+            "description": "The input text to generate a response for"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "byte",
+                      "description": "Base64 encoded file"
+                    },
+                    {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Remote URI to the file"
+                    }
+                  ]
+                },
+                "mimeType": { "type": "string" }
+              },
+              "required": ["file"]
+            },
+            "example": [
+              { "file": "file_data", "mimeType": "application/pdf" },
+              { "file": "image_data", "mimeType": "image/png" },
+              { "file": "https://example.com/image.jpg" }
+            ],
+            "description": "Optional attachments to include in the generation"
+          },
+          "contextSlugs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["special-docs", "admin-files"],
+            "description": "Optional context slugs to add contexts to the run"
+          },
+          "type": { "type": "string", "const": "event" },
+          "callback": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "example": "https://example.com/callback",
+                "description": "Callback URL to send events to"
+              },
+              "customProperties": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "headers": { "type": "object", "additionalProperties": {} }
+            },
+            "required": ["url"]
+          },
+          "workflowSlug": {
+            "type": "string",
+            "example": "my_great_workflow",
+            "description": "The slug of the Workflow to use for generation"
+          },
+          "schema": {
+            "example": {
+              "type": "object",
+              "title": "User Profile",
+              "description": "A user profile object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The user's full name"
+                },
+                "age": { "type": "number", "description": "The user's age" },
+                "interests": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "List of user interests"
+                }
+              },
+              "required": ["name", "age"]
+            },
+            "description": "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification."
+          }
+        },
+        "required": ["input", "type", "callback", "workflowSlug", "schema"]
       },
       "ObjectCompletionInput": {
         "type": "object",
@@ -840,7 +1003,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -852,7 +1015,12 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/TextCompletionInput" }
+              "schema": {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/TextCompletionEventInput" },
+                  { "$ref": "#/components/schemas/TextCompletionInput" }
+                ]
+              }
             }
           }
         }
@@ -874,7 +1042,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -886,7 +1054,12 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ObjectCompletionInput" }
+              "schema": {
+                "anyOf": [
+                  { "$ref": "#/components/schemas/ObjectCompletionEventInput" },
+                  { "$ref": "#/components/schemas/ObjectCompletionInput" }
+                ]
+              }
             }
           }
         }
@@ -906,7 +1079,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -942,7 +1115,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -978,7 +1151,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -1014,7 +1187,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -1041,7 +1214,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -1075,7 +1248,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -1125,7 +1298,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
@@ -1161,7 +1334,7 @@
           "400": { "description": "Bad request - invalid input" },
           "401": { "description": "Unauthorized - invalid API key" },
           "403": {
-            "description": "Forbidden - organization does not have an active subscription"
+            "description": "Forbidden - you do not have access to this workflow"
           },
           "404": { "description": "Not found - workflow not found" },
           "500": { "description": "Server error during generation" }
