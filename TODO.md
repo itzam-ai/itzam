@@ -1,16 +1,17 @@
 ## Features
 
+- [ ] Agents (Tools) · _Integrate tools to your workflow_
 - [ ] Rules · _Create custom rules for each workflow (e.g. if AI bill is over $50 → switch to a cheaper model)_
 - [ ] Model Recommendation · _Get recommendations on the best model (balancing cost, latency, and intelligence)_
 - [ ] Model Fallback · _Choose a replacing model for when the primary is down_
 - [ ] Model categories · _Let users choose between different model categories (e.g. fast, cheap, accurate)_
 - [ ] Autopilot · _Autopilot chooses the appropriate model based on the task_
 - [ ] Guardrails · _Create limits for the AI’s response_
-- [ ] Agents (Tools) · _Integrate tools to your workflow_
+- [ ] Cache responses · _Don't need to spend money on AI if the question was already answered_
 
 ### Other improvements
 
-- [ ] SDK
+- [ ] SDK V2
   - [ ] Standard CRUD for _everything_
   - [ ] Add knowledge used to metadata
 
