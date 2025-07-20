@@ -1,6 +1,11 @@
 {
   "openapi": "3.1.0",
-  "servers": [{ "url": "https://itz.am", "description": "Itzam Live API" }],
+  "servers": [
+    {
+      "url": "https://itz.am",
+      "description": "Itzam Live API"
+    }
+  ],
   "info": {
     "title": "Itzam API",
     "description": "Development documentation",
@@ -51,7 +56,10 @@
                     "description": "The tag of the model used for this generation"
                   }
                 },
-                "required": ["name", "tag"]
+                "required": [
+                  "name",
+                  "tag"
+                ]
               },
               "durationInMs": {
                 "type": "number",
@@ -79,7 +87,10 @@
             ]
           }
         },
-        "required": ["text", "metadata"]
+        "required": [
+          "text",
+          "metadata"
+        ]
       },
       "TextCompletionEventInput": {
         "type": "object",
@@ -109,24 +120,44 @@
                     }
                   ]
                 },
-                "mimeType": { "type": "string" }
+                "mimeType": {
+                  "type": "string"
+                }
               },
-              "required": ["file"]
+              "required": [
+                "file"
+              ]
             },
             "example": [
-              { "file": "file_data", "mimeType": "application/pdf" },
-              { "file": "image_data", "mimeType": "image/png" },
-              { "file": "https://example.com/image.jpg" }
+              {
+                "file": "file_data",
+                "mimeType": "application/pdf"
+              },
+              {
+                "file": "image_data",
+                "mimeType": "image/png"
+              },
+              {
+                "file": "https://example.com/image.jpg"
+              }
             ],
             "description": "Optional attachments to include in the generation"
           },
           "contextSlugs": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "Optional context slugs to add contexts to the run"
           },
-          "type": { "type": "string", "const": "event" },
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
           "callback": {
             "type": "object",
             "properties": {
@@ -140,9 +171,14 @@
                 "type": "object",
                 "additionalProperties": {}
               },
-              "headers": { "type": "object", "additionalProperties": {} }
+              "headers": {
+                "type": "object",
+                "additionalProperties": {}
+              }
             },
-            "required": ["url"]
+            "required": [
+              "url"
+            ]
           },
           "workflowSlug": {
             "type": "string",
@@ -150,7 +186,12 @@
             "description": "The slug of the Workflow to use for generation"
           }
         },
-        "required": ["input", "type", "callback", "workflowSlug"]
+        "required": [
+          "input",
+          "type",
+          "callback",
+          "workflowSlug"
+        ]
       },
       "TextCompletionInput": {
         "type": "object",
@@ -180,21 +221,38 @@
                     }
                   ]
                 },
-                "mimeType": { "type": "string" }
+                "mimeType": {
+                  "type": "string"
+                }
               },
-              "required": ["file"]
+              "required": [
+                "file"
+              ]
             },
             "example": [
-              { "file": "file_data", "mimeType": "application/pdf" },
-              { "file": "image_data", "mimeType": "image/png" },
-              { "file": "https://example.com/image.jpg" }
+              {
+                "file": "file_data",
+                "mimeType": "application/pdf"
+              },
+              {
+                "file": "image_data",
+                "mimeType": "image/png"
+              },
+              {
+                "file": "https://example.com/image.jpg"
+              }
             ],
             "description": "Optional attachments to include in the generation"
           },
           "contextSlugs": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "Optional context slugs to add contexts to the run"
           },
           "workflowSlug": {
@@ -208,7 +266,9 @@
             "description": "Optional thread ID to associate this run with a conversation thread (required if workflowSlug is not provided)"
           }
         },
-        "required": ["input"]
+        "required": [
+          "input"
+        ]
       },
       "GenerateObjectResponse": {
         "type": "object",
@@ -245,7 +305,10 @@
                     "description": "The tag of the model used for this generation"
                   }
                 },
-                "required": ["name", "tag"]
+                "required": [
+                  "name",
+                  "tag"
+                ]
               },
               "durationInMs": {
                 "type": "number",
@@ -273,7 +336,10 @@
             ]
           }
         },
-        "required": ["object", "metadata"]
+        "required": [
+          "object",
+          "metadata"
+        ]
       },
       "ObjectCompletionEventInput": {
         "type": "object",
@@ -303,24 +369,44 @@
                     }
                   ]
                 },
-                "mimeType": { "type": "string" }
+                "mimeType": {
+                  "type": "string"
+                }
               },
-              "required": ["file"]
+              "required": [
+                "file"
+              ]
             },
             "example": [
-              { "file": "file_data", "mimeType": "application/pdf" },
-              { "file": "image_data", "mimeType": "image/png" },
-              { "file": "https://example.com/image.jpg" }
+              {
+                "file": "file_data",
+                "mimeType": "application/pdf"
+              },
+              {
+                "file": "image_data",
+                "mimeType": "image/png"
+              },
+              {
+                "file": "https://example.com/image.jpg"
+              }
             ],
             "description": "Optional attachments to include in the generation"
           },
           "contextSlugs": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "Optional context slugs to add contexts to the run"
           },
-          "type": { "type": "string", "const": "event" },
+          "type": {
+            "type": "string",
+            "const": "event"
+          },
           "callback": {
             "type": "object",
             "properties": {
@@ -334,9 +420,14 @@
                 "type": "object",
                 "additionalProperties": {}
               },
-              "headers": { "type": "object", "additionalProperties": {} }
+              "headers": {
+                "type": "object",
+                "additionalProperties": {}
+              }
             },
-            "required": ["url"]
+            "required": [
+              "url"
+            ]
           },
           "workflowSlug": {
             "type": "string",
@@ -353,19 +444,33 @@
                   "type": "string",
                   "description": "The user's full name"
                 },
-                "age": { "type": "number", "description": "The user's age" },
+                "age": {
+                  "type": "number",
+                  "description": "The user's age"
+                },
                 "interests": {
                   "type": "array",
-                  "items": { "type": "string" },
+                  "items": {
+                    "type": "string"
+                  },
                   "description": "List of user interests"
                 }
               },
-              "required": ["name", "age"]
+              "required": [
+                "name",
+                "age"
+              ]
             },
             "description": "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification."
           }
         },
-        "required": ["input", "type", "callback", "workflowSlug", "schema"]
+        "required": [
+          "input",
+          "type",
+          "callback",
+          "workflowSlug",
+          "schema"
+        ]
       },
       "ObjectCompletionInput": {
         "type": "object",
@@ -395,21 +500,38 @@
                     }
                   ]
                 },
-                "mimeType": { "type": "string" }
+                "mimeType": {
+                  "type": "string"
+                }
               },
-              "required": ["file"]
+              "required": [
+                "file"
+              ]
             },
             "example": [
-              { "file": "file_data", "mimeType": "application/pdf" },
-              { "file": "image_data", "mimeType": "image/png" },
-              { "file": "https://example.com/image.jpg" }
+              {
+                "file": "file_data",
+                "mimeType": "application/pdf"
+              },
+              {
+                "file": "image_data",
+                "mimeType": "image/png"
+              },
+              {
+                "file": "https://example.com/image.jpg"
+              }
             ],
             "description": "Optional attachments to include in the generation"
           },
           "contextSlugs": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "Optional context slugs to add contexts to the run"
           },
           "workflowSlug": {
@@ -432,26 +554,45 @@
                   "type": "string",
                   "description": "The user's full name"
                 },
-                "age": { "type": "number", "description": "The user's age" },
+                "age": {
+                  "type": "number",
+                  "description": "The user's age"
+                },
                 "interests": {
                   "type": "array",
-                  "items": { "type": "string" },
+                  "items": {
+                    "type": "string"
+                  },
                   "description": "List of user interests"
                 }
               },
-              "required": ["name", "age"]
+              "required": [
+                "name",
+                "age"
+              ]
             },
             "description": "A valid JSON Schema object defining the structure of the expected response. Must have a 'type' property set to 'object', 'array', or 'string' (with enum). See https://json-schema.org/ for full specification."
           }
         },
-        "required": ["input", "schema"]
+        "required": [
+          "input",
+          "schema"
+        ]
       },
       "StreamTextEvent": {
         "oneOf": [
-          { "$ref": "#/components/schemas/StreamTextEventObject" },
-          { "$ref": "#/components/schemas/StreamTextEventTextDelta" },
-          { "$ref": "#/components/schemas/StreamTextEventError" },
-          { "$ref": "#/components/schemas/StreamTextEventFinish" }
+          {
+            "$ref": "#/components/schemas/StreamTextEventObject"
+          },
+          {
+            "$ref": "#/components/schemas/StreamTextEventTextDelta"
+          },
+          {
+            "$ref": "#/components/schemas/StreamTextEventError"
+          },
+          {
+            "$ref": "#/components/schemas/StreamTextEventFinish"
+          }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -466,35 +607,63 @@
       "StreamTextEventObject": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "object" },
+          "type": {
+            "type": "string",
+            "const": "object"
+          },
           "object": {
             "type": "object",
-            "properties": { "output": { "type": "string" } },
-            "required": ["output"]
+            "properties": {
+              "output": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "output"
+            ]
           }
         },
-        "required": ["type", "object"]
+        "required": [
+          "type",
+          "object"
+        ]
       },
       "StreamTextEventTextDelta": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "text-delta" },
-          "textDelta": { "type": "string" }
+          "type": {
+            "type": "string",
+            "const": "text-delta"
+          },
+          "textDelta": {
+            "type": "string"
+          }
         },
-        "required": ["type", "textDelta"]
+        "required": [
+          "type",
+          "textDelta"
+        ]
       },
       "StreamTextEventError": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "error" },
+          "type": {
+            "type": "string",
+            "const": "error"
+          },
           "error": {}
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "StreamTextEventFinish": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "finish" },
+          "type": {
+            "type": "string",
+            "const": "finish"
+          },
           "finishReason": {
             "type": "string",
             "enum": [
@@ -510,21 +679,43 @@
           "usage": {
             "type": "object",
             "properties": {
-              "promptTokens": { "type": "number" },
-              "completionTokens": { "type": "number" },
-              "totalTokens": { "type": "number" }
+              "promptTokens": {
+                "type": "number"
+              },
+              "completionTokens": {
+                "type": "number"
+              },
+              "totalTokens": {
+                "type": "number"
+              }
             },
-            "required": ["promptTokens", "completionTokens", "totalTokens"]
+            "required": [
+              "promptTokens",
+              "completionTokens",
+              "totalTokens"
+            ]
           }
         },
-        "required": ["type", "finishReason", "usage"]
+        "required": [
+          "type",
+          "finishReason",
+          "usage"
+        ]
       },
       "StreamEvent": {
         "oneOf": [
-          { "$ref": "#/components/schemas/StreamEventObject" },
-          { "$ref": "#/components/schemas/StreamEventTextDelta" },
-          { "$ref": "#/components/schemas/StreamEventError" },
-          { "$ref": "#/components/schemas/StreamEventFinish" }
+          {
+            "$ref": "#/components/schemas/StreamEventObject"
+          },
+          {
+            "$ref": "#/components/schemas/StreamEventTextDelta"
+          },
+          {
+            "$ref": "#/components/schemas/StreamEventError"
+          },
+          {
+            "$ref": "#/components/schemas/StreamEventFinish"
+          }
         ],
         "discriminator": {
           "propertyName": "type",
@@ -539,46 +730,80 @@
       "StreamEventObject": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "object" },
+          "type": {
+            "type": "string",
+            "const": "object"
+          },
           "object": {
             "anyOf": [
-              { "$ref": "#/components/schemas/StreamEventObjectText" },
-              { "$ref": "#/components/schemas/StreamEventObjectUnknown" }
+              {
+                "$ref": "#/components/schemas/StreamEventObjectText"
+              },
+              {
+                "$ref": "#/components/schemas/StreamEventObjectUnknown"
+              }
             ]
           }
         },
-        "required": ["type", "object"]
+        "required": [
+          "type",
+          "object"
+        ]
       },
       "StreamEventObjectText": {
         "type": "object",
-        "properties": { "text": { "type": "string" } },
-        "required": ["text"]
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
       },
       "StreamEventObjectUnknown": {
         "type": "object",
-        "properties": { "object": {} },
+        "properties": {
+          "object": {}
+        },
         "description": "Used for structured responses, based on the schema"
       },
       "StreamEventTextDelta": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "text-delta" },
-          "textDelta": { "type": "string" }
+          "type": {
+            "type": "string",
+            "const": "text-delta"
+          },
+          "textDelta": {
+            "type": "string"
+          }
         },
-        "required": ["type", "textDelta"]
+        "required": [
+          "type",
+          "textDelta"
+        ]
       },
       "StreamEventError": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "error" },
+          "type": {
+            "type": "string",
+            "const": "error"
+          },
           "error": {}
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "StreamEventFinish": {
         "type": "object",
         "properties": {
-          "type": { "type": "string", "const": "finish" },
+          "type": {
+            "type": "string",
+            "const": "finish"
+          },
           "finishReason": {
             "type": "string",
             "enum": [
@@ -594,14 +819,28 @@
           "usage": {
             "type": "object",
             "properties": {
-              "promptTokens": { "type": "number" },
-              "completionTokens": { "type": "number" },
-              "totalTokens": { "type": "number" }
+              "promptTokens": {
+                "type": "number"
+              },
+              "completionTokens": {
+                "type": "number"
+              },
+              "totalTokens": {
+                "type": "number"
+              }
             },
-            "required": ["promptTokens", "completionTokens", "totalTokens"]
+            "required": [
+              "promptTokens",
+              "completionTokens",
+              "totalTokens"
+            ]
           }
         },
-        "required": ["type", "finishReason", "usage"]
+        "required": [
+          "type",
+          "finishReason",
+          "usage"
+        ]
       },
       "GetRunByIdResponse": {
         "type": "object",
@@ -613,7 +852,7 @@
           },
           "origin": {
             "type": "string",
-            "example": "SDK",
+            "example": "API",
             "description": "The origin of the run"
           },
           "status": {
@@ -657,7 +896,10 @@
             "description": "The duration of the run in milliseconds"
           },
           "threadId": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "example": "thread_1234567890",
             "description": "The thread ID of the run"
           },
@@ -675,10 +917,16 @@
                 "description": "The tag of the model"
               }
             },
-            "required": ["name", "tag"]
+            "required": [
+              "name",
+              "tag"
+            ]
           },
           "attachments": {
-            "type": ["array", "null"],
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "object",
               "properties": {
@@ -698,11 +946,18 @@
                   "description": "The ID of the attachment"
                 }
               },
-              "required": ["url", "mimeType", "id"]
+              "required": [
+                "url",
+                "mimeType",
+                "id"
+              ]
             }
           },
           "knowledge": {
-            "type": ["array", "null"],
+            "type": [
+              "array",
+              "null"
+            ],
             "items": {
               "type": "object",
               "properties": {
@@ -712,7 +967,10 @@
                   "description": "The ID of the knowledge"
                 },
                 "title": {
-                  "type": ["string", "null"],
+                  "type": [
+                    "string",
+                    "null"
+                  ],
                   "example": "My Resource",
                   "description": "The title of the knowledge"
                 },
@@ -727,7 +985,12 @@
                   "description": "The type of the knowledge"
                 }
               },
-              "required": ["id", "title", "url", "type"]
+              "required": [
+                "id",
+                "title",
+                "url",
+                "type"
+              ]
             }
           },
           "workflowId": {
@@ -822,7 +1085,9 @@
                       "description": "The name of the provider"
                     }
                   },
-                  "required": ["name"]
+                  "required": [
+                    "name"
+                  ]
                 }
               },
               "required": [
@@ -840,7 +1105,9 @@
             }
           }
         },
-        "required": ["models"]
+        "required": [
+          "models"
+        ]
       },
       "CreateThreadResponse": {
         "type": "object",
@@ -856,15 +1123,31 @@
             "description": "The name of the thread"
           },
           "lookupKeys": {
-            "type": ["array", "null"],
-            "items": { "type": "string" },
-            "example": ["user-123", "platform-web-app"],
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "user-123",
+              "platform-web-app"
+            ],
             "description": "The lookup keys of the thread"
           },
           "contextSlugs": {
-            "type": ["array", "null"],
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "The context slugs of the thread"
           },
           "createdAt": {
@@ -897,14 +1180,24 @@
           },
           "lookupKeys": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["user-123", "platform-web-app"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "user-123",
+              "platform-web-app"
+            ],
             "description": "Optional lookup keys for finding the thread later"
           },
           "contextSlugs": {
             "type": "array",
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "Optional context slugs to append the context to the thread"
           },
           "workflowSlug": {
@@ -914,18 +1207,24 @@
             "description": "The slug of the workflow this thread belongs to"
           }
         },
-        "required": ["workflowSlug"]
+        "required": [
+          "workflowSlug"
+        ]
       },
       "GetThreadsByWorkflowResponse": {
         "type": "object",
         "properties": {
           "threads": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/GetThreadResponse" },
+            "items": {
+              "$ref": "#/components/schemas/GetThreadResponse"
+            },
             "description": "Array of threads for the workflow"
           }
         },
-        "required": ["threads"]
+        "required": [
+          "threads"
+        ]
       },
       "GetThreadResponse": {
         "type": "object",
@@ -941,15 +1240,30 @@
             "description": "The name of the thread"
           },
           "lookupKeys": {
-            "type": ["array", "null"],
-            "items": { "type": "string" },
-            "example": ["user-123-session"],
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "user-123-session"
+            ],
             "description": "The lookup keys of the thread"
           },
           "contextSlugs": {
-            "type": ["array", "null"],
-            "items": { "type": "string" },
-            "example": ["special-docs", "admin-files"],
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "special-docs",
+              "admin-files"
+            ],
             "description": "The context slugs of the thread"
           },
           "createdAt": {
@@ -977,15 +1291,23 @@
         "properties": {
           "runs": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/GetRunByIdResponse" },
+            "items": {
+              "$ref": "#/components/schemas/GetRunByIdResponse"
+            },
             "description": "Array of runs in the thread"
           }
         },
-        "required": ["runs"]
+        "required": [
+          "runs"
+        ]
       }
     }
   },
-  "security": [{ "ApiKey": [] }],
+  "security": [
+    {
+      "ApiKey": []
+    }
+  ],
   "paths": {
     "/api/v1/generate/text": {
       "post": {
@@ -1000,13 +1322,21 @@
             },
             "description": "Successfully generated content (we also return the run ID in the header X-Run-ID)"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "generateText",
         "parameters": [],
@@ -1017,8 +1347,12 @@
             "application/json": {
               "schema": {
                 "anyOf": [
-                  { "$ref": "#/components/schemas/TextCompletionEventInput" },
-                  { "$ref": "#/components/schemas/TextCompletionInput" }
+                  {
+                    "$ref": "#/components/schemas/TextCompletionEventInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/TextCompletionInput"
+                  }
                 ]
               }
             }
@@ -1039,13 +1373,21 @@
             },
             "description": "Successfully generated object (we also return the run ID in the header X-Run-ID)"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "generateObject",
         "parameters": [],
@@ -1056,8 +1398,12 @@
             "application/json": {
               "schema": {
                 "anyOf": [
-                  { "$ref": "#/components/schemas/ObjectCompletionEventInput" },
-                  { "$ref": "#/components/schemas/ObjectCompletionInput" }
+                  {
+                    "$ref": "#/components/schemas/ObjectCompletionEventInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ObjectCompletionInput"
+                  }
                 ]
               }
             }
@@ -1071,18 +1417,28 @@
           "200": {
             "content": {
               "text/event-stream": {
-                "schema": { "$ref": "#/components/schemas/StreamTextEvent" }
+                "schema": {
+                  "$ref": "#/components/schemas/StreamTextEvent"
+                }
               }
             },
             "description": "Successfully streaming content"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "streamText",
         "parameters": [],
@@ -1095,7 +1451,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/TextCompletionInput" }
+              "schema": {
+                "$ref": "#/components/schemas/TextCompletionInput"
+              }
             }
           }
         }
@@ -1107,18 +1465,28 @@
           "200": {
             "content": {
               "text/event-stream": {
-                "schema": { "$ref": "#/components/schemas/StreamEvent" }
+                "schema": {
+                  "$ref": "#/components/schemas/StreamEvent"
+                }
               }
             },
             "description": "Successfully streaming content"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "streamObject",
         "parameters": [],
@@ -1131,7 +1499,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ObjectCompletionInput" }
+              "schema": {
+                "$ref": "#/components/schemas/ObjectCompletionInput"
+              }
             }
           }
         }
@@ -1143,18 +1513,28 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/GetRunByIdResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/GetRunByIdResponse"
+                }
               }
             },
             "description": "Successfully retrieved run details"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "getRunById",
         "parameters": [
@@ -1179,18 +1559,28 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/GetModelsResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/GetModelsResponse"
+                }
               }
             },
             "description": "Successfully retrieved models"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "getModels",
         "parameters": [],
@@ -1211,13 +1601,21 @@
             },
             "description": "Successfully created thread"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "createThread",
         "parameters": [],
@@ -1226,7 +1624,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateThreadInput" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateThreadInput"
+              }
             }
           }
         }
@@ -1245,13 +1645,21 @@
             },
             "description": "Successfully retrieved threads"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "getThreadsByWorkflow",
         "parameters": [
@@ -1270,10 +1678,20 @@
             "name": "lookupKeys",
             "schema": {
               "anyOf": [
-                { "type": "string" },
-                { "type": "array", "items": { "type": "string" } }
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               ],
-              "example": ["user-123", "platform-web-app"],
+              "example": [
+                "user-123",
+                "platform-web-app"
+              ],
               "description": "Optional lookup keys to filter threads"
             }
           }
@@ -1295,13 +1713,21 @@
             },
             "description": "Successfully retrieved thread runs"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "getRunsByThread",
         "parameters": [
@@ -1326,23 +1752,35 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/GetThreadResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/GetThreadResponse"
+                }
               }
             },
             "description": "Successfully retrieved thread"
           },
-          "400": { "description": "Bad request - invalid input" },
-          "401": { "description": "Unauthorized - invalid API key" },
+          "400": {
+            "description": "Bad request - invalid input"
+          },
+          "401": {
+            "description": "Unauthorized - invalid API key"
+          },
           "403": {
             "description": "Forbidden - you do not have access to this workflow"
           },
-          "404": { "description": "Not found - workflow not found" },
-          "500": { "description": "Server error during generation" }
+          "404": {
+            "description": "Not found - workflow not found"
+          },
+          "500": {
+            "description": "Server error during generation"
+          }
         },
         "operationId": "getThreadById",
         "parameters": [
           {
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "in": "path",
             "name": "id",
             "required": true

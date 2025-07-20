@@ -4,7 +4,6 @@ import { v7 as v4 } from "uuid";
 import { db } from "./index";
 import type { Run } from "./run/actions";
 import {
-  contexts,
   knowledge,
   modelSettings,
   models,
@@ -207,7 +206,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 export { createSampleData };
 
-type RunOrigin = "WEB" | "SDK";
+type RunOrigin = "WEB" | "API";
 type RunStatus = "COMPLETED" | "FAILED";
 
 export function generateSampleRuns(
@@ -224,7 +223,7 @@ export function generateSampleRuns(
 
     runs.push({
       id: v4(),
-      origin: Math.random() > 0.5 ? "WEB" : ("SDK" as RunOrigin),
+      origin: Math.random() > 0.5 ? "WEB" : ("API" as RunOrigin),
       status: Math.random() > 0.2 ? "COMPLETED" : ("FAILED" as RunStatus),
       input: "How do I reset my password?",
       output: "You have to go to the login page and click 'Forgot Password'.",

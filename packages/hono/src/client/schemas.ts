@@ -514,7 +514,7 @@ export const GetRunByIdResponseSchema = z
       description: "The ID of the run",
     }),
     origin: z.string().openapi({
-      example: "SDK",
+      example: "API",
       description: "The origin of the run",
     }),
     status: z.string().openapi({
