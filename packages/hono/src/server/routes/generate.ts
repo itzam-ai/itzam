@@ -222,11 +222,15 @@ export const generateRoute = new Hono()
           startTime,
         });
 
+        console.log("object", object);
+        console.log("metadata", metadata);
+
         return c.json({
           object,
           metadata,
         });
       } catch (error) {
+        console.log("error", error);
         if (error instanceof Error && "responseBody" in error) {
           try {
             return c.json(

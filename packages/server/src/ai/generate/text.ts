@@ -357,6 +357,12 @@ export async function generateObjectResponse({
   startTime: number;
   additionalMetadata?: Record<string, unknown>;
 }) {
+  console.log("aiParams", aiParams);
+  console.log("run", run);
+  console.log("model", model);
+  console.log("startTime", startTime);
+  console.log("additionalMetadata", additionalMetadata);
+
   const response = await generateObject({
     ...aiParams,
     // @ts-expect-error TODO: fix typing

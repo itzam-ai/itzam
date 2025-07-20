@@ -5,19 +5,19 @@ import React, { useEffect, useState } from "react";
 import { codeToHtml } from "shiki";
 import { useTheme } from "next-themes";
 
-export type CodeBlockCodeProps = {
+export type CodeProps = {
   code: string;
   language?: string;
   theme?: string;
   className?: string;
 } & React.HTMLProps<HTMLDivElement>;
 
-export function CodeBlockCode({
+export function Code({
   code,
   language = "typescript",
   className,
   ...props
-}: CodeBlockCodeProps) {
+}: CodeProps) {
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
 
   const { resolvedTheme } = useTheme();
@@ -51,20 +51,15 @@ export function CodeBlockCode({
     highlight();
   }, [code, language, theme]);
 
-  const classNames = cn(
-    "w-full md:text-[13px] text-[12px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:bg-transparent [&>pre]:my-0 md:overflow-hidden overflow-x-auto",
-    className
-  );
-
   // SSR fallback: render plain code if not hydrated yet
   return highlightedHtml ? (
     <div
-      className={classNames}
+      className={cn(className)}
       dangerouslySetInnerHTML={{ __html: highlightedHtml }}
       {...props}
     />
   ) : (
-    <div className={classNames} {...props}>
+    <div className={cn(className)} {...props}>
       <pre>
         <code>{code}</code>
       </pre>
