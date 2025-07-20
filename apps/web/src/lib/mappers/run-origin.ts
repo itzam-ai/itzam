@@ -1,5 +1,5 @@
-import { runOriginEnum } from '@itzam/server/db/schema';
-import { Blocks, CodeIcon } from 'lucide-react';
+import { runOriginEnum } from "@itzam/server/db/schema";
+import { Blocks, CodeIcon } from "lucide-react";
 
 export type RunOriginType = (typeof runOriginEnum.enumValues)[number];
 
@@ -10,14 +10,14 @@ export type RunOriginConfig = {
 };
 
 export const runOriginMap: Record<RunOriginType, RunOriginConfig> = {
-  SDK: {
-    value: 'SDK',
-    label: 'SDK',
+  API: {
+    value: "API",
+    label: "API",
     icon: CodeIcon,
   },
   WEB: {
-    value: 'WEB',
-    label: 'Playground',
+    value: "WEB",
+    label: "Playground",
     icon: Blocks,
   },
 };

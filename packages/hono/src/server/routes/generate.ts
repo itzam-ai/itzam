@@ -69,7 +69,7 @@ export const generateRoute = new Hono()
         if ("type" in params && params.type === "event") {
           await client.publishJSON({
             url: `${env.NEXT_PUBLIC_APP_URL}/api/events`,
-            retries: 0,
+            retries: 3,
             body: {
               run,
               workflow,
@@ -92,12 +92,12 @@ export const generateRoute = new Hono()
           );
         }
 
-        const { text, metadata } = await generateTextResponse(
+        const { text, metadata } = await generateTextResponse({
           aiParams,
           run,
-          workflow.model,
-          startTime
-        );
+          model: workflow.model,
+          startTime,
+        });
 
         return c.json({
           text,
@@ -215,12 +215,12 @@ export const generateRoute = new Hono()
           );
         }
 
-        const { object, metadata } = await generateObjectResponse(
+        const { object, metadata } = await generateObjectResponse({
           aiParams,
           run,
-          workflow.model,
-          startTime
-        );
+          model: workflow.model,
+          startTime,
+        });
 
         return c.json({
           object,

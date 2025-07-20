@@ -64,7 +64,6 @@ const StarBorder = ({
   );
 };
 
-
 export function Hero() {
   const { isSignedIn } = useCurrentUser();
 
@@ -72,29 +71,6 @@ export function Hero() {
     <section className="mx-auto max-w-5xl min-h-screen py-24 md:pt-32 pt-48 flex justify-center align-middle flex-col">
       <div className="flex justify-center align-middle max-w-5xl mx-4 md:mx-0 flex-col md:flex-row md:gap-0 gap-24">
         <div className="w-full md:w-1/2 flex flex-col justify-center align-middle text-left">
-          <motion.div
-            initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
-            animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-4"
-          >
-            <StarBorder
-              as={Link}
-              href="https://x.com/grimcodes/status/1928167975766610178"
-              target="_blank"
-              rel="noopener noreferrer"
-              color="#f97316"
-              speed="2s"
-              thickness={1}
-              className="text-xs"
-            >
-              Backed by{" "}
-              <span className="bg-orange-500 size-4 text-white inline-block ml-1 rounded-sm mr-0.5">
-                G
-              </span>{" "}
-              Combinator
-            </StarBorder>
-          </motion.div>
           <motion.h1
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
             animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}

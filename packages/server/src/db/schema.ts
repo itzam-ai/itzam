@@ -190,7 +190,7 @@ export const runStatusEnum = pgEnum("run_status", [
   "COMPLETED",
   "FAILED",
 ]);
-export const runOriginEnum = pgEnum("run_origin", ["SDK", "WEB"]);
+export const runOriginEnum = pgEnum("run_origin", ["API", "WEB"]);
 
 // -------- 🏃🏻‍➡️ RUNS --------
 export const runs = createTable(

@@ -226,7 +226,7 @@ async function seed() {
     {
       tag: "openai:o3-mini",
       name: "o3 Mini",
-      hasVision: true,
+      hasVision: false,
       isOpenSource: false,
       hasReasoningCapability: true,
       contextWindowSize: 200000,

@@ -1,10 +1,15 @@
 import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 
-import { generateObjectResponse } from "@itzam/server/ai/generate/text";
+import {
+  generateObjectResponse,
+  generateTextResponse,
+} from "@itzam/server/ai/generate/text";
 import { createAiParams } from "@itzam/server/ai/utils";
 
 export const POST = verifySignatureAppRouter(async (request: Request) => {
   const { run, workflow, callback, schema, input } = await request.json();
+  const retries = request.headers.get("Upstash-Retried") ?? 0;
+
   const aiParams = await createAiParams({
     userId: workflow.userId,
     input,
@@ -24,18 +29,20 @@ export const POST = verifySignatureAppRouter(async (request: Request) => {
   }
 
   try {
-    const { object, metadata } = await generateObjectResponse(
+    const fn = schema ? generateObjectResponse : generateTextResponse;
+
+    const res = await fn({
       aiParams,
       run,
-      workflow.model,
-      startTime
-    );
+      model: workflow.model,
+      startTime,
+      additionalMetadata: { callback, type: "event", retries: retries },
+    });
 
     await fetch(callback.url, {
       method: "POST",
       body: JSON.stringify({
-        object,
-        metadata,
+        ...res,
         customProperties: callback.customProperties,
       }),
       headers: callback.headers,

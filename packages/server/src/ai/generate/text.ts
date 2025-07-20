@@ -39,7 +39,7 @@ export async function generateTextOrObjectStream(
                   startTime,
                   status: "FAILED",
                   fullResponse: response,
-                  metadata: { error: "No object returned" },
+                  metadata: { aiParams, error: "No object returned" },
                 });
                 return;
               }
@@ -57,7 +57,7 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "COMPLETED",
                 fullResponse: response,
-                metadata,
+                metadata: { ...metadata, aiParams },
               });
             },
             onError: async ({ error }) => {
@@ -80,7 +80,7 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "FAILED",
                 fullResponse: response,
-                metadata: { error },
+                metadata: { aiParams, error },
                 error: error as string,
               });
             },
@@ -98,7 +98,7 @@ export async function generateTextOrObjectStream(
                   startTime,
                   status: "FAILED",
                   fullResponse: response,
-                  metadata: { error: "No object returned" },
+                  metadata: { aiParams, error: "No object returned" },
                 });
                 return;
               }
@@ -116,7 +116,7 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "COMPLETED",
                 fullResponse: response,
-                metadata,
+                metadata: { ...metadata, aiParams },
               });
             },
             onError: async ({ error }) => {
@@ -139,7 +139,7 @@ export async function generateTextOrObjectStream(
                 startTime,
                 status: "FAILED",
                 fullResponse: response,
-                metadata: { error },
+                metadata: { error, aiParams },
                 error: error as string,
               });
             },
@@ -273,6 +273,7 @@ export async function generateTextOrObjectStream(
       status: "FAILED",
       fullResponse: null,
       metadata: {
+        aiParams,
         error: error instanceof Error ? error.message : "Unknown error",
       },
       error: error instanceof Error ? error.message : "Unknown error",
@@ -285,12 +286,19 @@ export async function generateTextOrObjectStream(
   }
 }
 
-export async function generateTextResponse(
-  aiParams: AiParams,
-  run: PreRunDetails,
-  model: Model,
-  startTime: number
-) {
+export async function generateTextResponse({
+  aiParams,
+  run,
+  model,
+  startTime,
+  additionalMetadata,
+}: {
+  aiParams: AiParams;
+  run: PreRunDetails;
+  model: Model;
+  startTime: number;
+  additionalMetadata?: Record<string, unknown>;
+}) {
   const response = await generateText(aiParams);
 
   // ⏰ End timing
@@ -310,7 +318,7 @@ export async function generateTextResponse(
 
   await createRunWithCost({
     ...run,
-    metadata: { metadata, aiParams },
+    metadata: { ...metadata, ...additionalMetadata, aiParams },
     model: model,
     status: "COMPLETED",
     output: response.text,
@@ -336,12 +344,19 @@ export async function generateTextResponse(
   };
 }
 
-export async function generateObjectResponse(
-  aiParams: AiParams,
-  run: PreRunDetails,
-  model: Model,
-  startTime: number
-) {
+export async function generateObjectResponse({
+  aiParams,
+  run,
+  model,
+  startTime,
+  additionalMetadata,
+}: {
+  aiParams: AiParams;
+  run: PreRunDetails;
+  model: Model;
+  startTime: number;
+  additionalMetadata?: Record<string, unknown>;
+}) {
   const response = await generateObject({
     ...aiParams,
     // @ts-expect-error TODO: fix typing
@@ -352,7 +367,7 @@ export async function generateObjectResponse(
   const endTime = Date.now();
   const durationInMs = endTime - startTime;
 
-  const metadata = {
+  const runMetadata = {
     model: {
       name: model.name,
       tag: model.tag,
@@ -365,7 +380,7 @@ export async function generateObjectResponse(
 
   await createRunWithCost({
     ...run,
-    metadata: { metadata, aiParams },
+    metadata: { ...runMetadata, ...additionalMetadata, aiParams },
     model: model,
     status: "COMPLETED",
     output: JSON.stringify(response.object),
@@ -386,7 +401,7 @@ export async function generateObjectResponse(
     object: response.object,
     metadata: {
       cost: cost.toString(),
-      ...metadata,
+      ...additionalMetadata,
     },
   };
 }

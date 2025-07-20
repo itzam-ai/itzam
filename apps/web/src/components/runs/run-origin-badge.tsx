@@ -1,5 +1,5 @@
-import { cn } from "~/lib/utils";
 import { RunOriginType, getRunOriginConfig } from "~/lib/mappers/run-origin";
+import { cn } from "~/lib/utils";
 
 interface RunOriginBadgeProps {
   origin: RunOriginType;

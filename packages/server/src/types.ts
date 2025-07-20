@@ -2,7 +2,7 @@ import { AttachmentWithUrl } from "./ai/types";
 
 export type PreRunDetails = {
   id: string;
-  origin: "SDK" | "WEB";
+  origin: "API" | "WEB";
   input: string;
   prompt: string;
   threadId: string | null;

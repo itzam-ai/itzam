@@ -4,6 +4,7 @@ import {
   updateApiKeyLastUsed,
   validateApiKey,
 } from "@itzam/server/db/api-keys/actions";
+import { runOriginEnum } from "@itzam/server/db/schema";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
 import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
 import { env } from "@itzam/utils/env";
@@ -15,7 +16,7 @@ import { StatusCode } from "./errors";
 
 export type PreRunDetails = {
   id: string;
-  origin: "SDK" | "WEB";
+  origin: "API" | "WEB";
   input: string;
   prompt: string;
   threadId: string | null;
@@ -37,6 +38,7 @@ export const setupRunGeneration = async ({
   attachments,
   contextSlugs,
   runId,
+  origin,
 }: {
   userId: string;
   workflowSlug?: string;
@@ -46,6 +48,7 @@ export const setupRunGeneration = async ({
   attachments?: Attachment[];
   contextSlugs?: string[];
   runId?: string;
+  origin?: (typeof runOriginEnum.enumValues)[number];
 }) => {
   let workflow;
 
@@ -96,7 +99,7 @@ export const setupRunGeneration = async ({
 
   const run: PreRunDetails = {
     id: runId || uuidv7(),
-    origin: "SDK" as const,
+    origin: origin || "API",
     input,
     prompt: workflow.prompt,
     threadId: threadId || null,

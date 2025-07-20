@@ -1,6 +1,7 @@
 "use client";
 
 import { RunWithModelAndResourcesAndAttachmentsAndThreads } from "@itzam/server/db/run/actions";
+import type { EventMetadata, Metadata } from "@itzam/server/db/run/types";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckIcon,
@@ -16,25 +17,52 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { RunOriginType } from "~/lib/mappers/run-origin";
-import { formatDate } from "~/lib/utils";
-import { ThreadDrawer } from "../thread/drawer";
+import { cn, formatDate } from "~/lib/utils";
 import { ImageAttachment } from "../message/image-attachment";
+import { ThreadDrawer } from "../thread/drawer";
 import { Badge } from "../ui/badge";
 import { RunOriginBadge } from "./run-origin-badge";
+import { RunTypeBadge } from "./run-type-badge";
 
-export function ExpandableRunRow({
+function RunDetail({
+  title,
+  value,
+  className,
+  titleClassName,
+}: {
+  title: string;
+  value: string | React.ReactNode;
+  className?: string;
+  titleClassName?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <h4 className={cn("text-muted-foreground text-sm", titleClassName)}>
+        {title}
+      </h4>
+      {typeof value === "string" ? (
+        <p className={cn("mt-1 max-w-[400px] whitespace-pre-wrap", className)}>
+          {value}
+        </p>
+      ) : (
+        value
+      )}
+    </div>
+  );
+}
+
+function RunDetails({
   run,
 }: {
-  run: RunWithModelAndResourcesAndAttachmentsAndThreads | null;
+  run: RunWithModelAndResourcesAndAttachmentsAndThreads;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const contexts = run.workflow?.contexts;
+  const metadata = run.metadata as EventMetadata | Metadata;
 
-  const contexts = run?.workflow?.contexts;
-
-  const resourcesFromKnowledge = run?.runResources.filter(
+  const resourcesFromKnowledge = run.runResources.filter(
     (resource) => resource.resource.knowledgeId
   );
-  const resourcesFromContexts = run?.runResources.filter(
+  const resourcesFromContexts = run.runResources.filter(
     (resource) => resource.resource.contextId
   );
 
@@ -55,6 +83,216 @@ export function ExpandableRunRow({
       RunWithModelAndResourcesAndAttachmentsAndThreads["runResources"]
     >
   );
+
+  const isEvent = metadata && "type" in metadata && metadata.type === "event";
+
+  return (
+    <div className="flex gap-12 px-4 pt-6 pb-12">
+      <div className="flex w-3/6 flex-col gap-6">
+        <RunDetail
+          className="font-mono text-xs"
+          title="Prompt"
+          value={run.prompt}
+        />
+        {resourcesFromKnowledge && resourcesFromKnowledge.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <h4 className="text-muted-foreground text-sm">Knowledge</h4>
+            <div className="flex flex-col gap-1">
+              {run.runResources.map((resource) => (
+                <Link
+                  href={resource.resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={resource.resource.id}
+                >
+                  <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
+                    {resource.resource.type === "FILE" ? (
+                      <FileIcon className="size-3 text-muted-foreground" />
+                    ) : (
+                      <GlobeIcon className="size-3 text-muted-foreground" />
+                    )}
+                    {resource.resource.title}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+        {contextResourcesGroupedByContext &&
+          Object.keys(contextResourcesGroupedByContext).length > 0 &&
+          Object.keys(contextResourcesGroupedByContext).map((contextId) => {
+            const context = contexts?.find(
+              (context) => context.id === contextId
+            );
+            return (
+              <div className="flex flex-col gap-2" key={contextId}>
+                <h4 className="text-muted-foreground text-sm">
+                  {context?.name}
+                </h4>
+                <div className="flex flex-col gap-1">
+                  {contextResourcesGroupedByContext[contextId]?.map(
+                    (resource) => (
+                      <Link
+                        href={resource.resource.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        key={resource.resource.id}
+                      >
+                        <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
+                          {resource.resource.type === "FILE" ? (
+                            <FileIcon className="size-3 text-muted-foreground" />
+                          ) : (
+                            <GlobeIcon className="size-3 text-muted-foreground" />
+                          )}
+                          {resource.resource.title}
+                        </div>
+                      </Link>
+                    )
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        <RunDetail title="Input" value={run.input} />
+        {run.attachments.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <h4 className="text-muted-foreground text-sm">Attachments</h4>
+            <div className="mt-1 flex flex-wrap gap-1">
+              {run.attachments.map((attachment) => (
+                <div
+                  key={attachment.url}
+                  className="flex size-12 items-center justify-center rounded-lg border cursor-pointer border-muted shadow-sm transition-all hover:border-muted-foreground/40"
+                >
+                  {attachment.mimeType.startsWith("image/") ? (
+                    <ImageAttachment
+                      mimeType={attachment.mimeType}
+                      url={attachment.url}
+                    />
+                  ) : (
+                    <Link
+                      href={attachment.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      key={attachment.url}
+                    >
+                      <FileIcon className="size-4" />
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {run.output && <RunDetail title="Output" value={run.output} />}
+        {run.error && (
+          <RunDetail
+            title="Error"
+            value={run.error}
+            titleClassName="text-red-500"
+          />
+        )}
+      </div>
+
+      <div className="flex w-1/6 flex-col gap-6">
+        <RunDetail
+          title="Status"
+          value={
+            <div className="mt-1 flex items-center">
+              <div
+                className={`mr-1.5 size-2 rounded-full bg-green-100 ${
+                  run.status === "COMPLETED"
+                    ? "bg-green-500"
+                    : run.status === "FAILED"
+                      ? "bg-red-500"
+                      : "bg-gray-500"
+                }`}
+              />
+              <p
+                className={`text-sm ${
+                  run.status === "COMPLETED"
+                    ? "text-green-500"
+                    : run.status === "FAILED"
+                      ? "text-red-500"
+                      : "text-gray-500"
+                }`}
+              >
+                {run.status.slice(0, 1).toUpperCase() +
+                  run.status.slice(1).toLowerCase()}
+              </p>
+            </div>
+          }
+        />
+
+        <RunDetail
+          title="Model"
+          value={
+            <div className="mt-1 flex items-center gap-2">
+              <ModelIcon tag={run.model?.tag ?? ""} size="xs" />
+              <p className="text-sm">{run.model?.name}</p>
+            </div>
+          }
+        />
+
+        <RunDetail
+          title="Origin"
+          value={<RunOriginBadge origin={run.origin as RunOriginType} />}
+        />
+
+        <RunDetail
+          title="Thread"
+          value={
+            <div className="mt-1 flex items-center gap-2">
+              {run.threadId ? (
+                <ThreadDrawer
+                  thread={{
+                    id: run.threadId,
+                    name: run.thread?.name ?? "",
+                    lookupKeys: run.thread?.lookupKeys ?? [],
+                  }}
+                />
+              ) : (
+                <p className="text-sm">N/A</p>
+              )}
+            </div>
+          }
+        />
+        {isEvent && (
+          <RunDetail
+            title="Type"
+            value={<RunTypeBadge type={metadata.type} />}
+          />
+        )}
+      </div>
+
+      <div className="flex w-1/6 flex-col gap-6">
+        <RunDetail title="Date" value={run.createdAt.toLocaleString()} />
+
+        <RunDetail title="Duration" value={`${run.durationInMs}ms`} />
+
+        <RunDetail title="Cost" value={`$${run.cost}`} />
+
+        <RunDetail
+          title="Tokens"
+          value={`${run.inputTokens + run.outputTokens} (${run.inputTokens} + ${run.outputTokens})`}
+        />
+        {isEvent && (
+          <RunDetail
+            className="text-wrap break-all"
+            title="Callback URL"
+            value={metadata.callback.url}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function ExpandableRunRow({
+  run,
+}: {
+  run: RunWithModelAndResourcesAndAttachmentsAndThreads | null;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
 
   if (!run) {
     return null;
@@ -150,231 +388,7 @@ export function ExpandableRunRow({
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="flex gap-12 px-4 pt-6 pb-12">
-                  <div className="flex w-3/6 flex-col gap-6">
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Prompt</h4>
-                      <p className="mt-1 max-w-[400px] whitespace-pre-wrap font-mono text-xs">
-                        {run.prompt}
-                      </p>
-                    </div>
-                    {resourcesFromKnowledge &&
-                      resourcesFromKnowledge.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <h4 className="text-muted-foreground text-sm">
-                            Knowledge
-                          </h4>
-                          <div className="flex flex-col gap-1">
-                            {run.runResources.map((resource) => (
-                              <Link
-                                href={resource.resource.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                key={resource.resource.id}
-                              >
-                                <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
-                                  {resource.resource.type === "FILE" ? (
-                                    <FileIcon className="size-3 text-muted-foreground" />
-                                  ) : (
-                                    <GlobeIcon className="size-3 text-muted-foreground" />
-                                  )}
-                                  {resource.resource.title}
-                                </div>
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    {contextResourcesGroupedByContext &&
-                      Object.keys(contextResourcesGroupedByContext).length >
-                        0 &&
-                      Object.keys(contextResourcesGroupedByContext).map(
-                        (contextId) => {
-                          const context = contexts?.find(
-                            (context) => context.id === contextId
-                          );
-                          return (
-                            <div
-                              className="flex flex-col gap-2"
-                              key={contextId}
-                            >
-                              <h4 className="text-muted-foreground text-sm">
-                                {context?.name}
-                              </h4>
-                              <div className="flex flex-col gap-1">
-                                {contextResourcesGroupedByContext[
-                                  contextId
-                                ]?.map((resource) => (
-                                  <Link
-                                    href={resource.resource.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    key={resource.resource.id}
-                                  >
-                                    <div className="flex items-center gap-1.5 text-sm hover:opacity-80 transition-opacity">
-                                      {resource.resource.type === "FILE" ? (
-                                        <FileIcon className="size-3 text-muted-foreground" />
-                                      ) : (
-                                        <GlobeIcon className="size-3 text-muted-foreground" />
-                                      )}
-                                      {resource.resource.title}
-                                    </div>
-                                  </Link>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Input</h4>
-                      <p className="mt-1 whitespace-pre-wrap text-sm">
-                        {run.input}
-                      </p>
-                    </div>
-                    {run.attachments.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-muted-foreground text-sm">
-                          Attachments
-                        </h4>
-                        <div className="mt-1 flex flex-wrap gap-1">
-                          {run.attachments.map((attachment) => (
-                            <div
-                              key={attachment.url}
-                              className="flex size-12 items-center justify-center rounded-lg border cursor-pointer border-muted shadow-sm transition-all hover:border-muted-foreground/40"
-                            >
-                              {attachment.mimeType.startsWith("image/") ? (
-                                <ImageAttachment
-                                  mimeType={attachment.mimeType}
-                                  url={attachment.url}
-                                />
-                              ) : (
-                                <Link
-                                  href={attachment.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  key={attachment.url}
-                                >
-                                  <FileIcon className="size-4" />
-                                </Link>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {run.output && (
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-muted-foreground text-sm">
-                          Output
-                        </h4>
-                        <p className="mt-1 max-w-[400px] whitespace-pre-wrap text-sm">
-                          {run.output}
-                        </p>
-                      </div>
-                    )}
-                    {run.error && (
-                      <div className="flex flex-col gap-1">
-                        <h4 className="text-red-500 text-sm">Error</h4>
-                        <p className="mt-1 max-w-[400px] whitespace-pre-wrap text-sm">
-                          {run.error}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex w-1/6 flex-col gap-6">
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Status</h4>
-                      <div className="mt-1 flex items-center">
-                        <div
-                          className={`mr-1.5 size-2 rounded-full bg-green-100 ${
-                            run.status === "COMPLETED"
-                              ? "bg-green-500"
-                              : run.status === "FAILED"
-                                ? "bg-red-500"
-                                : "bg-gray-500"
-                          }`}
-                        />
-                        <p
-                          className={`text-sm ${
-                            run.status === "COMPLETED"
-                              ? "text-green-500"
-                              : run.status === "FAILED"
-                                ? "text-red-500"
-                                : "text-gray-500"
-                          }`}
-                        >
-                          {run.status.slice(0, 1).toUpperCase() +
-                            run.status.slice(1).toLowerCase()}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Model</h4>
-                      <div className="mt-1 flex items-center gap-2">
-                        <ModelIcon tag={run.model?.tag ?? ""} size="xs" />
-                        <p className="text-sm">{run.model?.name}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Origin</h4>
-                      <div className="mt-1">
-                        <RunOriginBadge origin={run.origin as RunOriginType} />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Thread</h4>
-                      <div className="mt-1 flex items-center gap-2">
-                        {run.threadId ? (
-                          <ThreadDrawer
-                            thread={{
-                              id: run.threadId,
-                              name: run.thread?.name ?? "",
-                              lookupKeys: run.thread?.lookupKeys ?? [],
-                            }}
-                          />
-                        ) : (
-                          <p className="text-sm">N/A</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex w-1/6 flex-col gap-6">
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Date</h4>
-                      <p className="mt-1 text-sm">
-                        {run.createdAt.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">
-                        Duration
-                      </h4>
-                      <p className="mt-1 text-sm">{run.durationInMs}ms</p>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Cost</h4>
-                      <p className="mt-1 text-sm">${run.cost}</p>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <h4 className="text-muted-foreground text-sm">Tokens</h4>
-                      <p className="mt-1 text-sm">
-                        {run.inputTokens + run.outputTokens}
-                        <span className="ml-1 text-muted-foreground text-xs">
-                          ({run.inputTokens} + {run.outputTokens})
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <RunDetails run={run} />
               </motion.div>
             </TableCell>
           </TableRow>

@@ -92,6 +92,7 @@ export const createErrorResponse = (
       };
       return error;
     }
+
     default: {
       const error: ServerAPIError = {
         status: 500,
