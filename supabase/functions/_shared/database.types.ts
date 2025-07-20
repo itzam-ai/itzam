@@ -884,7 +884,7 @@ export type Database = {
       resource_scrape_frequency: "NEVER" | "HOURLY" | "DAILY" | "WEEKLY"
       resource_status: "PENDING" | "PROCESSED" | "FAILED"
       resource_type: "FILE" | "LINK"
-      run_origin: "SDK" | "WEB"
+      run_origin: "SDK" | "WEB" | "API"
       run_status: "RUNNING" | "COMPLETED" | "FAILED"
       temperature_preset: "STRICT" | "BALANCED" | "CREATIVE" | "CUSTOM"
       TransactionType: "DEPOSIT" | "WITHDRAWAL" | "OCR_TEST"
@@ -1023,7 +1023,7 @@ export const Constants = {
       resource_scrape_frequency: ["NEVER", "HOURLY", "DAILY", "WEEKLY"],
       resource_status: ["PENDING", "PROCESSED", "FAILED"],
       resource_type: ["FILE", "LINK"],
-      run_origin: ["SDK", "WEB"],
+      run_origin: ["SDK", "WEB", "API"],
       run_status: ["RUNNING", "COMPLETED", "FAILED"],
       temperature_preset: ["STRICT", "BALANCED", "CREATIVE", "CUSTOM"],
       TransactionType: ["DEPOSIT", "WITHDRAWAL", "OCR_TEST"],

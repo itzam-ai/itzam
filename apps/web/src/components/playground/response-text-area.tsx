@@ -92,7 +92,7 @@ export function ResponseTextArea({
 
       {hasOverflow && (
         <>
-          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 rounded-b-xl bg-gradient-to-t from-background to-transparent px-1" />
+          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 rounded-b-xl bg-gradient-to-t from-background to-transparent px-1 z-50" />
 
           <Dialog>
             <DialogTrigger asChild>

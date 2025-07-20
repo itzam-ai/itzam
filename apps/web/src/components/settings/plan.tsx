@@ -40,12 +40,20 @@ export function Plan({
 
   const [currentPrice, setCurrentPrice] = useState(yearlyPrice);
 
+  const currentPriceIsYearly =
+    currentPrice?.lookup_key === "pro_yearly" ||
+    currentPrice?.lookup_key === "basic_yearly";
+
   return (
     <Card>
       <PricingCard
         title={product.name.split(" ")[1] ?? "Basic"}
-        price={`$${formatStripeValue(currentPrice?.unit_amount ?? 0)}`}
-        priceSuffix="/month"
+        price={`$${formatStripeValue(
+          currentPriceIsYearly
+            ? (currentPrice?.unit_amount ?? 0) / 12
+            : (currentPrice?.unit_amount ?? 0)
+        )}`}
+        priceSuffix={"/month"}
         features={
           product.name.split(" ")[1] === "Pro" ? proFeatures : basicFeatures
         }
