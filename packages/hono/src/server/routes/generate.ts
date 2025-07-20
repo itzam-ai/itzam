@@ -227,6 +227,7 @@ export const generateRoute = new Hono()
           metadata,
         });
       } catch (error) {
+        console.log("error", error);
         if (error instanceof Error && "responseBody" in error) {
           try {
             return c.json(

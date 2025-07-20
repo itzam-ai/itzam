@@ -38,7 +38,7 @@ export function LastRuns({
         <div className="rounded-lg border py-16">
           <EmptyStateDetails
             title="No recent runs"
-            description="There are no runs for the last 30 days"
+            description="There are no runs for the last days"
             icon={<Play />}
           />
         </div>

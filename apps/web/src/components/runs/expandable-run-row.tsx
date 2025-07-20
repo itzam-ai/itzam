@@ -21,8 +21,11 @@ import { cn, formatDate } from "~/lib/utils";
 import { ImageAttachment } from "../message/image-attachment";
 import { ThreadDrawer } from "../thread/drawer";
 import { Badge } from "../ui/badge";
+import { Code } from "../ui/code";
 import { RunOriginBadge } from "./run-origin-badge";
 import { RunTypeBadge } from "./run-type-badge";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 function RunDetail({
   title,
@@ -85,10 +88,11 @@ function RunDetails({
   );
 
   const isEvent = metadata && "type" in metadata && metadata.type === "event";
+  const isObject = metadata && metadata.aiParams.schema;
 
   return (
     <div className="flex gap-12 px-4 pt-6 pb-12">
-      <div className="flex w-3/6 flex-col gap-6">
+      <div className="flex w-3/6 flex-col gap-6 overflow-x-auto">
         <RunDetail
           className="font-mono text-xs"
           title="Prompt"
@@ -183,7 +187,38 @@ function RunDetails({
             </div>
           </div>
         )}
-        {run.output && <RunDetail title="Output" value={run.output} />}
+        {run.output && (
+          <div className="flex flex-col gap-1">
+            <h4 className="text-muted-foreground text-sm">Output</h4>
+            {isObject ? (
+              <div className="mt-1 max-w-[400px] overflow-x-auto">
+                <Code
+                  code={(() => {
+                    try {
+                      // Parse and format JSON with proper indentation
+                      const parsed = JSON.parse(run.output);
+                      return JSON.stringify(parsed, null, 2);
+                    } catch {
+                      // If it's not valid JSON, return as-is
+                      return run.output;
+                    }
+                  })()}
+                  language="json"
+                  className="[&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_code]:whitespace-pre-wrap [&_code]:break-words"
+                  style={{
+                    fontSize: "12px",
+                  }}
+                />
+              </div>
+            ) : typeof run.output === "string" ? (
+              <div className="mt-1 max-w-[400px] prose prose-sm dark:prose-invert prose-neutral prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+                <Markdown remarkPlugins={[remarkGfm]}>{run.output}</Markdown>
+              </div>
+            ) : (
+              run.output
+            )}
+          </div>
+        )}
         {run.error && (
           <RunDetail
             title="Error"
