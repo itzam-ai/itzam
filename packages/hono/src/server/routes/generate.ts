@@ -222,9 +222,6 @@ export const generateRoute = new Hono()
           startTime,
         });
 
-        console.log("object", object);
-        console.log("metadata", metadata);
-
         return c.json({
           object,
           metadata,
