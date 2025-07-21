@@ -23,7 +23,7 @@ export default async function WorkflowsPage() {
 
   const { plan } = await getCustomerSubscriptionStatus();
 
-  const maxWorkflows = plan === "pro" ? 9999999 : plan === "basic" ? 10 : 2;
+  const maxWorkflows = plan === "pro" ? 10 : plan === "basic" ? 5 : 1;
 
   const userHasReachedMaxWorkflows =
     workflows.data && workflows.data.length >= maxWorkflows;

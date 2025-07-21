@@ -147,10 +147,10 @@ export async function checkPlanLimits(
   // check if the user has reached the limit in this workflow (5MB, 50MB or 200MB)
   const maxSize =
     plan === "pro"
-      ? 200 * 1024 * 1024 // 200MB
+      ? 10 * 1024 * 1024 // 10MB
       : plan === "basic"
-        ? 50 * 1024 * 1024 // 50MB
-        : 5 * 1024 * 1024; // 5MB
+        ? 3 * 1024 * 1024 // 3MB
+        : 1 * 1024 * 1024; // 1MB
 
   if (totalSizeWithNewResources > maxSize) {
     const totalSizeWithNewResourcesInMB =
@@ -175,10 +175,10 @@ export async function getMaxLimit() {
 
   const maxSize =
     plan === "pro"
-      ? 200 * 1024 * 1024 // 200MB
+      ? 10 * 1024 * 1024 // 10MB
       : plan === "basic"
-        ? 50 * 1024 * 1024 // 50MB
-        : 5 * 1024 * 1024; // 5MB
+        ? 3 * 1024 * 1024 // 3MB
+        : 1 * 1024 * 1024; // 1MB
 
   return maxSize;
 }

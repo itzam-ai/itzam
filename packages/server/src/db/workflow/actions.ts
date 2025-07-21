@@ -163,10 +163,10 @@ export const createWorkflow = protectedProcedure(
   ) => {
     const { plan } = await getCustomerSubscriptionStatus();
 
-    // Hobby: 2 workflows
-    // Basic: 10 workflows
-    // Pro: Unlimited workflows
-    const maxWorkflows = plan === "pro" ? 9999999 : plan === "basic" ? 10 : 2;
+    // Hobby: 1 workflows
+    // Basic: 5 workflows
+    // Pro: 10 workflows
+    const maxWorkflows = plan === "pro" ? 10 : plan === "basic" ? 5 : 1;
 
     const userWorkflows = await db.query.workflows.findMany({
       where: and(eq(workflows.userId, user.id), eq(workflows.isActive, true)),

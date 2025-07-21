@@ -8,6 +8,7 @@ import {
   Code,
   FileUpIcon,
   Mail,
+  Play,
   RefreshCcw,
   Workflow,
 } from "lucide-react";
@@ -19,7 +20,11 @@ export const standardFeatures = [
   },
   {
     icon: Workflow,
-    text: "2 workflows",
+    text: "1 workflow",
+  },
+  {
+    icon: Play,
+    text: "500 runs per month",
   },
   {
     icon: Bot,
@@ -39,7 +44,7 @@ export const standardFeatures = [
   },
   {
     icon: FileUpIcon,
-    text: "5MB knowledge per workflow",
+    text: "1MB knowledge per workflow",
   },
 ];
 
@@ -50,7 +55,11 @@ export const basicFeatures = [
   },
   {
     icon: Workflow,
-    text: "10 workflows",
+    text: "5 workflows",
+  },
+  {
+    icon: Play,
+    text: "5,000 runs per month",
   },
   {
     icon: Mail,
@@ -71,7 +80,7 @@ export const basicFeatures = [
   },
   {
     icon: FileUpIcon,
-    text: "50MB knowledge per workflow",
+    text: "3MB knowledge per workflow",
   },
 ];
 
@@ -82,7 +91,11 @@ export const proFeatures = [
   },
   {
     icon: Workflow,
-    text: "Unlimited workflows",
+    text: "10 workflows",
+  },
+  {
+    icon: Play,
+    text: "50,000 runs per month",
   },
   {
     icon: Clock,
@@ -103,7 +116,7 @@ export const proFeatures = [
   },
   {
     icon: FileUpIcon,
-    text: "500MB knowledge per workflow",
+    text: "10MB knowledge per workflow",
   },
 ];
 
@@ -113,16 +126,24 @@ export const enterpriseFeatures = [
     text: "Everything in Pro, plus:",
   },
   {
+    icon: Workflow,
+    text: "Custom workflows",
+  },
+  {
+    icon: Play,
+    text: "Custom runs per month",
+  },
+  {
     icon: Calendar1,
     text: "Feature prioritization",
   },
   {
-    icon: Code,
-    text: "Custom integrations",
-  },
-  {
     icon: BotMessageSquareIcon,
     text: "1000 prompt enhancements",
+  },
+  {
+    icon: Code,
+    text: "Custom integrations",
   },
   {
     icon: FileUpIcon,
