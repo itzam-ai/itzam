@@ -95,7 +95,7 @@ function RunDetails({
   );
 
   const isEvent = metadata && "type" in metadata && metadata.type === "event";
-  const isObject = metadata && metadata.aiParams.schema;
+  const isObject = metadata && metadata.aiParams && metadata.aiParams.schema;
 
   return (
     <div className="flex gap-20 px-4 pt-6 pb-12">
