@@ -77,9 +77,9 @@ export function Hero() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="font-serif font-medium text-5xl md:text-7xl"
           >
-            Open Source
+            Make AI apps
             <br />
-            <span className="text-orange-600">Backend for AI</span>
+            <span className="text-orange-600">in minutes</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, filter: "blur(4px)", y: 10 }}
