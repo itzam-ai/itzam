@@ -88,7 +88,11 @@ export async function getLast30RunsInTheLastDays(workflowId: string) {
     ),
     orderBy: (runs, { desc }) => [desc(runs.createdAt)],
     with: {
-      model: true,
+      model: {
+        with: {
+          provider: true,
+        },
+      },
       runResources: {
         with: {
           resource: true,
@@ -190,7 +194,11 @@ export async function getRunsByWorkflowId(
   return await db.query.runs.findMany({
     where: sql`${sql.join(whereConditions, sql` AND `)}`,
     with: {
-      model: true,
+      model: {
+        with: {
+          provider: true,
+        },
+      },
       runResources: {
         with: {
           resource: true,
