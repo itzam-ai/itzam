@@ -17,7 +17,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { TableCell, TableRow } from "~/components/ui/table";
 import { RunOriginType } from "~/lib/mappers/run-origin";
-import { cn, formatDate } from "~/lib/utils";
+import { cn, formatCurrency, formatDate, formatNumber } from "~/lib/utils";
 import { ImageAttachment } from "../message/image-attachment";
 import { ThreadDrawer } from "../thread/drawer";
 import { Badge } from "../ui/badge";
@@ -26,6 +26,13 @@ import { RunOriginBadge } from "./run-origin-badge";
 import { RunTypeBadge } from "./run-type-badge";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import ProviderIcon from "public/models/svgs/provider-icon";
 
 function RunDetail({
   title,
@@ -48,7 +55,7 @@ function RunDetail({
           {value}
         </p>
       ) : (
-        value
+        <div className="mt-1">{value}</div>
       )}
     </div>
   );
@@ -91,8 +98,8 @@ function RunDetails({
   const isObject = metadata && metadata.aiParams.schema;
 
   return (
-    <div className="flex gap-12 px-4 pt-6 pb-12">
-      <div className="flex w-3/6 flex-col gap-6 overflow-x-auto">
+    <div className="flex gap-20 px-4 pt-6 pb-12">
+      <div className="flex w-3/6 flex-col gap-6 overflow-x-auto max-w-lg">
         <RunDetail
           className="font-mono text-xs"
           title="Prompt"
@@ -191,7 +198,7 @@ function RunDetails({
           <div className="flex flex-col gap-1">
             <h4 className="text-muted-foreground text-sm">Output</h4>
             {isObject ? (
-              <div className="mt-1 max-w-[400px] overflow-x-auto">
+              <div className="mt-1 overflow-x-auto">
                 <Code
                   code={(() => {
                     try {
@@ -211,7 +218,7 @@ function RunDetails({
                 />
               </div>
             ) : typeof run.output === "string" ? (
-              <div className="mt-1 max-w-[400px] prose prose-sm dark:prose-invert prose-neutral prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
+              <div className="mt-1 prose prose-sm dark:prose-invert prose-neutral prose-p:my-2 prose-headings:my-3 prose-ul:my-2 prose-ol:my-2 prose-pre:my-2 prose-blockquote:my-2">
                 <Markdown remarkPlugins={[remarkGfm]}>{run.output}</Markdown>
               </div>
             ) : (
@@ -232,7 +239,7 @@ function RunDetails({
         <RunDetail
           title="Status"
           value={
-            <div className="mt-1 flex items-center">
+            <div className="flex items-center gap-0.5 ml-0.5">
               <div
                 className={`mr-1.5 size-2 rounded-full bg-green-100 ${
                   run.status === "COMPLETED"
@@ -259,24 +266,16 @@ function RunDetails({
         />
 
         <RunDetail
-          title="Model"
-          value={
-            <div className="mt-1 flex items-center gap-2">
-              <ModelIcon tag={run.model?.tag ?? ""} size="xs" />
-              <p className="text-sm">{run.model?.name}</p>
-            </div>
-          }
-        />
-
-        <RunDetail
           title="Origin"
           value={<RunOriginBadge origin={run.origin as RunOriginType} />}
         />
 
+        <RunDetail title="Duration" value={`${run.durationInMs}ms`} />
+
         <RunDetail
           title="Thread"
           value={
-            <div className="mt-1 flex items-center gap-2">
+            <div>
               {run.threadId ? (
                 <ThreadDrawer
                   thread={{
@@ -300,15 +299,223 @@ function RunDetails({
       </div>
 
       <div className="flex w-1/6 flex-col gap-6">
-        <RunDetail title="Date" value={run.createdAt.toLocaleString()} />
+        <RunDetail
+          title="Model"
+          value={
+            <div className="flex items-center gap-2">
+              <ModelIcon tag={run.model?.tag ?? ""} size="xs" />
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <p className="text-sm border-b border-b-muted-foreground/50 border-dashed cursor-pointer">
+                      {run.model?.name}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="flex flex-col gap-1.5 min-w-[250px]">
+                      <div className="flex items-end gap-1">
+                        <p className="text-sm text-muted-foreground whitespace-nowrap">
+                          Provider
+                        </p>
+                        <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                        <div className="flex items-center gap-1.5">
+                          <ProviderIcon
+                            id={run.model?.providerId ?? "openai"}
+                            size="us"
+                          />
+                          <p className="text-sm">{run.model?.provider?.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-end gap-1">
+                        <p className="text-sm text-muted-foreground whitespace-nowrap">
+                          Input Tokens (1M)
+                        </p>
+                        <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
 
-        <RunDetail title="Duration" value={`${run.durationInMs}ms`} />
+                        <p className="text-sm">
+                          {formatCurrency(
+                            Number(run.model?.inputPerMillionTokenCost)
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-end gap-1">
+                        <p className="text-sm text-muted-foreground whitespace-nowrap">
+                          Output Tokens (1M)
+                        </p>
+                        <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
 
-        <RunDetail title="Cost" value={`$${run.cost}`} />
+                        <p className="text-sm">
+                          {formatCurrency(
+                            Number(run.model?.outputPerMillionTokenCost)
+                          )}
+                        </p>
+                      </div>
+                      <div className="flex items-end gap-1">
+                        <p className="text-sm text-muted-foreground whitespace-nowrap">
+                          Context Window
+                        </p>
+                        <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+
+                        <p className="text-sm">
+                          {formatNumber(run.model?.contextWindowSize ?? 0)}
+                        </p>
+                      </div>
+                      <div className="flex items-end gap-1">
+                        <p className="text-sm text-muted-foreground whitespace-nowrap">
+                          Max Tokens
+                        </p>
+                        <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+
+                        <p className="text-sm">
+                          {formatNumber(run.model?.maxTokens ?? 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          }
+        />
+
+        <RunDetail
+          title="Date"
+          value={
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <p className="text-sm border-b border-b-muted-foreground/50 border-dashed cursor-pointer">
+                    {formatDate(run.createdAt)}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col gap-1.5 min-w-[250px]">
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        UTC
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <p className="text-sm whitespace-nowrap">
+                        {new Date(run.createdAt).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                          timeZone: "UTC",
+                        })}
+                      </p>
+                    </div>
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Local Time
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <p className="text-sm whitespace-nowrap">
+                        {new Date(run.createdAt).toLocaleString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          hour12: true,
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
+        />
+
+        <RunDetail
+          title="Cost"
+          value={
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <p className="text-sm border-b border-b-muted-foreground/50 border-dashed cursor-pointer">
+                    ${run.cost}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col gap-1.5 min-w-[250px]">
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Input Cost
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm">
+                          $
+                          {(
+                            (Number(run.model?.inputPerMillionTokenCost) /
+                              1000000) *
+                            run.inputTokens
+                          ).toFixed(6)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Output Cost
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm">
+                          $
+                          {(
+                            (Number(run.model?.outputPerMillionTokenCost) /
+                              1000000) *
+                            run.outputTokens
+                          ).toFixed(6)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
+        />
 
         <RunDetail
           title="Tokens"
-          value={`${run.inputTokens + run.outputTokens} (${run.inputTokens} + ${run.outputTokens})`}
+          value={
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger>
+                  <p className="text-sm border-b border-b-muted-foreground/50 border-dashed cursor-pointer">
+                    {run.inputTokens + run.outputTokens}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col gap-1.5 min-w-[250px]">
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Input Tokens
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm">{run.inputTokens}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-1">
+                      <p className="text-sm text-muted-foreground whitespace-nowrap">
+                        Output Tokens
+                      </p>
+                      <hr className="border-muted-foreground/30 w-full border-dashed h-px pb-1" />
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm">{run.outputTokens}</p>
+                      </div>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          }
         />
         {isEvent && (
           <RunDetail
