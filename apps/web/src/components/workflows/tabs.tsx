@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
@@ -32,7 +33,8 @@ export function WorkflowTabs({ id }: { id: string }) {
       <TabsList className="mb-6 grid grid-cols-6">
         <Link prefetch href={`/dashboard/workflows/${id}`} className="w-full">
           <TabsTrigger value="summary" className="w-full">
-            Summary
+            <span className="z-10">Summary</span>
+            <SlidingDecorator tab="summary" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
         <Link
@@ -41,7 +43,8 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="model" className="w-full">
-            Model
+            <span className="z-10">Model</span>
+            <SlidingDecorator tab="model" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
         <Link
@@ -50,7 +53,8 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="prompt" className="w-full">
-            Prompt
+            <span className="z-10">Prompt</span>
+            <SlidingDecorator tab="prompt" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
         <Link
@@ -59,7 +63,8 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="knowledge" className="w-full">
-            Knowledge
+            <span className="z-10">Knowledge</span>
+            <SlidingDecorator tab="knowledge" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
         <Link
@@ -68,7 +73,8 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="runs" className="w-full">
-            Runs
+            <span className="z-10">Runs</span>
+            <SlidingDecorator tab="runs" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
         <Link
@@ -77,10 +83,29 @@ export function WorkflowTabs({ id }: { id: string }) {
           className="w-full"
         >
           <TabsTrigger value="playground" className="w-full">
-            Playground
+            <span className="z-10">Playground</span>
+            <SlidingDecorator tab="playground" activeTab={getActiveTab()} />
           </TabsTrigger>
         </Link>
       </TabsList>
     </Tabs>
+  );
+}
+
+export function SlidingDecorator({
+  tab,
+  activeTab,
+}: {
+  tab: string;
+  activeTab: string;
+}) {
+  return (
+    tab === activeTab && (
+      <motion.div
+        layoutId="underline-tabs"
+        id="underline"
+        className="absolute bottom-0 left-0 h-full w-full rounded-md bg-background dark:bg-muted-foreground/20 pointer-events-none shadow"
+      />
+    )
   );
 }
