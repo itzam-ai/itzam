@@ -13,8 +13,6 @@ import { PlaygroundCard } from "~/components/landing/playground";
 import { Providers } from "~/components/landing/providers";
 import { UnifiedBillingCard } from "~/components/landing/unified-billing";
 export default function Home() {
-  // const { isSignedIn } = useCurrentUser();
-
   return (
     <div className="mx-auto min-h-screen bg-background px-6 xl:px-0">
       {/* Navigation Bar */}
@@ -65,16 +63,6 @@ export default function Home() {
             component={<EasySDKAPI />}
           />
         </section>
-        {/* Pricing Section */}
-        {/* <section id="pricing" className="border-t pt-24">
-          <Feature
-            icon={CreditCard}
-            title="Free to start"
-            feature="Pricing"
-            description="Powerful features, no hidden costs."
-            component={<PricingTable isSignedIn={isSignedIn} />}
-          />
-        </section> */}
 
         {/* CTA */}
         <section id="cta" className="md:pt-24 pt-0 pb-16 md:pb-24">
