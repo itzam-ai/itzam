@@ -1,5 +1,5 @@
-import crypto from "crypto";
 import { env } from "@itzam/utils/env";
+import crypto from "crypto";
 
 export async function POST(request: Request) {
   const DISCORD_WEBHOOK_URL = env.DISCORD_WEBHOOK_URL;
@@ -33,6 +33,15 @@ export async function POST(request: Request) {
   }
 
   if (!content) {
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  if (!DISCORD_WEBHOOK_URL) {
+    console.log("Discord webhook URL is not set");
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

@@ -40,11 +40,9 @@ export async function notifyError(
     };
 
     // Determine the Discord webhook URL based on environment
-    const baseUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+      ? `https://${process.env.NEXT_PUBLIC_APP_URL}`
+      : "http://localhost:3000";
 
     const response = await fetch(`${baseUrl}/api/discord`, {
       method: "POST",

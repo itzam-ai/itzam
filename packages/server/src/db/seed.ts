@@ -3,7 +3,6 @@ import "dotenv/config";
 
 import { and, eq } from "drizzle-orm";
 import { v7 } from "uuid";
-import { createStripeCustomer } from "./billing/actions";
 import { db } from "./index";
 import {
   knowledge,
@@ -14,7 +13,6 @@ import {
 } from "./schema";
 import { createAdminAuthClient } from "./supabase/server";
 
-const ADMIN_USERS = ["abdulhdr1@gmail.com", "gustavo_fior@outlook.com"];
 type ModelInput = {
   tag: string;
   name: string;
@@ -44,57 +42,45 @@ async function seedLocalUsers(): Promise<void> {
 
   console.log("👥 Users from Supabase Auth", users.data.users);
 
-  for (const email of ADMIN_USERS) {
-    try {
-      // Fetch existing user from Supabase Auth
-      const user = users.data.users.find((user) => user.email === email);
+  try {
+    // Fetch existing user from Supabase Auth
+    const user = users.data.users.find((user) => user.email === "admin");
 
-      if (!user) {
-        console.error(`❌ User ${email} not found in Supabase Auth`);
+    if (!user) {
+      console.error(`❌ User admin not found in Supabase Auth`);
 
-        // Create user in Supabase Auth
-        const { data: newUser, error: newUserError } =
-          await supabaseAdmin.createUser({
-            email,
-            email_confirm: true,
-            password: "password",
-            user_metadata: {
-              name:
-                email === "abdulhdr1@gmail.com"
-                  ? "Abdul Haidar"
-                  : "Gustavo Fior",
-              role: "ADMIN",
-            },
-          });
-
-        if (newUserError) {
-          console.error(
-            `❌ Error creating user ${email} in Supabase Auth: ${newUserError}`
-          );
-          continue;
-        }
-
-        console.log(`✅ Created user ${email} in Supabase Auth`);
-
-        const stripeCustomer = await createStripeCustomer(
-          newUser.user.id,
-          newUser.user.user_metadata.name ?? "",
-          newUser.user.email ?? ""
-        );
-
-        await supabaseAdmin.updateUserById(newUser.user.id, {
+      // Create user in Supabase Auth
+      const { data: newUser, error: newUserError } =
+        await supabaseAdmin.createUser({
+          email: "admin@itzam.local",
+          email_confirm: true,
+          password: process.env.ADMIN_PASSWORD,
           user_metadata: {
-            stripeCustomerId: stripeCustomer.id,
+            name: "Itzam Admin",
+            role: "ADMIN",
           },
         });
 
-        console.log(`✅ Created Stripe customer ${stripeCustomer.id}`);
-      } else {
-        console.log(`✅ User ${email} found in Supabase Auth`);
+      if (newUserError) {
+        console.error(
+          `❌ Error creating user admin in Supabase Auth: ${newUserError}`
+        );
+        return;
       }
-    } catch (error) {
-      console.error(`❌ Error syncing user ${email}:`, error);
+
+      console.log(`✅ Created user admin in Supabase Auth`);
+
+      await supabaseAdmin.updateUserById(newUser.user.id, {
+        user_metadata: {
+          name: "Itzam Admin",
+          role: "ADMIN",
+        },
+      });
+    } else {
+      console.log(`✅ User admin found in Supabase Auth`);
     }
+  } catch (error) {
+    console.error(`❌ Error syncing user admin:`, error);
   }
 
   console.log("✅ Local users sync completed");
@@ -789,7 +775,7 @@ async function seed() {
 
   // Create default workflows for admins
   for (const user of adminUsers.data.users) {
-    if (user.email && ADMIN_USERS.includes(user.email)) {
+    if (user.email && user.email === "admin") {
       await seedWorkflows(user.id);
     }
   }
