@@ -14,56 +14,6 @@ import { Button } from "../ui/button";
 import { CodeBlockCode } from "../ui/code-block";
 import { Input } from "../ui/input";
 
-interface StarBorderProps {
-  as?: React.ElementType;
-  className?: string;
-  color?: string;
-  speed?: string;
-  thickness?: number;
-  children: React.ReactNode;
-  [key: string]: unknown; // Allow any additional props to be passed through
-}
-
-const StarBorder = ({
-  as: Component = "button",
-  className = "",
-  color = "white",
-  speed = "6s",
-  thickness = 1,
-  children,
-  ...rest
-}: StarBorderProps) => {
-  const { style, ...otherProps } = rest;
-  return (
-    <Component
-      className={`relative inline-block overflow-hidden rounded-[20px] ${className}`}
-      style={{
-        padding: `${thickness}px 0`,
-        ...(style as React.CSSProperties),
-      }}
-      {...otherProps}
-    >
-      <div
-        className="absolute w-[300%] h-[50%] opacity-70 bottom-[-11px] right-[-250%] rounded-full animate-star-movement-bottom z-0"
-        style={{
-          background: `radial-gradient(circle, ${color}, transparent 10%)`,
-          animationDuration: speed,
-        }}
-      ></div>
-      <div
-        className="absolute w-[300%] h-[50%] opacity-70 top-[-10px] left-[-250%] rounded-full animate-star-movement-top z-0"
-        style={{
-          background: `radial-gradient(circle, ${color}, transparent 10%)`,
-          animationDuration: speed,
-        }}
-      ></div>
-      <div className="relative z-[1] bg-gradient-to-b from-neutral-100 to-neutral-100 dark:from-neutral-900 dark:to-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 text-center text-xs py-2 px-4 rounded-[20px]">
-        {children}
-      </div>
-    </Component>
-  );
-};
-
 export function Hero() {
   const { isSignedIn } = useCurrentUser();
 
