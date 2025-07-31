@@ -6,13 +6,20 @@ import {
 } from "@itzam/server/db/api-keys/actions";
 import { runOriginEnum } from "@itzam/server/db/schema";
 import { getThreadByIdAndUserIdWithContexts } from "@itzam/server/db/thread/actions";
-import { getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts } from "@itzam/server/db/workflow/actions";
+import {
+  getRunCountInCurrentMonth,
+  getWorkflowBySlugAndUserIdWithModelAndModelSettingsAndContexts,
+} from "@itzam/server/db/workflow/actions";
 import { env } from "@itzam/utils/env";
 import { createClient } from "@supabase/supabase-js";
 import { v7 as uuidv7 } from "uuid";
 import "zod-openapi/extend";
 import type { NonLiteralJson } from "./client/schemas";
 import { StatusCode } from "./errors";
+import {
+  getCustomerSubscriptionStatus,
+  getCustomerSubscriptionStatusForUserId,
+} from "@itzam/server/db/billing/actions";
 
 export type PreRunDetails = {
   id: string;
@@ -95,6 +102,22 @@ export const setupRunGeneration = async ({
 
   if (!workflow) {
     return { error: "Workflow not found", status: 404 as StatusCode };
+  }
+
+  // Checking runs limit
+  const runCountInCurrentMonth = await getRunCountInCurrentMonth(workflow.id);
+
+  const { plan } = await getCustomerSubscriptionStatusForUserId(userId);
+
+  console.log(plan);
+
+  const runLimit = plan === "pro" ? 50000 : plan === "basic" ? 5000 : 500;
+
+  if (runCountInCurrentMonth >= runLimit) {
+    return {
+      error: "Runs limit reached",
+      status: 429 as StatusCode,
+    };
   }
 
   const run: PreRunDetails = {

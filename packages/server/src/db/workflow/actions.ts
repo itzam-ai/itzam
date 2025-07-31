@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, count, eq, gte, lte } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import "server-only";
@@ -14,9 +14,11 @@ import {
   modelSettings,
   models,
   resources,
+  runs,
   workflows,
 } from "../schema";
 import { getCustomerSubscriptionStatus } from "../billing/actions";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 export type WorkflowWithRelations = Awaited<
   ReturnType<typeof getWorkflowByIdWithRelations>
@@ -303,3 +305,26 @@ export const deleteWorkflow = protectedProcedure(
     redirect(`/dashboard/workflows`);
   }
 );
+
+export const getRunCountInCurrentMonth = async (workflowId: string) => {
+  const now = new Date();
+  const start = startOfMonth(now);
+  const end = endOfMonth(now);
+
+  console.log(start, end);
+
+  const runCount = await db
+    .select({ count: count() })
+    .from(runs)
+    .where(
+      and(
+        eq(runs.workflowId, workflowId),
+        gte(runs.createdAt, start),
+        lte(runs.createdAt, end)
+      )
+    );
+
+  console.log(runCount);
+
+  return runCount[0]?.count || 0;
+};

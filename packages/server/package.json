@@ -41,6 +41,7 @@
     "@aws-sdk/client-s3": "^3.744.0",
     "@aws-sdk/lib-storage": "^3.744.0",
     "@itzam/utils": "workspace:*",
+    "@react-email/components": "^0.3.2",
     "@repo/typescript-config": "workspace:*",
     "@statsig/statsig-node-core": "^0.3.1",
     "@stripe/stripe-js": "^5.10.0",
@@ -60,6 +61,7 @@
     "mime-types": "^3.0.1",
     "pg": "^8.14.1",
     "postgres": "^3.4.4",
+    "resend": "^4.7.0",
     "stripe": "^17.7.0",
     "uuid": "^11.1.0",
     "zod": "^3.25.67"
