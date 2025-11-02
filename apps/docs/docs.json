@@ -131,14 +131,9 @@
           "icon": "video"
         },
         {
-          "anchor": "Join the Discord",
+          "anchor": "Discord Support",
           "href": "https://discord.gg/RtqC7brGbk",
           "icon": "discord"
-        },
-        {
-          "anchor": "Support",
-          "href": "mailto:support@itz.am",
-          "icon": "hand"
         }
       ]
     }
