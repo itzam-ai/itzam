@@ -21,7 +21,7 @@
     "@types/uuid": "^10.0.0",
     "drizzle-kit": "^0.24.0",
     "eslint-plugin-drizzle": "^0.2.3",
-    "next": "^15.3.1",
+    "next": "15.3.8",
     "react": "^19.1.0",
     "typescript": "^5.8.3"
   },
