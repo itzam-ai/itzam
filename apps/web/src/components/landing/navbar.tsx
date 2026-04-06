@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import { maintenanceModeEnabled } from "@itzam/utils/maintenance";
 import {
   ArrowRight,
   Blocks,
@@ -131,7 +132,20 @@ export function NavBar() {
             </div>
 
             <div className="flex gap-2 items-center justify-end">
-              {isSignedIn ? (
+              {maintenanceModeEnabled ? (
+                <>
+                  <Badge
+                    variant="amber"
+                    size="sm"
+                    className="hidden sm:inline-flex"
+                  >
+                    Maintenance
+                  </Badge>
+                  <Link href="https://docs.itz.am" target="_blank">
+                    <Button variant="secondary">Docs</Button>
+                  </Link>
+                </>
+              ) : isSignedIn ? (
                 <Link href="/dashboard" prefetch={true}>
                   <Button variant="secondary">
                     Dashboard

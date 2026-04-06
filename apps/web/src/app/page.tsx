@@ -7,6 +7,7 @@ import { Feature } from "~/components/landing/feature";
 
 import { Footer } from "~/components/landing/footer";
 import { Hero } from "~/components/landing/hero";
+import { MaintenanceBanner } from "~/components/landing/maintenance-banner";
 import { ModelHotSwap } from "~/components/landing/model-hot-swap";
 import { NavBar } from "~/components/landing/navbar";
 import { PlaygroundCard } from "~/components/landing/playground";
@@ -19,6 +20,7 @@ export default function Home() {
     <div className="mx-auto min-h-screen bg-background px-6 xl:px-0">
       {/* Navigation Bar */}
       <NavBar />
+      <MaintenanceBanner />
       {/* Hero Section */}
       <Hero />
 

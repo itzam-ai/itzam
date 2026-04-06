@@ -1,4 +1,5 @@
 import confetti from "canvas-confetti";
+import { maintenanceModeEnabled } from "@itzam/utils/maintenance";
 import { ArrowRight, LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -46,17 +47,30 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             price="Free"
             features={standardFeatures}
             button={
-              <Link
-                href={
-                  isSignedIn ? "/dashboard" : "/auth/login?redirect=/dashboard"
-                }
-                className="block w-full"
-              >
-                <Button variant="secondary" className="w-full" size="sm">
-                  Start Building
-                  <ArrowRight className="hidden size-4 md:block" />
+              maintenanceModeEnabled ? (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  size="sm"
+                  disabled
+                >
+                  Maintenance mode
                 </Button>
-              </Link>
+              ) : (
+                <Link
+                  href={
+                    isSignedIn
+                      ? "/dashboard"
+                      : "/auth/login?redirect=/dashboard"
+                  }
+                  className="block w-full"
+                >
+                  <Button variant="secondary" className="w-full" size="sm">
+                    Start Building
+                    <ArrowRight className="hidden size-4 md:block" />
+                  </Button>
+                </Link>
+              )
             }
           />
         </div>
@@ -83,19 +97,30 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             priceSuffix={"/month"}
             features={basicFeatures}
             button={
-              <Link
-                href={
-                  isSignedIn
-                    ? "/dashboard/settings"
-                    : "/auth/login?redirect=/dashboard/settings"
-                }
-                className="w-full"
-              >
-                <Button variant="secondary" className="w-full" size="sm">
-                  Start Building
-                  <ArrowRight className="hidden size-4 md:block" />
+              maintenanceModeEnabled ? (
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  size="sm"
+                  disabled
+                >
+                  Maintenance mode
                 </Button>
-              </Link>
+              ) : (
+                <Link
+                  href={
+                    isSignedIn
+                      ? "/dashboard/settings"
+                      : "/auth/login?redirect=/dashboard/settings"
+                  }
+                  className="w-full"
+                >
+                  <Button variant="secondary" className="w-full" size="sm">
+                    Start Building
+                    <ArrowRight className="hidden size-4 md:block" />
+                  </Button>
+                </Link>
+              )
             }
           />
         </div>
@@ -121,19 +146,25 @@ export function PricingTable({ isSignedIn }: { isSignedIn: boolean }) {
             priceSuffix="/month"
             features={proFeatures}
             button={
-              <Link
-                href={
-                  isSignedIn
-                    ? "/dashboard/settings"
-                    : "/auth/login?redirect=/dashboard/settings"
-                }
-                className="w-full"
-              >
-                <Button variant="primary" className="w-full" size="sm">
-                  Start Building
-                  <ArrowRight className="hidden size-4 md:block" />
+              maintenanceModeEnabled ? (
+                <Button variant="primary" className="w-full" size="sm" disabled>
+                  Maintenance mode
                 </Button>
-              </Link>
+              ) : (
+                <Link
+                  href={
+                    isSignedIn
+                      ? "/dashboard/settings"
+                      : "/auth/login?redirect=/dashboard/settings"
+                  }
+                  className="w-full"
+                >
+                  <Button variant="primary" className="w-full" size="sm">
+                    Start Building
+                    <ArrowRight className="hidden size-4 md:block" />
+                  </Button>
+                </Link>
+              )
             }
           />
         </Card>

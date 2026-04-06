@@ -1,7 +1,21 @@
 import { updateSession } from "@itzam/supabase/middleware";
-import { type NextRequest } from "next/server";
+import { maintenanceModeEnabled } from "@itzam/utils/maintenance";
+import { NextResponse, type NextRequest } from "next/server";
+
+const blockedPaths = ["/dashboard", "/onboard"];
 
 export async function middleware(request: NextRequest) {
+  if (
+    maintenanceModeEnabled &&
+    blockedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    url.search = "";
+
+    return NextResponse.redirect(url);
+  }
+
   return await updateSession(request);
 }
 

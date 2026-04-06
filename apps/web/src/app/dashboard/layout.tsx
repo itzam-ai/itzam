@@ -1,5 +1,6 @@
 import { getUser } from "@itzam/server/db/auth/actions";
 import { getLastFiveWorkflows } from "@itzam/server/db/workflow/actions";
+import { maintenanceModeEnabled } from "@itzam/utils/maintenance";
 import { redirect } from "next/navigation";
 import "server-only";
 import { Feedback } from "~/components/feedback/feedback";
@@ -15,6 +16,10 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  if (maintenanceModeEnabled) {
+    redirect("/");
+  }
+
   const { data, error } = await getUser();
 
   if (error || !data.user) {

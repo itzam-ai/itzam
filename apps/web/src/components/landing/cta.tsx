@@ -1,5 +1,6 @@
 "use client";
 
+import { maintenanceModeEnabled } from "@itzam/utils/maintenance";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import ModelIcon from "public/models/svgs/model-icon";
@@ -129,7 +130,14 @@ export const CTA = () => {
             Docs
           </Button>
         </Link>
-        {isSignedIn ? (
+        {maintenanceModeEnabled ? (
+          <Link href="/roadmap">
+            <Button size="lg" variant="primary" className="w-48">
+              See roadmap
+              <ArrowRight className="size-4" />
+            </Button>
+          </Link>
+        ) : isSignedIn ? (
           <Link href="/dashboard">
             <Button size="lg" variant="primary" className="w-48">
               Start Building
